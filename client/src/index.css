@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #121212;
+  --color-primary-dark: #000000;
+  --color-primary-light: #2A2A2A;
+  --color-coral: #121212;
+  --color-coral-dark: #000000;
+  --color-coral-light: #2A2A2A;
+  --color-surface: #F5EFEB;
+  --color-surface-card: #FFFFFF;
+  --color-border: #E5DCD3;
+  --color-slate-text: #121212;
+  --color-slate-muted: #5C554E;
+  
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+:root {
+  --primary: #121212;
+  --secondary: #2A2A2A;
+  --background: #F5EFEB;
+  --surface: #F5EFEB;
+  --card: #FFFFFF;
+  --border: #E5DCD3;
+  --text: #121212;
+  --font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: #F5EFEB;
+  color: #121212;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  letter-spacing: -0.01em;
+}
+
+/* Crisp Clean Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #EFE7DE;
+}
+::-webkit-scrollbar-thumb {
+  background: #D8CCC0;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9E9285;
+}
+
+/* Clean Card & Interactive Elements */
+.clean-card {
+  background: #FFFFFF;
+  border: 1px solid #E5DCD3;
+  border-radius: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.clean-card:hover {
+  border-color: #121212;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+}
+
+/* High-Contrast Luxury Black Button Styles */
+.btn-primary {
+  background-color: #121212;
+  color: #FFFFFF;
+  font-weight: 700;
+  border-radius: 0.85rem;
+  padding: 0.75rem 1.4rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  letter-spacing: -0.01em;
+}
+.btn-primary:hover {
+  background-color: #2A2A2A;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.btn-secondary {
+  background-color: #FFFFFF;
+  color: #121212;
+  font-weight: 700;
+  border: 1.5px solid #121212;
+  border-radius: 0.85rem;
+  padding: 0.75rem 1.4rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.btn-secondary:hover {
+  border-color: #121212;
+  background-color: #121212;
+  color: #FFFFFF;
+}

@@ -1,0 +1,93 @@
+import React, { useState } from 'react';
+import { ArrowRight, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useProducts } from '../context/ProductContext';
+import { Product, DepartmentId } from '../types';
+import { ProductCard } from './ProductCard';
+import { ProductQuickViewModal } from './ProductQuickViewModal';
+
+export const FeaturedProducts: React.FC = () => {
+  const navigate = useNavigate();
+  const { products } = useProducts();
+  const [selectedDept, setSelectedDept] = useState<'all' | DepartmentId>('all');
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+
+  const filteredProducts = products.filter(p => {
+    if (selectedDept === 'all') return p.isFeatured;
+    return p.departmentId === selectedDept;
+  });
+
+  const tabOptions: { id: 'all' | DepartmentId; label: string }[] = [
+    { id: 'all', label: 'All Featured' },
+    { id: 'womens-fashion', label: "Women's Fashion" },
+    { id: 'dry-fruits-nuts', label: 'Dry Fruits & Nuts' },
+    { id: 'perfumes-fragrances', label: 'Perfumes & Attars' },
+    { id: 'cosmetics-beauty', label: 'Cosmetics & Beauty' }
+  ];
+
+  return (
+    <section className="py-16 sm:py-20 bg-[#F5EFEB] border-b border-[#E5DCD3]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4 text-left">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-black border border-[#E5DCD3] text-xs font-bold mb-2 shadow-xs">
+              <Sparkles className="w-3.5 h-3.5 text-black" />
+              <span>Handpicked Highlights</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black text-black tracking-tight">
+              Featured Products
+            </h2>
+            <p className="mt-1 text-xs sm:text-sm text-[#5C554E]">
+              Top-rated selections across sarees, gourmet nuts, artisanal oud, and pure beauty.
+            </p>
+          </div>
+
+          <button
+            onClick={() => navigate('/shop')}
+            className="flex items-center gap-2 text-xs font-bold text-black hover:underline transition group self-start md:self-auto"
+          >
+            <span>View Full Catalog</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </button>
+        </div>
+
+        {/* Department Filter Tabs */}
+        <div className="flex overflow-x-auto pb-2 gap-2 mb-8 no-scrollbar">
+          {tabOptions.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setSelectedDept(tab.id)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition ${
+                selectedDept === tab.id
+                  ? 'bg-black text-white shadow-xs'
+                  : 'bg-white text-black border border-[#E5DCD3] hover:border-black'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Products Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {filteredProducts.slice(0, 8).map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              onOpenQuickView={(p) => setQuickViewProduct(p)}
+            />
+          ))}
+        </div>
+
+        {quickViewProduct && (
+          <ProductQuickViewModal
+            product={quickViewProduct}
+            isOpen={Boolean(quickViewProduct)}
+            onClose={() => setQuickViewProduct(null)}
+          />
+        )}
+      </div>
+    </section>
+  );
+};

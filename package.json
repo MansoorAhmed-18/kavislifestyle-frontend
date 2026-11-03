@@ -1,0 +1,14 @@
+{
+  "name": "kavis-lifestyle",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kavi's Lifestyle — Premium Indian E-Commerce Platform",
+  "scripts": {
+    "dev": "npm run dev --prefix client",
+    "dev:client": "npm run dev --prefix client",
+    "dev:server": "npm run dev --prefix server",
+    "build": "npm run build --prefix client",
+    "build:server": "npm run build --prefix server"
+  }
+}
+
