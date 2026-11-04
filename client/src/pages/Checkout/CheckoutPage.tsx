@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ShieldCheck, CheckCircle2, ArrowRight, ArrowLeft, MapPin, Plus, Check } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, ArrowRight, ArrowLeft, MapPin, Plus, Check, Truck, Clock, Box, Calendar } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AnnouncementBar } from '../../components/AnnouncementBar';
 import { Navbar } from '../../components/Navbar';
@@ -192,54 +192,184 @@ export default function CheckoutPage() {
     }, 1000);
   };
 
+  const calculateDeliveryTurnaround = (city?: string, pincode?: string) => {
+    const cleanCity = (city || '').toLowerCase();
+    const cleanPin = (pincode || '').slice(0, 2);
+
+    if (
+      cleanCity.includes('chennai') ||
+      cleanPin === '60' ||
+      cleanPin === '61' ||
+      cleanPin === '62' ||
+      cleanPin === '63' ||
+      cleanPin === '64'
+    ) {
+      return {
+        daysRange: '1–2 Business Days',
+        daysCount: 2,
+        tier: 'Local Express Delivery',
+        courier: 'BlueDart Local Express'
+      };
+    }
+
+    if (
+      cleanCity.includes('bengaluru') ||
+      cleanCity.includes('bangalore') ||
+      cleanCity.includes('mumbai') ||
+      cleanCity.includes('delhi') ||
+      cleanCity.includes('hyderabad') ||
+      cleanCity.includes('kolkata') ||
+      cleanCity.includes('pune') ||
+      cleanPin === '56' ||
+      cleanPin === '40' ||
+      cleanPin === '11' ||
+      cleanPin === '50' ||
+      cleanPin === '70' ||
+      cleanPin === '41'
+    ) {
+      return {
+        daysRange: '2–3 Business Days',
+        daysCount: 3,
+        tier: 'Metro Priority Air',
+        courier: 'BlueDart Air Express'
+      };
+    }
+
+    return {
+      daysRange: '3–4 Business Days',
+      daysCount: 4,
+      tier: 'Pan-India Express',
+      courier: 'Delhivery Express'
+    };
+  };
+
+  const getExpectedDeliveryDateString = (daysToAdd: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + daysToAdd);
+    return d.toLocaleDateString('en-IN', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
+
   if (isOrderPlaced) {
+    const deliveryInfo = calculateDeliveryTurnaround(formData.city, formData.pincode);
+    const expectedDate = getExpectedDeliveryDateString(deliveryInfo.daysCount);
+
     return (
       <div className="min-h-screen flex flex-col bg-[#F5EFEB] text-black">
         <AnnouncementBar />
         <Navbar />
 
-        <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-16 text-center">
-          <div className="bg-white rounded-3xl p-8 sm:p-12 border border-[#E5DCD3] shadow-sm space-y-6">
-            <div className="w-20 h-20 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-10 h-10" />
+        <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-12 text-center">
+          <div className="bg-white rounded-3xl p-6 sm:p-10 border border-[#E5DCD3] shadow-sm space-y-6">
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center mx-auto shadow-xs">
+              <CheckCircle2 className="w-9 h-9" />
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-black text-black">
-              Order Placed Successfully!
-            </h1>
-            <p className="text-xs sm:text-sm text-[#5C554E]">
-              Thank you for shopping with <strong>Kavi's Lifestyle</strong>. Your order is confirmed and our dispatch team has initiated preparation.
-            </p>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-black text-black">
+                Order Placed Successfully!
+              </h1>
+              <p className="text-xs sm:text-sm text-[#5C554E] mt-1 font-medium">
+                Thank you for shopping with <strong>Kavi's Lifestyle</strong>. Your order is confirmed and our dispatch team has initiated fulfillment.
+              </p>
+            </div>
 
+            {/* Delivery Turnaround Highlight Card */}
+            <div className="bg-emerald-50/70 border-2 border-emerald-300 rounded-2xl p-5 text-left space-y-3 shadow-2xs">
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-emerald-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <Truck className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 block">
+                      Guaranteed Delivery Timeline
+                    </span>
+                    <h3 className="text-base sm:text-lg font-black text-emerald-950">
+                      Delivering in {deliveryInfo.daysRange}
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <span className="text-[10px] font-bold text-[#5C554E] block">Expected Arrival:</span>
+                  <span className="text-xs sm:text-sm font-black text-emerald-900 block">
+                    {expectedDate}
+                  </span>
+                </div>
+              </div>
+
+              {/* 4-Step Milestone Progress Bar */}
+              <div className="pt-1">
+                <div className="grid grid-cols-4 gap-2 text-center">
+                  <div className="space-y-1">
+                    <div className="h-2 w-full bg-emerald-600 rounded-full shadow-2xs" />
+                    <span className="text-[10px] font-bold text-black block">Day 1</span>
+                    <span className="text-[9px] text-[#5C554E] block leading-tight">Order Placed</span>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="h-2 w-full bg-emerald-600 rounded-full shadow-2xs" />
+                    <span className="text-[10px] font-bold text-black block">Day 1–2</span>
+                    <span className="text-[9px] text-[#5C554E] block leading-tight">Boutique Packed</span>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="h-2 w-full bg-emerald-500 rounded-full" />
+                    <span className="text-[10px] font-bold text-black block">Day 2–3</span>
+                    <span className="text-[9px] text-[#5C554E] block leading-tight">Air Dispatch</span>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="h-2 w-full bg-emerald-300 rounded-full" />
+                    <span className="text-[10px] font-bold text-black block">{deliveryInfo.daysRange}</span>
+                    <span className="text-[9px] text-emerald-900 font-bold block leading-tight">Doorstep Delivery</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2 text-[11px] text-emerald-900 font-medium flex items-center justify-between flex-wrap gap-2">
+                <span>Courier: <strong>{deliveryInfo.courier}</strong> (Airway Bill Generated)</span>
+                <span>Dispatch Hub: <strong>Chennai Flagship Studio</strong></span>
+              </div>
+            </div>
+
+            {/* Order Details Summary */}
             <div className="bg-[#FAF6F2] p-5 rounded-2xl border border-[#E5DCD3] text-left text-xs space-y-2.5">
               <div className="flex justify-between font-bold text-black">
                 <span>Order Reference:</span>
                 <span className="font-mono text-black font-black text-sm">{placedOrderId}</span>
               </div>
               <div className="flex justify-between text-[#5C554E]">
-                <span>Confirmation Sent To:</span>
+                <span>Updates Sent To:</span>
                 <span className="font-bold text-black">{formData.email}</span>
               </div>
               <div className="flex justify-between text-[#5C554E]">
-                <span>Shipping Destination:</span>
-                <span className="font-bold text-black truncate max-w-xs">{formData.address}, {formData.city}</span>
+                <span>Delivery Destination:</span>
+                <span className="font-bold text-black truncate max-w-xs">{formData.address}, {formData.city} - {formData.pincode}</span>
               </div>
               <div className="flex justify-between text-[#5C554E]">
-                <span>Estimated Delivery:</span>
-                <span className="font-bold text-emerald-800">3–5 Business Days (Express Pan-India)</span>
+                <span>Payment Method:</span>
+                <span className="font-bold text-black">{formData.paymentMethod === 'cod' ? 'Cash on Delivery (COD)' : 'Prepaid Online (Razorpay 256-Bit SSL)'}</span>
+              </div>
+              <div className="flex justify-between text-[#5C554E] pt-1 border-t border-[#E5DCD3]">
+                <span>Delivery Guarantee:</span>
+                <span className="font-bold text-emerald-800">Delivered within {deliveryInfo.daysRange}</span>
               </div>
             </div>
 
-            <div className="pt-4 flex flex-col sm:flex-row gap-3">
+            <div className="pt-2 flex flex-col sm:flex-row gap-3">
               <button
                 onClick={() => navigate('/account?tab=orders')}
-                className="flex-1 py-3 bg-black text-white font-bold text-xs rounded-xl hover:bg-[#2A2A2A] transition shadow-xs"
+                className="flex-1 py-3.5 bg-black text-white font-bold text-xs rounded-xl hover:bg-[#2A2A2A] transition shadow-xs flex items-center justify-center gap-2 cursor-pointer"
               >
-                Track in My Orders
+                <Truck className="w-4 h-4" />
+                <span>Track in Order Status</span>
               </button>
               <button
                 onClick={() => navigate('/shop')}
-                className="flex-1 py-3 border border-[#E5DCD3] text-black font-bold text-xs rounded-xl hover:bg-[#FAF6F2] transition"
+                className="flex-1 py-3.5 border border-[#E5DCD3] text-black font-bold text-xs rounded-xl hover:bg-[#FAF6F2] transition cursor-pointer"
               >
                 Continue Shopping
               </button>
