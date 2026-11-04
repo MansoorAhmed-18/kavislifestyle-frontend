@@ -44,7 +44,10 @@ export const TopStoreUpdateBanner: React.FC = () => {
   const { products } = useProducts();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const activeIndexRef = useRef(0);
+  activeIndexRef.current = activeIndex;
+  const isInteractingRef = useRef(false);
+  const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Read admin updates from localStorage and filter strictly for valid, active products within 24 hours
   const activeAdminUpdates: StoreUpdateItem[] = useMemo(() => {
@@ -203,75 +206,72 @@ export const TopStoreUpdateBanner: React.FC = () => {
     return list;
   }, [activeAdminUpdates]);
 
-  // Handle smooth scroll forward by one card
-  const scrollNext = () => {
+  // Exact, smooth card scrolling ensuring every card turns 100% fully into view on both mobile and desktop
+  const scrollToCard = (index: number) => {
     if (!scrollRef.current) return;
     const container = scrollRef.current;
-    const cardEl = container.firstElementChild as HTMLElement | null;
-    const cardWidth = cardEl ? cardEl.offsetWidth : 450;
-    const gap = 16;
-    const scrollAmount = cardWidth + gap;
-    const maxScrollLeft = container.scrollWidth - container.clientWidth;
+    const children = Array.from(container.children) as HTMLElement[];
+    if (children.length === 0) return;
 
-    if (container.scrollLeft + scrollAmount >= maxScrollLeft - 10) {
-      container.scrollTo({ left: 0, behavior: 'smooth' });
-      setActiveIndex(0);
-    } else {
-      container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-      const nextIndex = Math.min(cards.length - 1, Math.round((container.scrollLeft + scrollAmount) / scrollAmount));
-      setActiveIndex(nextIndex);
+    // Wrap around smoothly across all cards (0 -> length-1, length -> 0)
+    const targetIndex = (index + cards.length) % cards.length;
+    const targetCard = children[targetIndex];
+
+    if (targetCard) {
+      const containerRect = container.getBoundingClientRect();
+      const cardRect = targetCard.getBoundingClientRect();
+      const currentScroll = container.scrollLeft;
+      const targetScroll = currentScroll + (cardRect.left - containerRect.left) - 4;
+
+      container.scrollTo({
+        left: Math.max(0, targetScroll),
+        behavior: 'smooth'
+      });
+      setActiveIndex(targetIndex);
     }
   };
 
-  // Handle smooth scroll backward by one card
-  const scrollPrev = () => {
-    if (!scrollRef.current) return;
-    const container = scrollRef.current;
-    const cardEl = container.firstElementChild as HTMLElement | null;
-    const cardWidth = cardEl ? cardEl.offsetWidth : 450;
-    const gap = 16;
-    const scrollAmount = cardWidth + gap;
+  const scrollNext = () => scrollToCard(activeIndexRef.current + 1);
+  const scrollPrev = () => scrollToCard(activeIndexRef.current - 1);
+  const scrollToIndex = (index: number) => scrollToCard(index);
 
-    if (container.scrollLeft - scrollAmount <= 10) {
-      container.scrollTo({ left: 0, behavior: 'smooth' });
-      setActiveIndex(0);
-    } else {
-      container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-      const prevIndex = Math.max(0, Math.round((container.scrollLeft - scrollAmount) / scrollAmount));
-      setActiveIndex(prevIndex);
-    }
-  };
-
-  // Automatically shifts cards every 5 seconds (5000ms) as requested
+  // Automatically turn to next card every 5 seconds (5000ms) without getting stuck
   useEffect(() => {
-    if (isPaused || cards.length <= 1) return;
+    if (cards.length <= 1) return;
 
     const interval = setInterval(() => {
-      scrollNext();
-    }, 5000); // 5 seconds timer
+      if (!isInteractingRef.current) {
+        scrollToCard(activeIndexRef.current + 1);
+      }
+    }, 5000); // 5 seconds interval
 
-    return () => clearInterval(interval);
-  }, [isPaused, cards.length]);
+    return () => {
+      clearInterval(interval);
+      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+    };
+  }, [cards.length]);
 
-  // Track active dot index on manual scroll
+  // Track active dot index on manual swipe / scroll
   const handleScroll = () => {
     if (!scrollRef.current) return;
     const container = scrollRef.current;
-    const cardEl = container.firstElementChild as HTMLElement | null;
-    const cardWidth = cardEl ? cardEl.offsetWidth : 450;
-    const gap = 16;
-    const index = Math.round(container.scrollLeft / (cardWidth + gap));
-    setActiveIndex(Math.min(cards.length - 1, Math.max(0, index)));
-  };
+    const containerRect = container.getBoundingClientRect();
+    const children = Array.from(container.children) as HTMLElement[];
+    if (children.length === 0) return;
 
-  const scrollToIndex = (index: number) => {
-    if (!scrollRef.current) return;
-    const container = scrollRef.current;
-    const cardEl = container.firstElementChild as HTMLElement | null;
-    const cardWidth = cardEl ? cardEl.offsetWidth : 450;
-    const gap = 16;
-    container.scrollTo({ left: index * (cardWidth + gap), behavior: 'smooth' });
-    setActiveIndex(index);
+    let closestIndex = 0;
+    let minDiff = Infinity;
+
+    children.forEach((child, idx) => {
+      const childRect = child.getBoundingClientRect();
+      const diff = Math.abs(childRect.left - containerRect.left);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIndex = idx;
+      }
+    });
+
+    setActiveIndex(closestIndex);
   };
 
   if (cards.length === 0) return null;
@@ -279,8 +279,22 @@ export const TopStoreUpdateBanner: React.FC = () => {
   return (
     <section
       className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 mt-3.5 sm:mt-5 mb-2 sm:mb-3 relative select-none"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+      onMouseEnter={() => {
+        isInteractingRef.current = true;
+      }}
+      onMouseLeave={() => {
+        isInteractingRef.current = false;
+      }}
+      onTouchStart={() => {
+        isInteractingRef.current = true;
+        if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+      }}
+      onTouchEnd={() => {
+        if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+        resumeTimerRef.current = setTimeout(() => {
+          isInteractingRef.current = false;
+        }, 3000);
+      }}
       aria-label="Festive Offers and Store Updates"
     >
       {/* Relative wrapper for cards & arrows */}
@@ -309,15 +323,15 @@ export const TopStoreUpdateBanner: React.FC = () => {
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex items-center gap-3 sm:gap-4 md:gap-5 overflow-x-auto scrollbar-none scroll-smooth pb-1 px-1 -webkit-overflow-scrolling-touch"
+          className="flex items-center gap-3.5 sm:gap-4 md:gap-5 overflow-x-auto scrollbar-none scroll-smooth pb-1 px-1 -webkit-overflow-scrolling-touch"
           style={{ scrollSnapType: 'x mandatory' }}
         >
           {cards.map((card) => (
             <div
               key={card.id}
-              style={{ scrollSnapAlign: 'start' }}
+              style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
               onClick={() => navigate(card.link)}
-              className="w-[84vw] max-w-[340px] sm:max-w-none sm:w-[460px] md:w-[490px] lg:w-[520px] shrink-0 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 relative cursor-pointer group mobile-banner-card"
+              className="w-[88vw] sm:w-[460px] md:w-[490px] lg:w-[520px] shrink-0 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 relative cursor-pointer group mobile-banner-card"
             >
               {/* Decorative Top Scalloped Golden Garland Arch */}
               <div className="absolute top-0 left-0 right-0 h-3 sm:h-3.5 z-20 pointer-events-none flex justify-around opacity-95 overflow-hidden">
