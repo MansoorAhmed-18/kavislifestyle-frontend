@@ -4,9 +4,7 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
-  ArrowRight,
   Clock,
-  ShieldCheck,
   Flame,
   Gift,
 } from 'lucide-react';
@@ -42,15 +40,20 @@ interface BannerCard {
 export const TopStoreUpdateBanner: React.FC = () => {
   const navigate = useNavigate();
   const { products } = useProducts();
-  const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const activeIndexRef = useRef(0);
   activeIndexRef.current = activeIndex;
+
+  const [touchDelta, setTouchDelta] = useState(0);
+  const touchDeltaRef = useRef(0);
+  touchDeltaRef.current = touchDelta;
+
+  const [isSwiping, setIsSwiping] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const isHorizontalSwipe = useRef<boolean | null>(null);
   const isInteractingRef = useRef(false);
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isScrollingProgrammatically = useRef(false);
-  const touchStartX = useRef<number | null>(null);
-  const touchEndX = useRef<number | null>(null);
 
   // Read admin updates from localStorage and filter strictly for valid, active products within 24 hours
   const activeAdminUpdates: StoreUpdateItem[] = useMemo(() => {
@@ -116,7 +119,7 @@ export const TopStoreUpdateBanner: React.FC = () => {
     }
   }, [products]);
 
-  // Construct individual separated banner cards matching the uploaded screenshot
+  // Construct individual banner cards
   const cards: BannerCard[] = useMemo(() => {
     const list: BannerCard[] = [];
 
@@ -140,7 +143,7 @@ export const TopStoreUpdateBanner: React.FC = () => {
       });
     });
 
-    // 2. Festive Cards matching the screenshot (Separated individual cards)
+    // 2. Festive Cards
     list.push({
       id: 'festive-sarees',
       isStoreUpdate: false,
@@ -209,107 +212,87 @@ export const TopStoreUpdateBanner: React.FC = () => {
     return list;
   }, [activeAdminUpdates]);
 
-  // Exact, smooth card scrolling ensuring every card turns 100% fully into view on both mobile and desktop
-  const scrollToCard = (index: number) => {
-    if (!scrollRef.current) return;
-    const container = scrollRef.current;
-    const children = Array.from(container.children) as HTMLElement[];
-    if (children.length === 0) return;
+  const totalCards = cards.length;
 
-    // Wrap around smoothly across all cards (0 -> length-1, length -> 0)
-    const targetIndex = (index + cards.length) % cards.length;
-    const targetCard = children[targetIndex];
+  const nextSlide = () => {
+    if (totalCards <= 1) return;
+    setActiveIndex((prev) => (prev + 1) % totalCards);
+  };
 
-    if (targetCard) {
-      isScrollingProgrammatically.current = true;
-      setActiveIndex(targetIndex);
+  const prevSlide = () => {
+    if (totalCards <= 1) return;
+    setActiveIndex((prev) => (prev - 1 + totalCards) % totalCards);
+  };
 
-      // Exact native pixel scroll position relative to container
-      const targetScroll = targetCard.offsetLeft - container.offsetLeft;
-
-      container.scrollTo({
-        left: Math.max(0, targetScroll),
-        behavior: 'smooth',
-      });
-
-      // Release programmatic scrolling lock after smooth animation completes
-      setTimeout(() => {
-        isScrollingProgrammatically.current = false;
-      }, 500);
+  const goToSlide = (idx: number) => {
+    if (idx >= 0 && idx < totalCards) {
+      setActiveIndex(idx);
     }
   };
 
-  const scrollNext = () => scrollToCard(activeIndexRef.current + 1);
-  const scrollPrev = () => scrollToCard(activeIndexRef.current - 1);
-  const scrollToIndex = (index: number) => scrollToCard(index);
-
-  // Automatically turn to next card every 5 seconds (5000ms) without getting stuck
+  // Auto-rotate every 5 seconds (5000ms) smoothly
   useEffect(() => {
-    if (cards.length <= 1) return;
+    if (totalCards <= 1) return;
 
-    const interval = setInterval(() => {
+    const timer = setInterval(() => {
       if (!isInteractingRef.current) {
-        scrollToCard(activeIndexRef.current + 1);
+        setActiveIndex((prev) => (prev + 1) % totalCards);
       }
-    }, 5000); // 5 seconds interval
+    }, 5000);
 
     return () => {
-      clearInterval(interval);
+      clearInterval(timer);
       if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
     };
-  }, [cards.length]);
+  }, [totalCards]);
 
-  // Track active dot index on manual swipe / scroll
-  const handleScroll = () => {
-    if (isScrollingProgrammatically.current) return;
-    if (!scrollRef.current) return;
-
-    const container = scrollRef.current;
-    const containerScroll = container.scrollLeft;
-    const children = Array.from(container.children) as HTMLElement[];
-    if (children.length === 0) return;
-
-    let closestIndex = 0;
-    let minDiff = Infinity;
-
-    children.forEach((child, idx) => {
-      const childOffset = child.offsetLeft - container.offsetLeft;
-      const diff = Math.abs(childOffset - containerScroll);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestIndex = idx;
-      }
-    });
-
-    if (closestIndex !== activeIndexRef.current) {
-      setActiveIndex(closestIndex);
-    }
-  };
-
-  // Touch gesture handlers for mobile thumb swiping
+  // Touch handlers with directional lock to prevent vertical page scrolling interference
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
-    touchEndX.current = null;
+    touchStartY.current = e.touches[0].clientY;
+    isHorizontalSwipe.current = null;
+    setIsSwiping(true);
     isInteractingRef.current = true;
     if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.touches[0].clientX;
+    if (touchStartX.current === null || touchStartY.current === null) return;
+
+    const deltaX = e.touches[0].clientX - touchStartX.current;
+    const deltaY = e.touches[0].clientY - touchStartY.current;
+
+    // Detect if the user is swiping horizontally or scrolling vertically
+    if (isHorizontalSwipe.current === null) {
+      if (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8) {
+        isHorizontalSwipe.current = Math.abs(deltaX) > Math.abs(deltaY);
+      }
+    }
+
+    if (isHorizontalSwipe.current) {
+      // User is swiping horizontally: track touch delta
+      setTouchDelta(deltaX);
+    }
   };
 
   const handleTouchEnd = () => {
-    if (touchStartX.current !== null && touchEndX.current !== null) {
-      const diff = touchStartX.current - touchEndX.current;
-      // If user swiped more than 40px left or right with thumb
-      if (diff > 40) {
-        scrollNext();
-      } else if (diff < -40) {
-        scrollPrev();
+    setIsSwiping(false);
+    const delta = touchDeltaRef.current;
+
+    if (isHorizontalSwipe.current && Math.abs(delta) > 40) {
+      if (delta < -40) {
+        // Swiped Left -> Next Slide
+        nextSlide();
+      } else if (delta > 40) {
+        // Swiped Right -> Prev Slide
+        prevSlide();
       }
     }
+
+    setTouchDelta(0);
     touchStartX.current = null;
-    touchEndX.current = null;
+    touchStartY.current = null;
+    isHorizontalSwipe.current = null;
 
     if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
     resumeTimerRef.current = setTimeout(() => {
@@ -317,7 +300,7 @@ export const TopStoreUpdateBanner: React.FC = () => {
     }, 4000);
   };
 
-  if (cards.length === 0) return null;
+  if (totalCards === 0) return null;
 
   return (
     <section
@@ -331,12 +314,15 @@ export const TopStoreUpdateBanner: React.FC = () => {
       aria-label="Festive Offers and Store Updates"
     >
       {/* Relative wrapper for cards & arrows */}
-      <div className="relative group/carousel">
+      <div className="relative group/carousel overflow-hidden rounded-2xl sm:rounded-3xl shadow-md hover:shadow-xl transition-shadow duration-300">
         {/* Navigation Arrow: Previous (Desktop / Tablet) */}
         <button
           type="button"
-          onClick={scrollPrev}
-          className="hidden sm:flex absolute -left-2 sm:-left-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 hover:bg-white text-black shadow-lg border border-[#E5DCD3] items-center justify-center transition-all z-30 cursor-pointer active:scale-95"
+          onClick={(e) => {
+            e.stopPropagation();
+            prevSlide();
+          }}
+          className="hidden sm:flex absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 hover:bg-white text-black shadow-lg border border-[#E5DCD3] items-center justify-center transition-all z-30 cursor-pointer active:scale-95"
           aria-label="Previous Slide"
         >
           <ChevronLeft className="w-5 h-5 text-black" />
@@ -345,35 +331,41 @@ export const TopStoreUpdateBanner: React.FC = () => {
         {/* Navigation Arrow: Next (Desktop / Tablet) */}
         <button
           type="button"
-          onClick={scrollNext}
-          className="hidden sm:flex absolute -right-2 sm:-right-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 hover:bg-white text-black shadow-lg border border-[#E5DCD3] items-center justify-center transition-all z-30 cursor-pointer active:scale-95"
+          onClick={(e) => {
+            e.stopPropagation();
+            nextSlide();
+          }}
+          className="hidden sm:flex absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 hover:bg-white text-black shadow-lg border border-[#E5DCD3] items-center justify-center transition-all z-30 cursor-pointer active:scale-95"
           aria-label="Next Slide"
         >
           <ChevronRight className="w-5 h-5 text-black" />
         </button>
 
-        {/* Multi-Card Separated Horizontal Track */}
+        {/* Hardware-Accelerated 100% Transform Slider Track */}
         <div
-          ref={scrollRef}
-          onScroll={handleScroll}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          className="flex items-center gap-2.5 sm:gap-4 md:gap-5 overflow-x-auto scrollbar-none scroll-smooth pb-1 px-0.5"
+          className="flex w-full"
           style={{
-            scrollSnapType: 'x mandatory',
+            transform: `translateX(calc(-${activeIndex * 100}% + ${touchDelta}px))`,
+            transition: isSwiping ? 'none' : 'transform 450ms cubic-bezier(0.25, 1, 0.5, 1)',
           }}
         >
           {cards.map((card) => (
             <div
               key={card.id}
-              style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
-              onClick={() => navigate(card.link)}
-              className="w-[calc(100vw-1.5rem)] sm:w-[460px] md:w-[490px] lg:w-[520px] shrink-0 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 relative cursor-pointer group mobile-banner-card"
+              onClick={() => {
+                // Only navigate if user did not drag/swipe
+                if (Math.abs(touchDeltaRef.current) < 6) {
+                  navigate(card.link);
+                }
+              }}
+              className="w-full min-w-full shrink-0 relative cursor-pointer group"
             >
               {/* Decorative Top Scalloped Golden Garland Arch */}
               <div className="absolute top-0 left-0 right-0 h-3 sm:h-3.5 z-20 pointer-events-none flex justify-around opacity-95 overflow-hidden">
-                {Array.from({ length: 18 }).map((_, i) => (
+                {Array.from({ length: 28 }).map((_, i) => (
                   <div
                     key={i}
                     className="w-7 h-3 sm:h-3.5 rounded-b-full bg-gradient-to-b from-[#FFF59D] to-[#FFD000] shadow-2xs border-b border-[#F48C06]"
@@ -383,13 +375,13 @@ export const TopStoreUpdateBanner: React.FC = () => {
 
               {/* Card Canvas */}
               <div
-                className={`relative bg-gradient-to-r ${card.bgGradient} text-white min-h-[200px] sm:min-h-[225px] flex items-center justify-between p-3.5 sm:p-5 md:p-6 overflow-hidden`}
+                className={`relative bg-gradient-to-r ${card.bgGradient} text-white min-h-[195px] sm:min-h-[225px] flex items-center justify-between p-3.5 sm:p-5 md:p-6 overflow-hidden`}
               >
                 {/* Subtle Festive Sparkle Dot Pattern */}
                 <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#FFF_1px,transparent_1px)] [background-size:14px_14px]" />
 
                 {/* Left Side: Festive Badge, Headline, Subtitle, Bank Offer */}
-                <div className="relative z-10 flex-1 max-w-[62%] sm:max-w-[60%] text-left space-y-1.5 sm:space-y-2">
+                <div className="relative z-10 flex-1 max-w-[65%] sm:max-w-[60%] text-left space-y-1.5 sm:space-y-2">
                   {/* Top Badge Row */}
                   <div className="flex flex-wrap items-center gap-1.5">
                     {/* 3D Festive Explosion Emblem */}
@@ -417,7 +409,7 @@ export const TopStoreUpdateBanner: React.FC = () => {
                     {card.subtitle}
                   </p>
 
-                  {/* Bank Instant Discount Bar (Same as in screenshot) */}
+                  {/* Bank Instant Discount Bar */}
                   <div className="pt-0.5 sm:pt-1">
                     <div className="inline-flex items-center gap-1 sm:gap-1.5 bg-white text-black px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[8.5px] sm:text-[10px] font-bold shadow-xs">
                       <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-[#00529C] text-white flex items-center justify-center text-[7px] font-black shrink-0">
@@ -468,19 +460,19 @@ export const TopStoreUpdateBanner: React.FC = () => {
         </div>
       </div>
 
-      {/* Pagination Dot Indicators matching the screenshot */}
+      {/* Pagination Dot Indicators */}
       <div className="flex items-center justify-center gap-1.5 pt-2.5">
         {cards.map((card, idx) => (
           <button
             key={card.id}
             type="button"
-            onClick={() => scrollToIndex(idx)}
+            onClick={() => goToSlide(idx)}
             className={`transition-all rounded-full cursor-pointer ${
               idx === activeIndex
                 ? 'w-5 h-1.5 bg-[#FF6A00] shadow-xs'
                 : 'w-1.5 h-1.5 bg-neutral-300 hover:bg-neutral-500'
             }`}
-            aria-label={`Go to card ${idx + 1}`}
+            aria-label={`Go to slide ${idx + 1}`}
           />
         ))}
       </div>
