@@ -108,7 +108,7 @@ export default function AccountPage() {
   const { formatPrice } = useCurrency();
   const { getUserOrders } = useOrders();
   const { cartCount, setIsCartDrawerOpen } = useCart();
-  const userOrders = getUserOrders(user?.email);
+  const userOrders = getUserOrders(user?.email, user?.id);
 
   // Redirect to login if user is not authenticated
   React.useEffect(() => {

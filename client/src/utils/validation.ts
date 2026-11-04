@@ -12,13 +12,12 @@ export const validateEmail = (email: string): { isValid: boolean; message?: stri
   if (/[A-Z]/.test(trimmed)) {
     return { isValid: false, message: 'Only small (lowercase) letters are allowed in email.' };
   }
-  if (!trimmed.endsWith('@gmail.com')) {
-    return { isValid: false, message: 'Email address must strictly end with @gmail.com.' };
+  if (!trimmed.endsWith('@gmail.com') && !trimmed.endsWith('@kavislifestyle.com')) {
+    return { isValid: false, message: 'Email address must strictly end with @gmail.com or @kavislifestyle.com.' };
   }
-  // Suffix must be @gmail.com and prefix must be lowercase alphanumeric and standard symbols
-  const gmailRegex = /^[a-z0-9._%+-]+@gmail\.com$/;
-  if (!gmailRegex.test(trimmed)) {
-    return { isValid: false, message: 'Please enter a valid lowercase email ending with @gmail.com.' };
+  const emailRegex = /^[a-z0-9._%+-]+@(gmail\.com|kavislifestyle\.com)$/;
+  if (!emailRegex.test(trimmed)) {
+    return { isValid: false, message: 'Please enter a valid lowercase email.' };
   }
   return { isValid: true };
 };

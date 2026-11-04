@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ShieldCheck, CheckCircle2, ArrowRight, ArrowLeft, MapPin, Plus, Check, Truck, Clock, Box, Calendar } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, ArrowRight, ArrowLeft, MapPin, Plus, Check, Truck, Clock, Box, Calendar, Package } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AnnouncementBar } from '../../components/AnnouncementBar';
 import { Navbar } from '../../components/Navbar';
@@ -8,7 +8,7 @@ import { Footer } from '../../components/Footer';
 import { useCart } from '../../context/CartContext';
 import { useCurrency } from '../../context/CurrencyContext';
 import { useAuth } from '../../context/AuthContext';
-import { useOrders } from '../../context/OrderContext';
+import { useOrders, Order } from '../../context/OrderContext';
 import { ShippingAddress } from '../../types';
 import { validateEmail, validatePhone, sanitizeEmailInput, sanitizePhoneInput } from '../../utils/validation';
 
@@ -83,6 +83,14 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
   const [placedOrderId, setPlacedOrderId] = useState<string>('');
+  const [placedOrder, setPlacedOrder] = useState<Order | null>(() => {
+    try {
+      const saved = localStorage.getItem('kavis_last_placed_order');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -165,6 +173,8 @@ export default function CheckoutPage() {
     }));
 
     const createdOrder = placeOrder({
+      userId: user?.id,
+      userEmail: user?.email,
       customer: {
         name: formData.fullName,
         email: formData.email,
@@ -183,6 +193,12 @@ export default function CheckoutPage() {
     });
 
     setPlacedOrderId(createdOrder.orderNumber);
+    setPlacedOrder(createdOrder);
+    try {
+      localStorage.setItem('kavis_last_placed_order', JSON.stringify(createdOrder));
+    } catch (e) {
+      console.error(e);
+    }
 
     setTimeout(() => {
       setIsProcessing(false);
@@ -339,6 +355,82 @@ export default function CheckoutPage() {
               </div>
             </div>
 
+            {/* Ordered Products Itemized List (Addresses "what product does i ordered there is no details") */}
+            {placedOrder && placedOrder.items && placedOrder.items.length > 0 && (
+              <div className="bg-[#FAF6F2] rounded-2xl p-5 border border-[#E5DCD3] text-left space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-[#E5DCD3]">
+                  <h3 className="text-xs sm:text-sm font-black text-black flex items-center gap-2">
+                    <Package className="w-4 h-4 text-black" />
+                    <span>Items Ordered ({placedOrder.items.length})</span>
+                  </h3>
+                  <span className="text-xs font-mono font-bold text-black">
+                    {placedOrder.orderNumber}
+                  </span>
+                </div>
+
+                <div className="divide-y divide-[#E5DCD3]/70">
+                  {placedOrder.items.map((item, idx) => (
+                    <div key={idx} className="py-3 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {item.image ? (
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-14 h-14 rounded-xl object-cover bg-white border border-[#E5DCD3] shrink-0"
+                          />
+                        ) : (
+                          <div className="w-14 h-14 rounded-xl bg-white border border-[#E5DCD3] flex items-center justify-center shrink-0">
+                            <Package className="w-6 h-6 text-[#786F66]" />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <h4 className="text-xs sm:text-sm font-bold text-black truncate">
+                            {item.name}
+                          </h4>
+                          {item.variant && (
+                            <span className="text-[11px] text-[#5C554E] block truncate">
+                              Variant: {item.variant}
+                            </span>
+                          )}
+                          <span className="text-[11px] text-[#5C554E] block mt-0.5">
+                            Qty: <strong>{item.quantity}</strong> × {formatPrice(item.unitPrice)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <span className="text-xs sm:text-sm font-black text-black block">
+                          {formatPrice(item.totalPrice)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Price Breakdown Footer */}
+                <div className="pt-3 border-t border-[#E5DCD3] space-y-1.5 text-xs text-[#5C554E]">
+                  <div className="flex justify-between">
+                    <span>Subtotal</span>
+                    <span className="font-bold text-black">{formatPrice(placedOrder.subtotal)}</span>
+                  </div>
+                  {placedOrder.discount > 0 && (
+                    <div className="flex justify-between text-emerald-800 font-bold">
+                      <span>Festive Savings (KAVI10)</span>
+                      <span>-{formatPrice(placedOrder.discount)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span>Express 24H Delivery</span>
+                    <span className="text-emerald-800 font-bold">Free</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-black text-black pt-2 border-t border-[#E5DCD3]">
+                    <span>Total Amount Paid</span>
+                    <span className="text-base text-[#114B5F]">{formatPrice(placedOrder.total)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Order Details Summary */}
             <div className="bg-[#FAF6F2] p-5 rounded-2xl border border-[#E5DCD3] text-left text-xs space-y-2.5">
               <div className="flex justify-between font-bold text-black">
@@ -460,7 +552,7 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-black block mb-1">Email Address (must end in @gmail.com) *</label>
+                    <label className="text-xs font-bold text-black block mb-1">Email Address *</label>
                     <input
                       type="email"
                       required

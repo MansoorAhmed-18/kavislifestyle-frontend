@@ -165,7 +165,7 @@ export const CustomerSupportAndFAQ: React.FC<CustomerSupportAndFAQProps> = ({ em
   const { user } = useAuth();
   const { getUserOrders } = useOrders();
   const { formatPrice } = useCurrency();
-  const userOrders = getUserOrders(user?.email);
+  const userOrders = getUserOrders(user?.email, user?.id);
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
