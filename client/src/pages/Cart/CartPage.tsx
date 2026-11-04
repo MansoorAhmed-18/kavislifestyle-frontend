@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, Tag, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, ShieldCheck, ArrowLeft } from 'lucide-react';
 import { AnnouncementBar } from '../../components/AnnouncementBar';
 import { Navbar } from '../../components/Navbar';
 import { Footer } from '../../components/Footer';
@@ -17,22 +17,8 @@ export default function CartPage() {
     discount,
     shippingCharge,
     total,
-    appliedCoupon,
-    applyCoupon,
-    removeCoupon
   } = useCart();
   const { formatPrice } = useCurrency();
-
-  const [couponCode, setCouponCode] = useState('');
-  const [couponMsg, setCouponMsg] = useState<{ text: string; isError: boolean } | null>(null);
-
-  const handleApplyCoupon = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!couponCode.trim()) return;
-    const res = applyCoupon(couponCode);
-    setCouponMsg({ text: res.message, isError: !res.success });
-    if (res.success) setCouponCode('');
-  };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F5EFEB] text-black pb-16 md:pb-0">
@@ -157,46 +143,6 @@ export default function CartPage() {
               <h2 className="text-base font-black text-black pb-3 border-b border-[#E5DCD3]">
                 Order Summary
               </h2>
-
-              {/* Coupon Form */}
-              <div>
-                <form onSubmit={handleApplyCoupon} className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Tag className="w-4 h-4 text-[#5C554E] absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      placeholder="Coupon Code"
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 text-xs border border-[#E5DCD3] rounded-lg outline-none focus:border-black uppercase font-bold bg-white"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-black text-white text-xs font-bold rounded-lg hover:bg-[#2A2A2A] transition"
-                  >
-                    Apply
-                  </button>
-                </form>
-
-                {couponMsg && (
-                  <p className={`text-xs mt-1.5 ${couponMsg.isError ? 'text-red-500' : 'text-emerald-700 font-bold'}`}>
-                    {couponMsg.text}
-                  </p>
-                )}
-
-                {appliedCoupon && (
-                  <div className="mt-2 flex items-center justify-between text-xs bg-[#FAF6F2] text-black p-2.5 rounded-lg border border-[#E5DCD3]">
-                    <span>Coupon <strong>{appliedCoupon.code}</strong> applied</span>
-                    <button
-                      onClick={removeCoupon}
-                      className="text-red-500 font-semibold hover:underline"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                )}
-              </div>
 
               {/* Price Details */}
               <div className="space-y-2 text-xs text-[#5C554E] pt-2 border-t border-[#E5DCD3]">

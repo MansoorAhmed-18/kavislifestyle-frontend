@@ -20,7 +20,8 @@ import {
   Filter,
   DollarSign,
   Upload,
-  Trash2
+  Trash2,
+  Pencil
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useProducts } from '../../context/ProductContext';
@@ -28,11 +29,12 @@ import { useOrders, OrderStatus, Order } from '../../context/OrderContext';
 import { useCurrency } from '../../context/CurrencyContext';
 import { DEPARTMENTS } from '../../data/departments';
 import { BrandLogo } from '../../components/BrandLogo';
+import { Product } from '../../types';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { user, loginAsAdmin, logout } = useAuth();
-  const { products, addProduct, deleteProduct } = useProducts();
+  const { products, addProduct, updateProduct, deleteProduct } = useProducts();
   const { orders, updateOrderStatus } = useOrders();
 
   // Strictly format all prices and revenues in Indian Rupees (₹) for the admin dashboard
@@ -41,8 +43,8 @@ export default function AdminDashboard() {
     return `₹${Math.round(num).toLocaleString('en-IN')}`;
   };
 
-  // Navigation tab state
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'categories'>('overview');
+  // Navigation tab state (Clean 3-tab admin navigation)
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders'>('overview');
 
   // Orders filter & selection state
   const [orderFilter, setOrderFilter] = useState<'all' | OrderStatus>('all');
@@ -52,6 +54,25 @@ export default function AdminDashboard() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [productSavedSuccess, setProductSavedSuccess] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  // Edit Product Modal state
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [productEditSuccess, setProductEditSuccess] = useState(false);
+  const editFileInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const [editProductForm, setEditProductForm] = useState({
+    name: '',
+    departmentId: 'womens-fashion',
+    category: '',
+    brand: '',
+    price: '',
+    discountPrice: '',
+    stock: '',
+    images: [''],
+    shortDescription: '',
+    description: '',
+  });
 
   const [newProduct, setNewProduct] = useState({
     name: '',
@@ -225,6 +246,82 @@ export default function AdminDashboard() {
     }, 1200);
   };
 
+  const handleOpenEditModal = (p: Product) => {
+    setEditingProductId(p.id);
+    setEditProductForm({
+      name: p.name,
+      departmentId: p.departmentId || 'womens-fashion',
+      category: p.category,
+      brand: p.brand || '',
+      price: p.price ? p.price.toString() : '',
+      discountPrice: p.discountPrice ? p.discountPrice.toString() : '',
+      stock: p.stock !== undefined ? p.stock.toString() : '10',
+      images: p.images && p.images.length > 0 ? [...p.images] : [''],
+      shortDescription: p.shortDescription || '',
+      description: p.description || '',
+    });
+    setProductEditSuccess(false);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file (PNG, JPG, WEBP).');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image file size must be less than 5MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      if (base64) {
+        setEditProductForm((prev) => ({
+          ...prev,
+          images: [base64, ...(prev.images.slice(1) || [])],
+        }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleEditProductSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProductId) return;
+
+    const priceNum = parseFloat(editProductForm.price) || 0;
+    const discountPriceNum = editProductForm.discountPrice ? parseFloat(editProductForm.discountPrice) : undefined;
+    const discountPercentage = discountPriceNum && discountPriceNum < priceNum
+      ? Math.round(((priceNum - discountPriceNum) / priceNum) * 100)
+      : undefined;
+
+    updateProduct(editingProductId, {
+      name: editProductForm.name.trim(),
+      departmentId: editProductForm.departmentId as any,
+      category: editProductForm.category.trim(),
+      brand: editProductForm.brand.trim() || undefined,
+      price: priceNum,
+      discountPrice: discountPriceNum,
+      discountPercentage,
+      stock: parseInt(editProductForm.stock) || 10,
+      images: editProductForm.images.filter(Boolean),
+      shortDescription: editProductForm.shortDescription || editProductForm.name,
+      description: editProductForm.description,
+    });
+
+    setProductEditSuccess(true);
+    setTimeout(() => {
+      setProductEditSuccess(false);
+      setIsEditModalOpen(false);
+      setEditingProductId(null);
+    }, 1000);
+  };
+
   const PRESET_IMAGES = [
     { label: 'Silk Saree', url: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80' },
     { label: 'Dry Fruits', url: 'https://images.unsplash.com/photo-1508061252445-5350f3ab0a55?auto=format&fit=crop&w=600&q=80' },
@@ -329,18 +426,6 @@ export default function AdminDashboard() {
             >
               {products.length}
             </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('categories')}
-            className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition ${
-              activeTab === 'categories'
-                ? 'bg-[#E44A2D] text-white shadow-xs'
-                : 'text-[#5C554E] hover:bg-[#F5EFEB] hover:text-[#E44A2D]'
-            }`}
-          >
-            <Layers className="w-4 h-4" />
-            <span>4 Core Departments</span>
           </button>
         </aside>
 
@@ -668,45 +753,33 @@ export default function AdminDashboard() {
                           </span>
                         </td>
                         <td className="py-3 px-4 text-right">
-                          <button
-                            onClick={() => {
-                              if (confirm(`Are you sure you want to delete ${p.name}?`)) {
-                                deleteProduct(p.id);
-                              }
-                            }}
-                            className="text-red-600 hover:text-red-800 font-bold text-xs"
-                          >
-                            Delete
-                          </button>
+                          <div className="flex items-center justify-end gap-1.5 sm:gap-2">
+                            <button
+                              onClick={() => handleOpenEditModal(p)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#FAF6F2] hover:bg-[#E44A2D] text-black hover:text-white rounded-lg border border-[#E5DCD3] hover:border-[#E44A2D] font-bold text-xs transition shadow-2xs cursor-pointer"
+                              title={`Edit ${p.name}`}
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                              <span>Edit</span>
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm(`Are you sure you want to delete "${p.name}"?`)) {
+                                  deleteProduct(p.id);
+                                }
+                              }}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg font-bold text-xs transition cursor-pointer"
+                              title={`Delete ${p.name}`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Delete</span>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 4: DEPARTMENTS */}
-          {activeTab === 'categories' && (
-            <div className="space-y-4">
-              <h3 className="text-base font-black text-black">4 Core Store Departments</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {DEPARTMENTS.map((dept) => (
-                  <div
-                    key={dept.id}
-                    className="bg-white p-5 rounded-2xl border border-[#E5DCD3] shadow-xs flex items-center justify-between"
-                  >
-                    <div>
-                      <h4 className="font-black text-sm text-black">{dept.title}</h4>
-                      <p className="text-xs text-[#5C554E] mt-0.5">{dept.subtitle}</p>
-                      <span className="text-[10px] text-[#5C554E] font-mono mt-1 block">ID: {dept.id}</span>
-                    </div>
-                    <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#E44A2D] text-white">
-                      Active
-                    </span>
-                  </div>
-                ))}
               </div>
             </div>
           )}
@@ -917,6 +990,243 @@ export default function AdminDashboard() {
                     className="flex-1 py-2.5 rounded-xl bg-[#E44A2D] text-white font-bold hover:bg-[#cc3d22] transition shadow-xs"
                   >
                     Save & Publish
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT PRODUCT */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-[#E5DCD3] shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => {
+                setIsEditModalOpen(false);
+                setEditingProductId(null);
+              }}
+              className="absolute top-5 right-5 p-1 rounded-full hover:bg-[#F5EFEB] text-black transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h3 className="text-lg font-black text-black mb-1">Edit Product</h3>
+            <p className="text-xs text-[#5C554E] mb-5">
+              Update pricing, category, stock inventory, or media for this product.
+            </p>
+
+            {productEditSuccess ? (
+              <div className="py-12 text-center space-y-3">
+                <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
+                <h4 className="font-black text-base text-black">Product Updated Successfully!</h4>
+                <p className="text-xs text-[#5C554E]">The changes have been saved to the live catalog.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleEditProductSubmit} className="space-y-4 text-xs">
+                <div>
+                  <label className="font-bold text-black block mb-1">Product Title *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editProductForm.name}
+                    onChange={(e) => setEditProductForm({ ...editProductForm, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-[#E5DCD3] rounded-xl outline-none focus:border-black bg-white font-medium"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-black block mb-1">Department *</label>
+                    <select
+                      value={editProductForm.departmentId}
+                      onChange={(e) => setEditProductForm({ ...editProductForm, departmentId: e.target.value })}
+                      className="w-full px-3 py-2 border border-[#E5DCD3] rounded-xl outline-none focus:border-black bg-white"
+                    >
+                      <option value="womens-fashion">Women's Fashion</option>
+                      <option value="dry-fruits-nuts">Dry Fruits & Nuts</option>
+                      <option value="perfumes-fragrances">Perfumes & Fragrances</option>
+                      <option value="cosmetics-beauty">Cosmetics & Beauty</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-black block mb-1">Category Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={editProductForm.category}
+                      onChange={(e) => setEditProductForm({ ...editProductForm, category: e.target.value })}
+                      className="w-full px-3 py-2 border border-[#E5DCD3] rounded-xl outline-none focus:border-black bg-white font-medium"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="font-bold text-black block mb-1">MRP Price (₹) *</label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      value={editProductForm.price}
+                      onChange={(e) => setEditProductForm({ ...editProductForm, price: e.target.value })}
+                      className="w-full px-3 py-2 border border-[#E5DCD3] rounded-xl outline-none focus:border-black bg-white font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-black block mb-1">Selling / Offer (₹)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={editProductForm.discountPrice}
+                      onChange={(e) => setEditProductForm({ ...editProductForm, discountPrice: e.target.value })}
+                      placeholder="Optional"
+                      className="w-full px-3 py-2 border border-[#E5DCD3] rounded-xl outline-none focus:border-black bg-white font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-black block mb-1">Stock Units *</label>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      value={editProductForm.stock}
+                      onChange={(e) => setEditProductForm({ ...editProductForm, stock: e.target.value })}
+                      className="w-full px-3 py-2 border border-[#E5DCD3] rounded-xl outline-none focus:border-black bg-white font-medium"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-bold text-black block mb-1">Brand / Weave House</label>
+                  <input
+                    type="text"
+                    value={editProductForm.brand}
+                    onChange={(e) => setEditProductForm({ ...editProductForm, brand: e.target.value })}
+                    placeholder="e.g. Kavi's Handloom Weaves"
+                    className="w-full px-3 py-2 border border-[#E5DCD3] rounded-xl outline-none focus:border-black bg-white font-medium"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="font-bold text-black">Product Image *</label>
+                    <button
+                      type="button"
+                      onClick={() => editFileInputRef.current?.click()}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#E44A2D] hover:bg-[#cc3d22] text-white rounded-lg text-[11px] font-bold transition shadow-2xs active:scale-95"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Browse Internal Storage</span>
+                    </button>
+                  </div>
+
+                  <input
+                    type="file"
+                    ref={editFileInputRef}
+                    accept="image/*"
+                    onChange={handleEditImageFileChange}
+                    className="hidden"
+                  />
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      required
+                      value={editProductForm.images[0] || ''}
+                      onChange={(e) => setEditProductForm({ ...editProductForm, images: [e.target.value] })}
+                      placeholder="Paste image URL (https://...) or click Browse Internal Storage"
+                      className="flex-1 px-3 py-2 border border-[#E5DCD3] rounded-xl outline-none focus:border-black bg-white text-xs"
+                    />
+                    {editProductForm.images[0] && (
+                      <button
+                        type="button"
+                        onClick={() => setEditProductForm({ ...editProductForm, images: [''] })}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition"
+                        title="Clear image"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Live Thumbnail Preview */}
+                  {editProductForm.images[0] && (
+                    <div className="mt-2.5 flex items-center gap-3 p-2.5 bg-[#FAF6F2] rounded-xl border border-[#E5DCD3] animate-in fade-in">
+                      <img
+                        src={editProductForm.images[0]}
+                        alt="Product Preview"
+                        className="w-14 h-14 object-cover rounded-lg border border-[#E5DCD3] bg-white shrink-0"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = 'none';
+                        }}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[11px] font-bold text-black block truncate">
+                          {editProductForm.images[0].startsWith('data:image') ? 'Uploaded from Internal Storage' : 'Linked via Image URL'}
+                        </span>
+                        <span className="text-[10px] text-emerald-700 font-semibold block">
+                          ✓ Image active
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 mt-2 flex-wrap items-center">
+                    <span className="text-[10px] text-[#5C554E] self-center">Or sample presets:</span>
+                    {PRESET_IMAGES.map((preset) => (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        onClick={() => setEditProductForm({ ...editProductForm, images: [preset.url] })}
+                        className="px-2 py-0.5 rounded bg-[#FAF6F2] hover:bg-[#E5DCD3] text-[10px] font-semibold text-black transition"
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-bold text-black block mb-1">Short Description</label>
+                  <input
+                    type="text"
+                    value={editProductForm.shortDescription}
+                    onChange={(e) => setEditProductForm({ ...editProductForm, shortDescription: e.target.value })}
+                    className="w-full px-3 py-2 border border-[#E5DCD3] rounded-xl outline-none focus:border-black bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-black block mb-1">Full Description</label>
+                  <textarea
+                    rows={2}
+                    value={editProductForm.description}
+                    onChange={(e) => setEditProductForm({ ...editProductForm, description: e.target.value })}
+                    className="w-full px-3 py-2 border border-[#E5DCD3] rounded-xl outline-none focus:border-black bg-white"
+                  />
+                </div>
+
+                <div className="pt-2 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditModalOpen(false);
+                      setEditingProductId(null);
+                    }}
+                    className="flex-1 py-2.5 rounded-xl border border-[#E5DCD3] font-bold text-black hover:bg-[#FAF6F2] transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-2.5 rounded-xl bg-[#E44A2D] text-white font-bold hover:bg-[#cc3d22] transition shadow-xs"
+                  >
+                    Save Changes
                   </button>
                 </div>
               </form>

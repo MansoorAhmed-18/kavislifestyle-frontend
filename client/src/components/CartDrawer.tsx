@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShoppingBag, Trash2, Plus, Minus, ArrowRight, Tag, Truck } from 'lucide-react';
+import { X, ShoppingBag, Trash2, Plus, Minus, ArrowRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
 
@@ -20,30 +20,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onCheckoutClick, onViewC
     discount,
     shippingCharge,
     total,
-    appliedCoupon,
-    applyCoupon,
-    removeCoupon
   } = useCart();
 
   const { formatPrice } = useCurrency();
-  const [couponInput, setCouponInput] = useState('');
-  const [couponError, setCouponError] = useState<string | null>(null);
-
-  const handleApplyCoupon = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!couponInput.trim()) return;
-    const res = applyCoupon(couponInput);
-    if (!res.success) {
-      setCouponError(res.message);
-    } else {
-      setCouponError(null);
-      setCouponInput('');
-    }
-  };
-
-  const freeShippingThreshold = 999;
-  const amountNeededForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
-  const freeShippingProgress = Math.min(100, (subtotal / freeShippingThreshold) * 100);
 
   return (
     <AnimatePresence>
@@ -82,27 +61,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onCheckoutClick, onViewC
               >
                 <X className="w-5 h-5" />
               </button>
-            </div>
-
-            {/* Free Shipping Progress Meter */}
-            <div className="bg-slate-50 px-4 py-3 border-b border-slate-200">
-              <div className="flex items-center justify-between text-xs font-medium text-slate-800 mb-1.5">
-                <span className="flex items-center gap-1.5">
-                  <Truck className="w-4 h-4 text-[#F26B4F]" />
-                  {amountNeededForFreeShipping === 0 ? (
-                    <strong className="text-emerald-700 font-bold">You unlocked FREE Shipping! 🎉</strong>
-                  ) : (
-                    <span>Add <strong>{formatPrice(amountNeededForFreeShipping)}</strong> more for FREE Shipping</span>
-                  )}
-                </span>
-                <span className="text-slate-500 font-semibold">{Math.round(freeShippingProgress)}%</span>
-              </div>
-              <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-[#F26B4F] transition-all duration-300"
-                  style={{ width: `${freeShippingProgress}%` }}
-                />
-              </div>
             </div>
 
             {/* Cart Items List */}
@@ -193,45 +151,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onCheckoutClick, onViewC
             {/* Footer with Summary and Actions */}
             {cart.length > 0 && (
               <div className="p-4 bg-white border-t border-[#E5DCD3] space-y-3">
-                {/* Coupon Code Input */}
-                <form onSubmit={handleApplyCoupon} className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Tag className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#5C554E]" />
-                    <input
-                      type="text"
-                      placeholder="Coupon: KAVI10 or FESTIVE500"
-                      value={couponInput}
-                      onChange={(e) => {
-                        setCouponInput(e.target.value);
-                        setCouponError(null);
-                      }}
-                      className="w-full pl-8 pr-3 py-1.5 text-xs border border-[#E5DCD3] rounded-lg outline-none focus:border-black uppercase font-semibold"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="px-3.5 py-1.5 bg-black text-white text-xs font-bold rounded-lg hover:bg-[#2A2A2A] transition"
-                  >
-                    Apply
-                  </button>
-                </form>
-
-                {couponError && (
-                  <p className="text-xs text-red-500 font-medium">{couponError}</p>
-                )}
-
-                {appliedCoupon && (
-                  <div className="flex items-center justify-between text-xs bg-[#FAF6F2] text-black px-3 py-1.5 rounded-lg border border-[#E5DCD3]">
-                    <span>Coupon <strong>{appliedCoupon.code}</strong> applied</span>
-                    <button
-                      onClick={removeCoupon}
-                      className="text-red-500 font-semibold hover:underline"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                )}
-
                 {/* Price Breakdown */}
                 <div className="space-y-1 text-xs text-[#5C554E] pt-1">
                   <div className="flex justify-between">
