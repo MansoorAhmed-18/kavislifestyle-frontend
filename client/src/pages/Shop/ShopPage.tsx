@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Filter, SlidersHorizontal, ArrowUpDown, Search, Sparkles, RotateCcw } from 'lucide-react';
+import { Filter, SlidersHorizontal, ArrowUpDown, Search } from 'lucide-react';
 import { AnnouncementBar } from '../../components/AnnouncementBar';
 import { Navbar } from '../../components/Navbar';
 import { Footer } from '../../components/Footer';
@@ -8,14 +8,7 @@ import { ProductCard } from '../../components/ProductCard';
 import { ProductQuickViewModal } from '../../components/ProductQuickViewModal';
 import { useProducts } from '../../context/ProductContext';
 import { useAuth } from '../../context/AuthContext';
-import { useOrder, useOrders } from '../../context/OrderContext';
-import {
-  getPersonalizedProducts,
-  getPersonalizationSummary,
-  saveSearchQuery,
-  getSearchHistory,
-  clearSearchHistory,
-} from '../../utils/personalization';
+import { saveSearchQuery } from '../../utils/personalization';
 import { DEPARTMENTS, CATEGORIES } from '../../data/departments';
 import { Product, DepartmentId } from '../../types';
 
@@ -23,11 +16,9 @@ export default function ShopPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialDept = searchParams.get('dept') as DepartmentId | null;
   const initialSearch = searchParams.get('search') || '';
-  const isForYou = searchParams.get('forYou') === 'true';
 
   const { products: allCatalogProducts } = useProducts();
   const { user } = useAuth();
-  const { getUserOrders, orders } = useOrder();
 
   const [selectedDept, setSelectedDept] = useState<string>(initialDept || 'all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -36,7 +27,6 @@ export default function ShopPage() {
   const [priceRange, setPriceRange] = useState<number>(15000);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [searchHistoryVersion, setSearchHistoryVersion] = useState(0);
 
   // Sync state if URL search query or dept changes
   useEffect(() => {
@@ -53,40 +43,10 @@ export default function ShopPage() {
     if (searchQuery.trim().length >= 2) {
       const timer = setTimeout(() => {
         saveSearchQuery(searchQuery.trim(), user?.email);
-        setSearchHistoryVersion((v) => v + 1);
       }, 600);
       return () => clearTimeout(timer);
     }
   }, [searchQuery, user]);
-
-  // User's order history for personalization
-  const userOrders = useMemo(() => {
-    if (user?.email) {
-      const list = getUserOrders(user.email);
-      if (list && list.length > 0) return list;
-    }
-    return orders;
-  }, [user, getUserOrders, orders]);
-
-  // User's recent search queries
-  const searchHistory = useMemo(() => {
-    return getSearchHistory(user?.email);
-  }, [user, searchHistoryVersion]);
-
-  // Personalization score map: ProductId -> { score, reason }
-  const { scoreMap, personalizationSummary } = useMemo(() => {
-    const scored = getPersonalizedProducts(allCatalogProducts, userOrders, searchHistory);
-    const map = new Map<string, { score: number; reason?: string }>();
-    scored.forEach((item) => {
-      map.set(item.product.id, {
-        score: item.score,
-        reason: item.reasons.length > 0 ? item.reasons[0] : undefined,
-      });
-    });
-
-    const summary = getPersonalizationSummary(userOrders, searchHistory, allCatalogProducts);
-    return { scoreMap: map, personalizationSummary: summary };
-  }, [allCatalogProducts, userOrders, searchHistory]);
 
   // Available categories based on selected department
   const filteredCategories = useMemo(() => {
@@ -126,13 +86,6 @@ export default function ShopPage() {
         if (sortBy === 'price-high') return priceB - priceA;
         if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
 
-        // If in "For You" mode, rank by personalization score first!
-        if (isForYou) {
-          const scoreA = scoreMap.get(a.id)?.score ?? 0;
-          const scoreB = scoreMap.get(b.id)?.score ?? 0;
-          if (scoreB !== scoreA) return scoreB - scoreA;
-        }
-
         return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0);
       });
   }, [
@@ -142,22 +95,18 @@ export default function ShopPage() {
     priceRange,
     searchQuery,
     sortBy,
-    isForYou,
-    scoreMap,
   ]);
 
   const handleResetFilters = () => {
-    setSelectedDept('all');
     setSelectedCategory('all');
     setSearchQuery('');
     setPriceRange(15000);
     setSortBy('featured');
-    setSearchParams({});
-  };
-
-  const handleClearHistory = () => {
-    clearSearchHistory(user?.email);
-    setSearchHistoryVersion((v) => v + 1);
+    if (selectedDept === 'all') {
+      setSearchParams({});
+    } else {
+      setSearchParams({ dept: selectedDept });
+    }
   };
 
   return (
@@ -170,87 +119,21 @@ export default function ShopPage() {
         <div className="mb-6">
           <div className="text-xs text-[#5C554E] mb-1">
             <span>Home</span> / <span className="font-bold text-black">Catalog</span>
-            {isForYou ? (
-              <> / <span className="text-[#E44A2D] font-extrabold">For You</span></>
-            ) : selectedDept !== 'all' ? (
+            {selectedDept !== 'all' ? (
               <> / <span className="text-black font-bold capitalize">{selectedDept.replace('-', ' ')}</span></>
             ) : null}
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h1 className="text-2xl sm:text-3xl font-black text-black flex items-center gap-2">
-              {isForYou ? (
-                <>
-                  <Sparkles className="w-6 h-6 text-[#E44A2D]" />
-                  <span>Personalized For You</span>
-                </>
-              ) : selectedDept === 'all' ? (
-                'All Lifestyle Collections'
-              ) : (
-                DEPARTMENTS.find((d) => d.id === selectedDept)?.title
-              )}
+              {selectedDept === 'all'
+                ? 'All Lifestyle Collections'
+                : DEPARTMENTS.find((d) => d.id === selectedDept)?.title}
             </h1>
             <span className="text-xs text-[#5C554E] font-medium">
               Showing <strong>{products.length}</strong> products
             </span>
           </div>
         </div>
-
-        {/* Personalized "For You" Feed Banner */}
-        {isForYou && (
-          <div className="bg-white border-2 border-[#FEEAE5] rounded-2xl p-4 sm:p-5 mb-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#E44A2D] text-white flex items-center gap-1 shadow-2xs">
-                  <Sparkles className="w-3 h-3" />
-                  <span>Smart Recommendation Feed</span>
-                </span>
-                <span className="text-xs font-bold text-neutral-800">
-                  {personalizationSummary.title}
-                </span>
-              </div>
-              <p className="text-xs text-[#5C554E] leading-relaxed max-w-2xl">
-                {personalizationSummary.subtitle}
-              </p>
-              {personalizationSummary.tags.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                  <span className="text-[10px] font-bold text-neutral-600 uppercase tracking-wide">
-                    Tuned to:
-                  </span>
-                  {personalizationSummary.tags.map((t) => (
-                    <span
-                      key={t}
-                      className="text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-[#FAF6F2] border border-[#E5DCD3] text-black"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={handleClearHistory}
-                className="px-3 py-1.5 rounded-xl border border-[#E5DCD3] hover:border-black text-xs font-bold text-[#5C554E] hover:text-black transition flex items-center gap-1.5 bg-[#FAF6F2]"
-                title="Clear recent searches"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset Searches</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchParams({});
-                  setSelectedDept('all');
-                }}
-                className="px-3.5 py-1.5 rounded-xl bg-black text-white text-xs font-bold hover:bg-neutral-800 transition"
-              >
-                Standard Catalog
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Top Controls Bar */}
         <div className="bg-white rounded-2xl p-3.5 border border-[#E5DCD3] shadow-xs mb-8 flex flex-wrap items-center justify-between gap-3">
@@ -265,23 +148,6 @@ export default function ShopPage() {
 
             {/* Department Quick Pills */}
             <div className="hidden sm:flex items-center gap-1.5 overflow-x-auto">
-              {/* "For You" Pill */}
-              <button
-                onClick={() => {
-                  setSearchParams({ forYou: 'true' });
-                  setSelectedDept('all');
-                  setSelectedCategory('all');
-                }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 ${
-                  isForYou
-                    ? 'bg-[#E44A2D] text-white shadow-xs'
-                    : 'bg-[#FAF6F2] text-black border border-[#E5DCD3] hover:border-[#E44A2D]'
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>For You</span>
-              </button>
-
               {/* All Collections Pill */}
               <button
                 onClick={() => {
@@ -290,7 +156,7 @@ export default function ShopPage() {
                   setSelectedCategory('all');
                 }}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
-                  selectedDept === 'all' && !isForYou
+                  selectedDept === 'all'
                     ? 'bg-black text-white shadow-xs'
                     : 'bg-[#FAF6F2] text-black border border-[#E5DCD3] hover:border-black'
                 }`}
@@ -307,7 +173,7 @@ export default function ShopPage() {
                     setSelectedCategory('all');
                   }}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
-                    selectedDept === dept.id && !isForYou
+                    selectedDept === dept.id
                       ? 'bg-black text-white shadow-xs'
                       : 'bg-[#FAF6F2] text-black border border-[#E5DCD3] hover:border-black'
                   }`}
@@ -326,9 +192,7 @@ export default function ShopPage() {
               onChange={(e) => setSortBy(e.target.value as any)}
               className="px-3 py-1.5 text-xs font-bold border border-[#E5DCD3] rounded-xl outline-none focus:border-black bg-white"
             >
-              <option value="featured">
-                {isForYou ? '✨ Highest Recommended First' : 'Featured First'}
-              </option>
+              <option value="featured">Featured First</option>
               <option value="price-low">Price: Low to High</option>
               <option value="price-high">Price: High to Low</option>
               <option value="rating">Customer Rating</option>
@@ -357,48 +221,50 @@ export default function ShopPage() {
               </button>
             </div>
 
-            {/* Department Filter */}
-            <div>
-              <label className="text-xs font-bold text-black uppercase tracking-wider block mb-2">
-                Department
-              </label>
-              <div className="space-y-1.5">
-                <label className="flex items-center gap-2 text-xs text-black cursor-pointer">
-                  <input
-                    type="radio"
-                    name="dept"
-                    checked={selectedDept === 'all'}
-                    onChange={() => {
-                      setSelectedDept('all');
-                      setSelectedCategory('all');
-                      if (!isForYou) setSearchParams({});
-                    }}
-                    className="accent-black"
-                  />
-                  <span>All Departments</span>
+            {/* Department Filter - Only shown when viewing "All" departments */}
+            {selectedDept === 'all' && (
+              <div>
+                <label className="text-xs font-bold text-black uppercase tracking-wider block mb-2">
+                  Department
                 </label>
-                {DEPARTMENTS.map((dept) => (
-                  <label key={dept.id} className="flex items-center gap-2 text-xs text-black cursor-pointer">
+                <div className="space-y-1.5">
+                  <label className="flex items-center gap-2 text-xs text-black cursor-pointer">
                     <input
                       type="radio"
                       name="dept"
-                      checked={selectedDept === dept.id}
+                      checked={selectedDept === 'all'}
                       onChange={() => {
-                        setSelectedDept(dept.id);
+                        setSelectedDept('all');
                         setSelectedCategory('all');
-                        setSearchParams({ dept: dept.id });
+                        setSearchParams({});
                       }}
                       className="accent-black"
                     />
-                    <span>{dept.title}</span>
+                    <span>All Departments</span>
                   </label>
-                ))}
+                  {DEPARTMENTS.map((dept) => (
+                    <label key={dept.id} className="flex items-center gap-2 text-xs text-black cursor-pointer">
+                      <input
+                        type="radio"
+                        name="dept"
+                        checked={(selectedDept as string) === dept.id}
+                        onChange={() => {
+                          setSelectedDept(dept.id);
+                          setSelectedCategory('all');
+                          setSearchParams({ dept: dept.id });
+                        }}
+                        className="accent-black"
+                      />
+                      <span>{dept.title}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Category Filter */}
             {filteredCategories.length > 0 && (
-              <div className="pt-4 border-t border-[#E5DCD3]">
+              <div className={selectedDept === 'all' ? 'pt-4 border-t border-[#E5DCD3]' : ''}>
                 <label className="text-xs font-bold text-black uppercase tracking-wider block mb-2">
                   Category
                 </label>
@@ -473,7 +339,6 @@ export default function ShopPage() {
                   <ProductCard
                     key={p.id}
                     product={p}
-                    recommendationReason={isForYou ? scoreMap.get(p.id)?.reason : undefined}
                     onOpenQuickView={(item) => setQuickViewProduct(item)}
                   />
                 ))}

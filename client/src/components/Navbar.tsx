@@ -348,8 +348,8 @@ export const Navbar: React.FC = () => {
       id: 'for-you',
       deptId: null,
       title: 'For You',
-      subtitle: 'Personalized For You',
-      path: '/shop?forYou=true',
+      subtitle: 'Home Details',
+      path: '/',
       renderIcon: (active: boolean) => <NavBagIcon active={active} />,
     },
     {
@@ -445,34 +445,6 @@ export const Navbar: React.FC = () => {
                   <span className="text-[10px] text-[#786F66] group-hover:text-white/90 font-normal">
                     {kw.price}
                   </span>
-                </button>
-              ))}
-            </div>
-
-            <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-[#786F66] block mb-2">
-              Explore Collections
-            </span>
-            <div className="grid grid-cols-2 gap-1.5">
-              {CATEGORY_NAV_ITEMS.filter((item) => item.deptId).map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    navigate(item.path);
-                    setIsSearchFocused(false);
-                  }}
-                  className="p-2 bg-white rounded-xl border border-[#E5DCD3] hover:border-[#E44A2D] hover:bg-[#FEEAE5]/30 transition text-left flex items-center gap-2 group cursor-pointer"
-                >
-                  <div className="w-7 h-7 rounded-lg bg-[#FAF6F2] group-hover:bg-white flex items-center justify-center shrink-0">
-                    {item.renderIcon(false)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs font-bold text-black truncate group-hover:text-[#E44A2D]">
-                      {item.title}
-                    </div>
-                    <div className="text-[10px] text-[#786F66] truncate">{item.subtitle}</div>
-                  </div>
                 </button>
               ))}
             </div>
@@ -608,11 +580,7 @@ export const Navbar: React.FC = () => {
     if (item.deptId) {
       return location.pathname === '/shop' && location.search.includes(`dept=${item.deptId}`);
     }
-    return (
-      location.search.includes('forYou=true') ||
-      (location.pathname === '/' && !location.search.includes('dept=')) ||
-      (location.pathname === '/shop' && !location.search.includes('dept='))
-    );
+    return location.pathname === '/';
   };
 
   return (
