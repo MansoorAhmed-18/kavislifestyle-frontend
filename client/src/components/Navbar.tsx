@@ -30,7 +30,6 @@ import {
 import { DEPARTMENTS, DepartmentInfo } from '../data/departments';
 import { Product } from '../types';
 import { BrandLogo } from './BrandLogo';
-import { DeliveryLocationBar } from './DeliveryLocationModal';
 
 // Vector Icon Components matching Flipkart aesthetic with warm brand accents
 const HighlightText: React.FC<{ text: string; query: string }> = ({ text, query }) => {
@@ -921,24 +920,6 @@ export const Navbar: React.FC = () => {
               {/* Instant Predictive Live Dropdown Suggestions (Mobile) */}
               {renderSearchDropdown(true)}
             </form>
-          </div>
-        </div>
-
-        {/* ========================================================= */}
-        {/* ROW 2.5: DELIVERY LOCATION BAR (MATCHING USER SCREENSHOT) */}
-        {/* ========================================================= */}
-        <div className="bg-[#FAF6F2] border-t border-[#E5DCD3] px-3 sm:px-6 py-1.5 flex items-center justify-between text-xs">
-          <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-            <DeliveryLocationBar />
-            <div className="hidden sm:flex items-center gap-4 text-xs font-semibold text-[#5C554E]">
-              <Link to="/store-locator" className="hover:text-black hover:underline flex items-center gap-1">
-                <span>Flagship Store (T. Nagar, Chennai)</span>
-              </Link>
-              <span className="text-[#D8CFC5]">•</span>
-              <Link to="/support" className="hover:text-black hover:underline flex items-center gap-1">
-                <span>Customer Support & FAQs</span>
-              </Link>
-            </div>
           </div>
         </div>
 
