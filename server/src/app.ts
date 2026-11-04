@@ -11,6 +11,7 @@ import paymentsRouter from './routes/payments';
 import couponsRouter from './routes/coupons';
 import adminRouter from './routes/admin';
 import ordersRouter from './routes/orders';
+import usersRouter from './routes/users';
 
 export const app = express();
 
@@ -49,6 +50,7 @@ app.use('/api/payments', paymentsRouter);
 app.use('/api/coupons', couponsRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/orders', ordersRouter);
+app.use('/api/users', usersRouter);
 
 // Centralized Error Handling Middleware
 app.use(errorHandler);

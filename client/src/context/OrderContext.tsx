@@ -220,16 +220,50 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.orders)) {
+          const serverOrders: Order[] = data.orders;
+
           setOrders((prev) => {
-            const serverOrders: Order[] = data.orders;
+            const map = new Map<string, Order>();
+
+            // 1. Load all server orders
+            serverOrders.forEach((so) => {
+              const key = so.id || so.orderNumber;
+              map.set(key, so);
+            });
+
+            // 2. Preserve any local orders that server may not have yet (e.g. placed while offline or before sync)
+            let hasLocalOnly = false;
+            prev.forEach((lo) => {
+              const key = lo.id || lo.orderNumber;
+              if (!map.has(key)) {
+                map.set(key, lo);
+                hasLocalOnly = true;
+                // Auto-upload missing local order to server so other devices (e.g. laptop admin) get it
+                try {
+                  fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(lo)
+                  }).catch(() => {});
+                } catch {}
+              }
+            });
+
+            const merged = Array.from(map.values()).sort(
+              (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
+
+            // Determine if there is any difference with previous state
             const hasChange =
-              serverOrders.some((so) => {
-                const local = prev.find((po) => po.id === so.id || po.orderNumber === so.orderNumber);
-                return !local || local.status !== so.status;
-              }) || prev.length !== serverOrders.length;
+              hasLocalOnly ||
+              merged.length !== prev.length ||
+              merged.some((m, idx) => {
+                const p = prev[idx];
+                return !p || p.id !== m.id || p.status !== m.status || p.carrier !== m.carrier;
+              });
 
             if (hasChange) {
-              return serverOrders;
+              return merged;
             }
             return prev;
           });
@@ -281,7 +315,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       orderNumber,
       createdAt: new Date().toISOString(),
       userId: orderData.userId,
-      userEmail: orderData.userEmail,
+      userEmail: orderData.userEmail || orderData.customer?.email,
       customer: orderData.customer,
       items: orderData.items,
       subtotal: orderData.subtotal,

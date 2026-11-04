@@ -5,6 +5,7 @@ import {
   findUserByEmail,
   registerUserInDb,
   updateUserInDb,
+  syncUsersFromServer,
   StoredUserAccount,
 } from '../services/userDb';
 import { validateEmail, validatePhone, sanitizeEmailInput, sanitizePhoneInput } from '../utils/validation';
@@ -60,6 +61,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   const [isLoading, setIsLoading] = useState(false);
+
+  // Synchronize users from server across devices (Laptop <-> Mobile)
+  useEffect(() => {
+    syncUsersFromServer();
+    const timer = setInterval(() => {
+      syncUsersFromServer();
+    }, 4000);
+
+    const handleFocus = () => {
+      syncUsersFromServer();
+    };
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
 
   // Sync active user session & load that user's addresses
   useEffect(() => {
@@ -130,7 +149,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // 2. Validate against persistent database storage
-      const existingAccount = findUserByEmail(cleanEmail);
+      let existingAccount = findUserByEmail(cleanEmail);
+
+      // If not in local cache, pull from server in case user signed up on mobile
+      if (!existingAccount) {
+        await syncUsersFromServer();
+        existingAccount = findUserByEmail(cleanEmail);
+      }
 
       if (!existingAccount) {
         setIsLoading(false);

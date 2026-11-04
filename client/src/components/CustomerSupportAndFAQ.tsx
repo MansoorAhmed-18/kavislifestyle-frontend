@@ -163,9 +163,15 @@ interface CustomerSupportAndFAQProps {
 
 export const CustomerSupportAndFAQ: React.FC<CustomerSupportAndFAQProps> = ({ embedded = false }) => {
   const { user } = useAuth();
-  const { getUserOrders } = useOrders();
+  const { orders, getUserOrders } = useOrders();
   const { formatPrice } = useCurrency();
   const userOrders = getUserOrders(user?.email, user?.id);
+
+  // Fallback to all orders if user is browsing orders placed across devices / accounts
+  const availableOrders = useMemo(() => {
+    if (userOrders.length > 0) return userOrders;
+    return orders;
+  }, [userOrders, orders]);
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -173,15 +179,15 @@ export const CustomerSupportAndFAQ: React.FC<CustomerSupportAndFAQProps> = ({ em
 
   // Interactive Order Resolution State (Flipkart-style)
   const [selectedOrderForHelp, setSelectedOrderForHelp] = useState<string | null>(
-    userOrders.length > 0 ? userOrders[0].id : null
+    availableOrders.length > 0 ? availableOrders[0].id : null
   );
   const [activeIssueAction, setActiveIssueAction] = useState<string | null>(null);
   const [returnReason, setReturnReason] = useState<string>('Size or fit issue');
   const [returnConfirmedMsg, setReturnConfirmedMsg] = useState<string | null>(null);
 
   const activeOrder = useMemo(() => {
-    return userOrders.find((o) => o.id === selectedOrderForHelp) || userOrders[0];
-  }, [userOrders, selectedOrderForHelp]);
+    return availableOrders.find((o) => o.id === selectedOrderForHelp) || availableOrders[0];
+  }, [availableOrders, selectedOrderForHelp]);
 
   const filteredTopics = useMemo(() => {
     return HELP_TOPICS.filter((topic) => {
@@ -248,14 +254,14 @@ export const CustomerSupportAndFAQ: React.FC<CustomerSupportAndFAQProps> = ({ em
               Choose your recent purchase to check return eligibility, refund status, or delivery timeline.
             </p>
           </div>
-          {userOrders.length > 0 && (
+          {availableOrders.length > 0 && (
             <span className="text-xs font-bold text-[#786F66] bg-[#FAF6F2] px-2.5 py-1 rounded-lg border border-[#E5DCD3]">
-              {userOrders.length} Recent {userOrders.length === 1 ? 'Order' : 'Orders'}
+              {availableOrders.length} {availableOrders.length === 1 ? 'Order' : 'Orders'} Available
             </span>
           )}
         </div>
 
-        {userOrders.length === 0 ? (
+        {availableOrders.length === 0 ? (
           <div className="p-6 bg-[#FAF6F2] rounded-xl border border-[#E5DCD3] text-center space-y-2">
             <Package className="w-8 h-8 text-[#786F66] mx-auto opacity-50" />
             <p className="text-xs font-bold text-black">No active orders placed yet</p>
@@ -266,9 +272,9 @@ export const CustomerSupportAndFAQ: React.FC<CustomerSupportAndFAQProps> = ({ em
         ) : (
           <div className="space-y-4">
             {/* Horizontal Order Picker if multiple orders exist */}
-            {userOrders.length > 1 && (
+            {availableOrders.length > 1 && (
               <div className="flex gap-2.5 overflow-x-auto scrollbar-none pb-1">
-                {userOrders.map((ord) => (
+                {availableOrders.map((ord) => (
                   <button
                     key={ord.id}
                     onClick={() => {

@@ -111,6 +111,46 @@ export function findUserByEmail(email: string): StoredUserAccount | undefined {
 }
 
 /**
+ * Synchronize user accounts with shared cross-device server
+ */
+export async function syncUsersFromServer(): Promise<StoredUserAccount[]> {
+  try {
+    const res = await fetch('/api/users');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && Array.isArray(data.users)) {
+        const serverUsers: StoredUserAccount[] = data.users;
+        const localUsers = getAllStoredUsers();
+        const map = new Map<string, StoredUserAccount>();
+
+        serverUsers.forEach((u) => map.set(u.email.toLowerCase().trim(), u));
+        localUsers.forEach((lu) => {
+          const key = lu.email.toLowerCase().trim();
+          if (!map.has(key)) {
+            map.set(key, lu);
+            // Push missing local account to shared server
+            try {
+              fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(lu),
+              }).catch(() => {});
+            } catch {}
+          }
+        });
+
+        const merged = Array.from(map.values());
+        localStorage.setItem(USERS_DB_KEY, JSON.stringify(merged));
+        return merged;
+      }
+    }
+  } catch {
+    // Offline fallback
+  }
+  return getAllStoredUsers();
+}
+
+/**
  * Register and save a new user account to the database
  */
 export function registerUserInDb(
@@ -137,6 +177,16 @@ export function registerUserInDb(
 
   const updatedUsers = [...users, newAccount];
   localStorage.setItem(USERS_DB_KEY, JSON.stringify(updatedUsers));
+
+  // Push new user to shared server for cross-device availability
+  try {
+    fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newAccount),
+    }).catch(() => {});
+  } catch {}
+
   return newAccount;
 }
 
@@ -162,6 +212,16 @@ export function updateUserInDb(
 
   users[index] = updatedAccount;
   localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
+
+  // Push updated user to shared server
+  try {
+    fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedAccount),
+    }).catch(() => {});
+  } catch {}
+
   return updatedAccount;
 }
 

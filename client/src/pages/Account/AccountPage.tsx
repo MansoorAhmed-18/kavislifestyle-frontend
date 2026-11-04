@@ -21,7 +21,9 @@ import {
   Lock,
   Edit3,
   Star,
-  HelpCircle
+  HelpCircle,
+  Search,
+  X
 } from 'lucide-react';
 import { CustomerSupportAndFAQ } from '../../components/CustomerSupportAndFAQ';
 import { useAuth } from '../../context/AuthContext';
@@ -106,9 +108,27 @@ export default function AccountPage() {
   const { user, addresses, logout, updateProfile, addAddress, removeAddress, setDefaultAddress } = useAuth();
   const { wishlistCount } = useWishlist();
   const { formatPrice } = useCurrency();
-  const { getUserOrders } = useOrders();
+  const { orders, getUserOrders } = useOrders();
   const { cartCount, setIsCartDrawerOpen } = useCart();
   const userOrders = getUserOrders(user?.email, user?.id);
+  const [orderSearchQuery, setOrderSearchQuery] = useState('');
+
+  const displayedOrders = React.useMemo(() => {
+    const q = orderSearchQuery.trim().toLowerCase();
+    if (!q) return userOrders;
+
+    return orders.filter((o) => {
+      const matchNum = (o.orderNumber || '').toLowerCase().includes(q);
+      const matchTracking = (o.trackingNumber || '').toLowerCase().includes(q);
+      const matchEmail =
+        (o.customer?.email || '').toLowerCase().includes(q) ||
+        (o.userEmail || '').toLowerCase().includes(q);
+      const matchPhone = (o.customer?.phone || '')
+        .replace(/[^0-9]/g, '')
+        .includes(q.replace(/[^0-9]/g, ''));
+      return matchNum || matchTracking || matchEmail || matchPhone;
+    });
+  }, [orderSearchQuery, userOrders, orders]);
 
   // Redirect to login if user is not authenticated
   React.useEffect(() => {
@@ -527,32 +547,94 @@ export default function AccountPage() {
                     <h2 className="text-lg font-bold text-[#114B5F] mb-1">Order History & Live Status</h2>
                     <p className="text-xs text-slate-500">Track shipments, estimated delivery turnaround days, and courier details.</p>
                   </div>
-                  <span className="text-xs font-bold bg-[#FAF6F2] border border-[#E5DCD3] px-3 py-1.5 rounded-xl text-black">
-                    {userOrders.length} {userOrders.length === 1 ? 'Order' : 'Orders'} Placed
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold bg-[#FAF6F2] border border-[#E5DCD3] px-3 py-1.5 rounded-xl text-black">
+                      {userOrders.length} {userOrders.length === 1 ? 'Order' : 'Orders'} for {user?.email?.split('@')[0]}
+                    </span>
+                  </div>
                 </div>
 
-                {userOrders.length === 0 ? (
+                {/* Instant Order Search / Cross-Device Order Lookup */}
+                <div className="bg-white rounded-2xl p-4 border border-[#E5DCD3] shadow-xs space-y-3">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <div className="relative flex-1">
+                      <Search className="w-4 h-4 text-[#786F66] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={orderSearchQuery}
+                        onChange={(e) => setOrderSearchQuery(e.target.value)}
+                        placeholder="Search by Order ID (e.g. KV-406008), email, or mobile..."
+                        className="w-full pl-9 pr-8 py-2.5 bg-[#FAF6F2] border border-[#E5DCD3] rounded-xl text-xs text-black outline-none focus:border-black focus:bg-white transition"
+                      />
+                      {orderSearchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setOrderSearchQuery('')}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-black cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                    {user?.email && (
+                      <div className="text-[11px] text-[#786F66] flex items-center justify-between sm:justify-end gap-2">
+                        <span>Logged in as: <strong className="text-black">{user.email}</strong></span>
+                        <button
+                          type="button"
+                          onClick={handleLogout}
+                          className="text-[#E44A2D] font-bold hover:underline cursor-pointer"
+                        >
+                          Switch Account
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {orderSearchQuery && (
+                    <div className="text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg flex items-center justify-between">
+                      <span>Showing results matching "{orderSearchQuery}" ({displayedOrders.length} found)</span>
+                      <button onClick={() => setOrderSearchQuery('')} className="underline text-emerald-950 font-bold text-[11px] cursor-pointer">
+                        Clear Search
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {displayedOrders.length === 0 ? (
                   <div className="bg-white rounded-2xl p-10 border border-slate-200 text-center space-y-4">
                     <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400">
                       <ShoppingBag className="w-7 h-7" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-black">No orders placed yet</h3>
+                      <h3 className="text-base font-bold text-black">
+                        {orderSearchQuery ? `No orders found matching "${orderSearchQuery}"` : 'No orders placed yet'}
+                      </h3>
                       <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-                        Your ordered items and live delivery turnaround tracking will appear right here once you checkout.
+                        {orderSearchQuery
+                          ? 'Please check the Order ID format (e.g. KV-406008) or clear the search to view your account orders.'
+                          : 'Your ordered items and live delivery turnaround tracking will appear right here once you checkout.'}
                       </p>
                     </div>
-                    <Link
-                      to="/shop"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-black text-white text-xs font-bold rounded-xl hover:bg-neutral-800 transition"
-                    >
-                      <span>Explore Shop</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
+                    {orderSearchQuery ? (
+                      <button
+                        type="button"
+                        onClick={() => setOrderSearchQuery('')}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-black text-white text-xs font-bold rounded-xl hover:bg-neutral-800 transition cursor-pointer"
+                      >
+                        Clear Search Filter
+                      </button>
+                    ) : (
+                      <Link
+                        to="/shop"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-black text-white text-xs font-bold rounded-xl hover:bg-neutral-800 transition"
+                      >
+                        <span>Explore Shop</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    )}
                   </div>
                 ) : (
-                  userOrders.map((order) => {
+                  displayedOrders.map((order) => {
                     const deliveryTurnaround = calculateDeliveryTurnaround(
                       order.customer?.city,
                       order.customer?.pincode
@@ -594,6 +676,11 @@ export default function AccountPage() {
                             </div>
                             <div className="text-xs text-slate-500 mt-0.5">
                               Placed on {order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent'} • Courier: <strong>{order.carrier || deliveryTurnaround.courier}</strong> (Tracking: <strong>{order.trackingNumber || 'BD-' + order.orderNumber.replace(/[^0-9]/g, '').slice(-6) + 'IN'}</strong>)
+                              {order.customer?.email && user?.email && order.customer.email.toLowerCase().trim() !== user.email.toLowerCase().trim() && (
+                                <span className="ml-2 inline-block px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 rounded text-[10px] font-semibold">
+                                  Account: {order.customer.email}
+                                </span>
+                              )}
                             </div>
                           </div>
 
