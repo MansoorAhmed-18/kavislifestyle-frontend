@@ -5,7 +5,6 @@ import { TopStoreUpdateBanner } from '../../components/TopStoreUpdateBanner';
 import { Hero } from '../../components/Hero';
 import { DepartmentCards } from '../../components/DepartmentCards';
 import { FeaturedProducts } from '../../components/FeaturedProducts';
-import { FestivePromoBanner } from '../../components/FestivePromoBanner';
 import { TestimonialsSection } from '../../components/TestimonialsSection';
 import { SocialGalleryAndNewsletter } from '../../components/SocialGalleryAndNewsletter';
 import { Footer } from '../../components/Footer';
@@ -34,9 +33,6 @@ export default function HomePage() {
 
         {/* Featured Products with Department Tabs */}
         <FeaturedProducts />
-
-        {/* Festive Celebration & Gifting Banner */}
-        <FestivePromoBanner />
 
         {/* Real Customer Stories & Reviews */}
         <TestimonialsSection />

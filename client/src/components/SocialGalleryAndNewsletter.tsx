@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { Camera, Send, CheckCircle2, Sparkles } from 'lucide-react';
-import { validateEmail, sanitizeEmailInput } from '../utils/validation';
+import React from 'react';
+import { Camera } from 'lucide-react';
 
 const INSTA_POSTS = [
   {
@@ -30,25 +29,12 @@ const INSTA_POSTS = [
 ];
 
 export const SocialGalleryAndNewsletter: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [isSubscribed, setIsSubscribed] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const emailCheck = validateEmail(email);
-    if (!emailCheck.isValid) {
-      alert(emailCheck.message || 'Please enter a lowercase email ending with @gmail.com');
-      return;
-    }
-    setIsSubscribed(true);
-  };
-
   return (
-    <section className="bg-[#F5EFEB] py-16 sm:py-20 border-b border-[#E5DCD3]">
+    <section className="bg-[#F5EFEB] py-14 sm:py-16 border-b border-[#E5DCD3]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Gallery Header */}
-        <div className="text-center max-w-xl mx-auto mb-10">
+        <div className="text-center max-w-xl mx-auto mb-8 sm:mb-10">
           <div className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-black">
             <Camera className="w-4 h-4" />
             <span>#KavisLifestyle</span>
@@ -62,7 +48,7 @@ export const SocialGalleryAndNewsletter: React.FC = () => {
         </div>
 
         {/* 4-Column Photo Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {INSTA_POSTS.map((post) => (
             <div
               key={post.id}
@@ -80,52 +66,6 @@ export const SocialGalleryAndNewsletter: React.FC = () => {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Newsletter Subscription Box */}
-        <div className="bg-black rounded-3xl p-8 sm:p-12 text-white relative overflow-hidden shadow-md border border-black">
-          <div className="relative z-10 max-w-2xl mx-auto text-center">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-white text-xs font-bold mb-3 border border-white/20">
-              <Sparkles className="w-3.5 h-3.5 text-white" />
-              <span>Exclusive Member Privileges</span>
-            </div>
-
-            <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Join Kavi's Lifestyle Insider
-            </h3>
-            <p className="mt-2 text-xs sm:text-sm text-[#E5DCD3]">
-              Receive private notifications for new saree weaves, fresh harvest releases, and member-only discounts.
-            </p>
-
-            {isSubscribed ? (
-              <div className="mt-6 flex items-center justify-center gap-2 p-3 bg-white text-black rounded-xl text-xs font-bold animate-in fade-in">
-                <CheckCircle2 className="w-4 h-4 text-black" />
-                <span>You are subscribed! Your welcome coupon has been delivered to your email.</span>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="mt-6 flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
-                <input
-                  type="email"
-                  required
-                  placeholder="yourname@gmail.com"
-                  value={email}
-                  onChange={(e) => setEmail(sanitizeEmailInput(e.target.value))}
-                  className="flex-1 px-4 py-3 text-xs bg-white text-black font-medium rounded-xl outline-none focus:ring-2 focus:ring-white lowercase"
-                />
-                <button
-                  type="submit"
-                  className="px-6 py-3 bg-white hover:bg-[#FAF6F2] text-black font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition active:scale-95 shadow-xs flex-shrink-0"
-                >
-                  <span>Subscribe</span>
-                  <Send className="w-3.5 h-3.5" />
-                </button>
-              </form>
-            )}
-
-            <p className="mt-3 text-[11px] text-[#E5DCD3]">
-              Zero spam. Unsubscribe with a single click at any time.
-            </p>
-          </div>
         </div>
 
       </div>
