@@ -1,0 +1,117 @@
+[
+  {
+    "id": "ord-406008",
+    "orderNumber": "KV-406008",
+    "createdAt": "2026-11-04T14:30:00.000Z",
+    "userId": "usr-priya-01",
+    "userEmail": "priya@kavislifestyle.com",
+    "customer": {
+      "name": "Priyadarshini Sundaram",
+      "email": "priyakavislifestyle@gmail.com",
+      "phone": "+91 98400 12345",
+      "address": "14B, Alacrity Greens, 4th Main Road",
+      "city": "Chennai",
+      "state": "Tamil Nadu",
+      "pincode": "600040"
+    },
+    "items": [
+      {
+        "id": "item-101",
+        "name": "Kanchipuram Pure Zari Bridal Silk Saree",
+        "image": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80",
+        "variant": "Bridal Crimson Red",
+        "quantity": 1,
+        "unitPrice": 9999,
+        "totalPrice": 9999
+      }
+    ],
+    "subtotal": 9999,
+    "discount": 1000,
+    "shipping": 0,
+    "total": 8999,
+    "paymentMethod": "Prepaid Online (Razorpay 256-Bit SSL)",
+    "paymentStatus": "paid",
+    "status": "placed",
+    "carrier": "BlueDart Local Express",
+    "trackingNumber": "BD-406008IN"
+  },
+  {
+    "id": "ord-101",
+    "orderNumber": "KV-2026-98124",
+    "createdAt": "2026-02-28T14:30:00.000Z",
+    "userId": "usr-priya-01",
+    "userEmail": "priya@kavislifestyle.com",
+    "customer": {
+      "name": "Priyadarshini Sundaram",
+      "email": "priya@kavislifestyle.com",
+      "phone": "+91 98400 12345",
+      "address": "14B, Alacrity Greens, 4th Main Road, Flat 202",
+      "city": "Chennai",
+      "state": "Tamil Nadu",
+      "pincode": "600040"
+    },
+    "items": [
+      {
+        "id": "item-1",
+        "name": "Kanchipuram Pure Zari Bridal Silk Saree",
+        "image": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80",
+        "variant": "Bridal Crimson Red",
+        "quantity": 1,
+        "unitPrice": 9999,
+        "totalPrice": 9999
+      },
+      {
+        "id": "item-2",
+        "name": "King California Jumbo Almonds (Badam Giri)",
+        "image": "https://images.unsplash.com/photo-1508061252445-5350f3ab0a55?auto=format&fit=crop&w=400&q=80",
+        "variant": "500g Value Pack",
+        "quantity": 2,
+        "unitPrice": 539,
+        "totalPrice": 1078
+      }
+    ],
+    "subtotal": 11077,
+    "discount": 1000,
+    "shipping": 0,
+    "total": 10077,
+    "paymentMethod": "Online Payment (Razorpay)",
+    "paymentStatus": "paid",
+    "status": "delivered",
+    "carrier": "BlueDart Express",
+    "trackingNumber": "BD-982341209IN"
+  },
+  {
+    "id": "ord-102",
+    "orderNumber": "KV-2026-98012",
+    "createdAt": "2026-02-20T11:15:00.000Z",
+    "customer": {
+      "name": "Ananya Deshmukh",
+      "email": "ananya.d@example.com",
+      "phone": "+91 97654 32100",
+      "address": "702, Prestige Towers, Viman Nagar",
+      "city": "Pune",
+      "state": "Maharashtra",
+      "pincode": "411014"
+    },
+    "items": [
+      {
+        "id": "item-3",
+        "name": "Oud Al-Malik Luxury Pure Eau de Parfum",
+        "image": "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=400&q=80",
+        "variant": "100ml Royal Edition",
+        "quantity": 1,
+        "unitPrice": 3199,
+        "totalPrice": 3199
+      }
+    ],
+    "subtotal": 3199,
+    "discount": 0,
+    "shipping": 0,
+    "total": 3199,
+    "paymentMethod": "Cash on Delivery",
+    "paymentStatus": "pending",
+    "status": "delivered",
+    "carrier": "Delivery Surface",
+    "trackingNumber": "DEL-449120391"
+  }
+]

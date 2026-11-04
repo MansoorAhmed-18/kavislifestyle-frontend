@@ -10,6 +10,7 @@ import categoriesRouter from './routes/categories';
 import paymentsRouter from './routes/payments';
 import couponsRouter from './routes/coupons';
 import adminRouter from './routes/admin';
+import ordersRouter from './routes/orders';
 
 export const app = express();
 
@@ -47,6 +48,7 @@ app.use('/api/categories', categoriesRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/coupons', couponsRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/orders', ordersRouter);
 
 // Centralized Error Handling Middleware
 app.use(errorHandler);

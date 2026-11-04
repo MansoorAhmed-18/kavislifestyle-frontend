@@ -213,6 +213,56 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [orders]);
 
+  // Synchronize orders in real-time across devices (Laptop Admin <-> Mobile Client)
+  const syncOrdersFromServer = async () => {
+    try {
+      const res = await fetch('/api/orders');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.orders)) {
+          setOrders((prev) => {
+            const serverOrders: Order[] = data.orders;
+            const hasChange =
+              serverOrders.some((so) => {
+                const local = prev.find((po) => po.id === so.id || po.orderNumber === so.orderNumber);
+                return !local || local.status !== so.status;
+              }) || prev.length !== serverOrders.length;
+
+            if (hasChange) {
+              return serverOrders;
+            }
+            return prev;
+          });
+        }
+      }
+    } catch {
+      // Offline fallback: seamlessly retains local orders
+    }
+  };
+
+  useEffect(() => {
+    // 1. Initial sync
+    syncOrdersFromServer();
+
+    // 2. Poll every 2.5 seconds so admin status changes immediately appear on mobile phone
+    const pollTimer = setInterval(syncOrdersFromServer, 2500);
+
+    // 3. Fast sync whenever user returns to browser tab
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        syncOrdersFromServer();
+      }
+    };
+    window.addEventListener('focus', syncOrdersFromServer);
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      clearInterval(pollTimer);
+      window.removeEventListener('focus', syncOrdersFromServer);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, []);
+
   const placeOrder = (orderData: {
     customer: CustomerDetails;
     items: OrderItem[];
@@ -246,6 +296,15 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     setOrders((prev) => [newOrder, ...prev]);
+
+    // Push new order to shared cross-device server
+    try {
+      fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newOrder)
+      }).catch(() => {});
+    } catch {}
 
     // Track order ID in session so it always shows up in this browser session
     try {
@@ -281,6 +340,15 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return order;
       })
     );
+
+    // Push updated status to shared cross-device server so mobile updates in real-time
+    try {
+      fetch('/api/orders/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, status, carrier, trackingNumber })
+      }).catch(() => {});
+    } catch {}
   };
 
   const getOrderById = (orderId: string) => {
