@@ -169,10 +169,14 @@ export const ThreeHeroShowcase: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative w-full h-[360px] sm:h-[400px] flex items-center justify-center">
-      <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+    <div className="relative w-full h-[250px] sm:h-[320px] md:h-[380px] flex items-center justify-center">
+      <div
+        ref={containerRef}
+        className="w-full h-full cursor-grab active:cursor-grabbing"
+        style={{ touchAction: 'pan-y' }}
+      />
       <div className="absolute bottom-2 text-center pointer-events-none">
-        <span className="text-[11px] font-medium tracking-widest text-[#173F46]/70 uppercase px-3 py-1 rounded-full bg-white/70 backdrop-blur border border-[#F2D9A6]/50">
+        <span className="text-[10px] sm:text-[11px] font-medium tracking-widest text-[#173F46]/70 uppercase px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-white/70 backdrop-blur border border-[#F2D9A6]/50">
           ✦ Interactive 3D Heritage Emblem ✦
         </span>
       </div>

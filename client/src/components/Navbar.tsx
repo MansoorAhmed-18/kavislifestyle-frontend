@@ -320,16 +320,16 @@ export const Navbar: React.FC = () => {
         className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E5DCD3] transition-all shadow-xs"
       >
         {/* ========================================================= */}
-        {/* LINE 1: LOGO + WIDE PROMINENT SEARCH + PROFILE & CART     */}
+        {/* ROW 1: LOGO + SEARCH (DESKTOP) + PROFILE & CART           */}
         {/* ========================================================= */}
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-[68px] sm:h-[74px] gap-2 sm:gap-4">
+          <div className="flex items-center justify-between h-[56px] sm:h-[68px] md:h-[74px] gap-2 sm:gap-4">
             
             {/* Left: Mobile Hamburger Toggle */}
             <div className="flex items-center lg:hidden">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-1.5 -ml-1 rounded-xl text-neutral-800 hover:bg-[#FAF6F2] transition"
+                className="p-1.5 -ml-1 rounded-xl text-neutral-800 hover:bg-[#FAF6F2] transition active:scale-95"
                 aria-label="Toggle Navigation Menu"
               >
                 {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -341,11 +341,11 @@ export const Navbar: React.FC = () => {
               <BrandLogo variant="full" theme="dark" size="sm" />
             </Link>
 
-            {/* Center: Prominent Search Bar (Flipkart style) */}
+            {/* Center: Prominent Search Bar (Desktop >= 768px) */}
             <form
               onSubmit={handleSearchSubmit}
               ref={searchContainerRef}
-              className="relative flex-1 max-w-xl lg:max-w-2xl mx-1 sm:mx-4"
+              className="hidden md:block relative flex-1 max-w-xl lg:max-w-2xl mx-2 lg:mx-6"
             >
               <div className="relative flex items-center">
                 <div className="absolute left-3.5 pointer-events-none text-[#786F66]">
@@ -474,9 +474,24 @@ export const Navbar: React.FC = () => {
               )}
             </form>
 
-            {/* Right: Profile & Cart Action Buttons */}
-            <div className="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
+            {/* Right: Wishlist + Profile & Cart Action Buttons */}
+            <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-3 shrink-0">
               
+              {/* Quick Wishlist Icon */}
+              <Link
+                to="/wishlist"
+                className="relative p-1.5 sm:p-2 text-neutral-800 hover:text-black hover:bg-[#FAF6F2] rounded-xl transition"
+                aria-label="Wishlist"
+                title="Wishlist"
+              >
+                <Heart className="w-5 h-5 text-neutral-800" />
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-[#E44A2D] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Link>
+
               {/* User Account Popover */}
               <div ref={accountRef} className="relative">
                 {user ? (
@@ -640,24 +655,63 @@ export const Navbar: React.FC = () => {
 
             </div>
           </div>
+
+          {/* ========================================================= */}
+          {/* ROW 2: FULL-WIDTH SEARCH BAR (MOBILE EXCLUSIVE < 768px)  */}
+          {/* ========================================================= */}
+          <div className="md:hidden pb-2.5 pt-0.5">
+            <form onSubmit={handleSearchSubmit} className="relative w-full">
+              <div className="relative flex items-center">
+                <div className="absolute left-3 pointer-events-none text-[#786F66]">
+                  <Search className="w-4 h-4 text-[#E44A2D]" />
+                </div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search Sarees, Dry Fruits, Perfumes..."
+                  className="w-full pl-9 pr-20 py-2 bg-[#FAF6F2] text-xs font-medium text-black placeholder:text-[#8C827A] rounded-xl border border-[#D8CFC5] focus:border-[#E44A2D] focus:bg-white outline-none shadow-2xs"
+                />
+                <div className="absolute right-1 flex items-center gap-1">
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="p-1 rounded-full text-[#786F66]"
+                      aria-label="Clear Search"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    className="px-2.5 py-1 bg-[#E44A2D] text-white rounded-lg text-xs font-bold shadow-2xs"
+                    aria-label="Submit Search"
+                  >
+                    Search
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
         </div>
 
         {/* ========================================================= */}
-        {/* LINE 2: CATEGORY ROW MATCHING MINIMALIST 2ND SCREENSHOT   */}
+        {/* LINE 3: CATEGORY ROW MATCHING MINIMALIST 2ND SCREENSHOT   */}
         {/* ========================================================= */}
-        <div className="bg-white border-t border-[#E5DCD3]/80 pt-2 pb-2.5 sm:pt-2.5 sm:pb-3 px-3 sm:px-6 overflow-x-auto scrollbar-none">
-          <div className="max-w-7xl mx-auto flex items-center justify-start sm:justify-center gap-6 sm:gap-10 md:gap-16 min-w-max sm:min-w-0">
+        <div className="bg-white border-t border-[#E5DCD3]/80 pt-1.5 pb-2 sm:pt-2.5 sm:pb-3 px-2 sm:px-6 overflow-x-auto scrollbar-none">
+          <div className="max-w-7xl mx-auto flex items-center justify-between sm:justify-center gap-3 sm:gap-8 md:gap-14 min-w-max sm:min-w-0 px-2 sm:px-0">
             {CATEGORY_NAV_ITEMS.map((item) => {
               const active = isCategoryActive(item);
               return (
                 <Link
                   key={item.id}
                   to={item.path}
-                  className="group flex flex-col items-center justify-center py-1 px-2.5 sm:px-3 rounded-xl transition-all relative shrink-0"
+                  className="group flex flex-col items-center justify-center py-1 px-2 sm:px-3 rounded-xl transition-all relative shrink-0"
                 >
                   {/* Line-Art Icon Container in Squircle (Active: Soft Red Tint) */}
                   <div
-                    className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl p-1 mb-1 transition-all duration-200 relative flex items-center justify-center ${
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl p-1 mb-1 transition-all duration-200 relative flex items-center justify-center ${
                       active
                         ? 'bg-[#FEEAE5] text-[#E44A2D] shadow-xs'
                         : 'bg-transparent text-neutral-800 hover:bg-[#FAF6F2] hover:text-[#E44A2D]'
@@ -668,7 +722,7 @@ export const Navbar: React.FC = () => {
 
                   {/* Category Title Label */}
                   <span
-                    className={`text-[11px] sm:text-xs tracking-tight whitespace-nowrap transition-colors ${
+                    className={`text-[10px] sm:text-xs tracking-tight whitespace-nowrap transition-colors ${
                       active
                         ? 'font-black text-[#E44A2D]'
                         : 'font-bold text-neutral-700 group-hover:text-black'
@@ -679,7 +733,7 @@ export const Navbar: React.FC = () => {
 
                   {/* Solid Underline Bar Indicator directly underneath the active category */}
                   {active && (
-                    <span className="absolute -bottom-1.5 sm:-bottom-2 left-1.5 right-1.5 h-[3.5px] bg-[#E44A2D] rounded-full shadow-2xs" />
+                    <span className="absolute -bottom-1 sm:-bottom-2 left-1.5 right-1.5 h-[3px] sm:h-[3.5px] bg-[#E44A2D] rounded-full shadow-2xs" />
                   )}
                 </Link>
               );

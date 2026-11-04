@@ -105,3 +105,113 @@ body {
   background-color: #121212;
   color: #FFFFFF;
 }
+
+/* ============================================================ */
+/* DEDICATED MOBILE RESPONSIVE MEDIA QUERIES                   */
+/* ============================================================ */
+
+/* Global Mobile Viewport Reset */
+html, body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Tablets & Mobile Devices (<= 768px) */
+@media (max-width: 768px) {
+  /* Prevent automatic iOS input zoom */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Smooth momentum touch scrolling for tracks */
+  .no-scrollbar,
+  .scrollbar-none {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar,
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Container adjustments */
+  .container-mobile {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  /* Buttons & touch targets */
+  .btn-primary,
+  .btn-secondary {
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  /* Clean Two-Column Mobile Product Grid */
+  .mobile-product-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.625rem !important;
+  }
+
+  /* Bottom Navigation safe area padding */
+  .mobile-nav-safe {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+
+  /* Mobile page clearance for fixed bottom navigation */
+  .mobile-page-bottom {
+    padding-bottom: 5.5rem !important;
+  }
+}
+
+/* Small Smart Phones (<= 640px) */
+@media (max-width: 640px) {
+  /* Headings scale nicely */
+  h1 {
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  /* Clean Card border radius on small screens */
+  .clean-card {
+    border-radius: 1rem;
+  }
+
+  /* Hero 3D showcase touch protection */
+  canvas {
+    touch-action: pan-y !important;
+  }
+
+  /* Mobile Banner Carousel Cards */
+  .mobile-banner-card {
+    width: calc(100vw - 2rem) !important;
+    max-width: 90vw !important;
+  }
+}
+
+/* Extra Small Phones (<= 400px - iPhone SE, Galaxy A) */
+@media (max-width: 400px) {
+  .mobile-product-grid {
+    gap: 0.5rem !important;
+  }
+
+  .clean-card {
+    border-radius: 0.875rem;
+  }
+}
+

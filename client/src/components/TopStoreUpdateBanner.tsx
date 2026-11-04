@@ -285,21 +285,21 @@ export const TopStoreUpdateBanner: React.FC = () => {
     >
       {/* Relative wrapper for cards & arrows */}
       <div className="relative group/carousel">
-        {/* Navigation Arrow: Previous */}
+        {/* Navigation Arrow: Previous (Desktop / Tablet) */}
         <button
           type="button"
           onClick={scrollPrev}
-          className="absolute -left-2 sm:-left-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 hover:bg-white text-black shadow-lg border border-[#E5DCD3] flex items-center justify-center transition-all z-30 cursor-pointer active:scale-95"
+          className="hidden sm:flex absolute -left-2 sm:-left-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 hover:bg-white text-black shadow-lg border border-[#E5DCD3] items-center justify-center transition-all z-30 cursor-pointer active:scale-95"
           aria-label="Previous Slide"
         >
           <ChevronLeft className="w-5 h-5 text-black" />
         </button>
 
-        {/* Navigation Arrow: Next */}
+        {/* Navigation Arrow: Next (Desktop / Tablet) */}
         <button
           type="button"
           onClick={scrollNext}
-          className="absolute -right-2 sm:-right-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 hover:bg-white text-black shadow-lg border border-[#E5DCD3] flex items-center justify-center transition-all z-30 cursor-pointer active:scale-95"
+          className="hidden sm:flex absolute -right-2 sm:-right-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 hover:bg-white text-black shadow-lg border border-[#E5DCD3] items-center justify-center transition-all z-30 cursor-pointer active:scale-95"
           aria-label="Next Slide"
         >
           <ChevronRight className="w-5 h-5 text-black" />
@@ -309,7 +309,7 @@ export const TopStoreUpdateBanner: React.FC = () => {
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex items-center gap-3.5 sm:gap-4 md:gap-5 overflow-x-auto scrollbar-none scroll-smooth pb-1 px-1"
+          className="flex items-center gap-3 sm:gap-4 md:gap-5 overflow-x-auto scrollbar-none scroll-smooth pb-1 px-1 -webkit-overflow-scrolling-touch"
           style={{ scrollSnapType: 'x mandatory' }}
         >
           {cards.map((card) => (
@@ -317,7 +317,7 @@ export const TopStoreUpdateBanner: React.FC = () => {
               key={card.id}
               style={{ scrollSnapAlign: 'start' }}
               onClick={() => navigate(card.link)}
-              className="w-[88vw] sm:w-[460px] md:w-[490px] lg:w-[520px] shrink-0 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 relative cursor-pointer group"
+              className="w-[84vw] max-w-[340px] sm:max-w-none sm:w-[460px] md:w-[490px] lg:w-[520px] shrink-0 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 relative cursor-pointer group mobile-banner-card"
             >
               {/* Decorative Top Scalloped Golden Garland Arch */}
               <div className="absolute top-0 left-0 right-0 h-3 sm:h-3.5 z-20 pointer-events-none flex justify-around opacity-95 overflow-hidden">
@@ -356,19 +356,19 @@ export const TopStoreUpdateBanner: React.FC = () => {
                   </div>
 
                   {/* Main Headline (Min. X% Off or Deal) */}
-                  <h3 className="text-base sm:text-xl md:text-2xl font-black text-white tracking-tight leading-tight drop-shadow-sm line-clamp-2">
+                  <h3 className="text-sm sm:text-xl md:text-2xl font-black text-white tracking-tight leading-tight drop-shadow-sm line-clamp-2">
                     {card.title}
                   </h3>
 
                   {/* Subtitle / Category Description */}
-                  <p className="text-[11px] sm:text-xs text-white/90 font-medium line-clamp-1">
+                  <p className="text-[10px] sm:text-xs text-white/90 font-medium line-clamp-1">
                     {card.subtitle}
                   </p>
 
                   {/* Bank Instant Discount Bar (Same as in screenshot) */}
-                  <div className="pt-1">
-                    <div className="inline-flex items-center gap-1.5 bg-white text-black px-2.5 py-1 rounded-md text-[9px] sm:text-[10px] font-bold shadow-xs">
-                      <div className="w-3.5 h-3.5 rounded-full bg-[#00529C] text-white flex items-center justify-center text-[7px] font-black">
+                  <div className="pt-0.5 sm:pt-1">
+                    <div className="inline-flex items-center gap-1 sm:gap-1.5 bg-white text-black px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[8.5px] sm:text-[10px] font-bold shadow-xs">
+                      <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-[#00529C] text-white flex items-center justify-center text-[7px] font-black shrink-0">
                         ₹
                       </div>
                       <span className="truncate">SBI Card 10% Instant Discount*</span>
@@ -379,34 +379,34 @@ export const TopStoreUpdateBanner: React.FC = () => {
                 </div>
 
                 {/* Right Side: Spotlight Photo with Floating Lantern & Gift Boxes */}
-                <div className="relative shrink-0 flex items-center justify-center w-28 sm:w-40 md:w-48 h-28 sm:h-40 md:h-44 ml-1">
+                <div className="relative shrink-0 flex items-center justify-center w-24 sm:w-40 md:w-48 h-24 sm:h-40 md:h-44 ml-1">
                   {/* Floating Sky Lantern */}
-                  <div className="absolute -top-2 -left-2 sm:-top-3 sm:-left-4 w-7 h-9 sm:w-10 sm:h-13 bg-gradient-to-t from-[#FF7B00] to-[#FFD000] rounded-t-full rounded-b-md shadow-md flex items-center justify-center border border-amber-300">
-                    <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white fill-white animate-pulse" />
+                  <div className="absolute -top-1 -left-1 sm:-top-3 sm:-left-4 w-6 h-8 sm:w-10 sm:h-13 bg-gradient-to-t from-[#FF7B00] to-[#FFD000] rounded-t-full rounded-b-md shadow-md flex items-center justify-center border border-amber-300">
+                    <Flame className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-white fill-white animate-pulse" />
                   </div>
 
                   {/* Spotlight Framed Photo with Golden Border */}
-                  <div className="relative w-24 h-24 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-2xl overflow-hidden p-1 bg-gradient-to-tr from-[#FFE169] via-white to-[#FFB703] shadow-xl group-hover:scale-104 transition-transform duration-300">
+                  <div className="relative w-20 h-20 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-xl sm:rounded-2xl overflow-hidden p-0.5 sm:p-1 bg-gradient-to-tr from-[#FFE169] via-white to-[#FFB703] shadow-xl group-hover:scale-104 transition-transform duration-300">
                     <img
                       src={card.image}
                       alt={card.title}
-                      className="w-full h-full object-cover rounded-xl bg-white"
+                      className="w-full h-full object-cover rounded-lg sm:rounded-xl bg-white"
                       loading="lazy"
                     />
 
                     {/* Price / Offer Tag */}
-                    <div className="absolute bottom-1.5 right-1.5 bg-black/85 text-[#FFE169] px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-black shadow-xs">
+                    <div className="absolute bottom-1 right-1 sm:bottom-1.5 sm:right-1.5 bg-black/85 text-[#FFE169] px-1 sm:px-1.5 py-0.5 rounded text-[8.5px] sm:text-[10px] font-black shadow-xs">
                       {card.priceTag}
                     </div>
                   </div>
 
                   {/* Festive Gift Boxes & Diya at bottom right */}
-                  <div className="absolute -bottom-1 -left-2 sm:bottom-0 sm:-left-2 flex items-center gap-1 z-10 pointer-events-none">
-                    <div className="w-6 h-6 sm:w-7 sm:h-7 bg-[#B7094C] rounded-md shadow-md border border-[#FFD000] flex items-center justify-center rotate-6">
-                      <Gift className="w-3 h-3 text-[#FFE169]" />
+                  <div className="absolute -bottom-1 -left-1 sm:bottom-0 sm:-left-2 flex items-center gap-1 z-10 pointer-events-none">
+                    <div className="w-5 h-5 sm:w-7 sm:h-7 bg-[#B7094C] rounded-md shadow-md border border-[#FFD000] flex items-center justify-center rotate-6">
+                      <Gift className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#FFE169]" />
                     </div>
-                    <div className="w-5 h-5 sm:w-6 sm:h-6 bg-[#780000] rounded-md shadow-xs border border-white flex items-center justify-center -rotate-12">
-                      <Gift className="w-2.5 h-2.5 text-white" />
+                    <div className="w-4 h-4 sm:w-6 sm:h-6 bg-[#780000] rounded-md shadow-xs border border-white flex items-center justify-center -rotate-12">
+                      <Gift className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-white" />
                     </div>
                   </div>
                 </div>

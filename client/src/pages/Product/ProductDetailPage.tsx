@@ -56,7 +56,7 @@ export default function ProductDetailPage() {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#F5EFEB] text-black pb-16 md:pb-0">
+      <div className="min-h-screen flex flex-col bg-[#F5EFEB] text-black pb-32 md:pb-0">
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
           <h2 className="text-2xl font-black text-black">Product Not Found</h2>
@@ -105,7 +105,7 @@ export default function ProductDetailPage() {
     .slice(0, 4);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F5EFEB] text-black pb-16 md:pb-0">
+    <div className="min-h-screen flex flex-col bg-[#F5EFEB] text-black pb-32 md:pb-0">
       <Navbar />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 text-left">
@@ -467,7 +467,7 @@ export default function ProductDetailPage() {
             <h2 className="text-xl sm:text-2xl font-black text-black">
               More from this Department
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-4 md:gap-6 lg:grid-cols-4 mobile-product-grid">
               {relatedProducts.map(p => (
                 <ProductCard key={p.id} product={p} />
               ))}
@@ -475,6 +475,28 @@ export default function ProductDetailPage() {
           </div>
         )}
       </main>
+
+      {/* Sticky Mobile Bottom Quick Buy Bar */}
+      <div className="md:hidden fixed bottom-14 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#E5DCD3] px-3 py-2 flex items-center gap-2 shadow-lg">
+        <button
+          type="button"
+          onClick={handleAddToCart}
+          className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 ${
+            isAdded ? 'bg-emerald-700 text-white' : 'bg-black text-white'
+          }`}
+        >
+          {isAdded ? <Check className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}
+          <span>{isAdded ? 'Added' : 'Add to Bag'}</span>
+        </button>
+        <button
+          type="button"
+          onClick={handleBuyNow}
+          className="flex-1 py-2.5 px-3 rounded-xl font-bold text-xs bg-[#E44A2D] text-white flex items-center justify-center gap-1.5 shadow-xs active:scale-95"
+        >
+          <span>Buy Now</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
 
       <Footer />
     </div>

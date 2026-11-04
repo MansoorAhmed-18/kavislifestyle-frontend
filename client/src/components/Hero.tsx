@@ -20,31 +20,31 @@ export const Hero: React.FC = () => {
             className="lg:col-span-7 flex flex-col justify-center text-left"
           >
             {/* Clean Heritage Eyebrow */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white text-black border border-[#E5DCD3] w-fit mb-5 shadow-xs">
-              <Sparkles className="w-4 h-4 text-black" />
-              <span className="text-xs font-bold tracking-wide">
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-white text-black border border-[#E5DCD3] w-fit mb-4 sm:mb-5 shadow-xs">
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black" />
+              <span className="text-[11px] sm:text-xs font-bold tracking-wide">
                 From Kavi Boutique to Modern Lifestyle Destination
               </span>
             </div>
 
             {/* Main Headline */}
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-black tracking-tight leading-[1.12]">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-black tracking-tight leading-[1.15]">
               Everything You Love,{' '}
-              <span className="underline decoration-black underline-offset-8">
+              <span className="underline decoration-[#E44A2D] underline-offset-4 sm:underline-offset-8">
                 Under One Roof.
               </span>
             </h1>
 
             {/* Sub-headline */}
-            <p className="mt-5 text-base sm:text-lg text-[#5C554E] max-w-2xl leading-relaxed font-medium">
+            <p className="mt-3.5 sm:mt-5 text-xs sm:text-base lg:text-lg text-[#5C554E] max-w-2xl leading-relaxed font-medium">
               Explore authentic Indian lifestyle essentials. Handwoven Kanchipuram silks, fresh Californian dry fruits, pure Kannauj attars, and clean Ayurvedic radiance — curated under one trusted brand.
             </p>
 
             {/* CTAs */}
-            <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
               <button
                 onClick={() => navigate('/shop')}
-                className="px-8 py-3.5 rounded-xl bg-black hover:bg-[#2A2A2A] text-white font-bold text-sm flex items-center justify-center gap-2.5 shadow-sm transition-all active:scale-98 group"
+                className="px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl bg-black hover:bg-[#2A2A2A] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-all active:scale-98 group"
               >
                 <span>Shop All Departments</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -55,51 +55,51 @@ export const Hero: React.FC = () => {
                   const elem = document.getElementById('departments-section');
                   elem?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="px-8 py-3.5 rounded-xl bg-white hover:bg-[#FAF6F2] text-black border border-black font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-xs"
+                className="px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl bg-white hover:bg-[#FAF6F2] text-black border border-black font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-xs"
               >
                 Explore 4 Departments
               </button>
             </div>
 
             {/* Trust Highlights Strip */}
-            <div className="mt-10 pt-8 border-t border-[#E5DCD3] grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-white border border-[#E5DCD3] text-black shadow-xs">
-                  <Award className="w-4 h-4 text-black" />
+            <div className="mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-[#E5DCD3] grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-2 sm:p-2.5 rounded-xl bg-white border border-[#E5DCD3] text-black shadow-xs shrink-0">
+                  <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-black">100% Genuine</div>
-                  <div className="text-[11px] text-[#5C554E]">Pure silk & harvest</div>
+                  <div className="text-[11px] sm:text-xs font-bold text-black">100% Genuine</div>
+                  <div className="text-[10px] sm:text-[11px] text-[#5C554E]">Pure silk & harvest</div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-white border border-[#E5DCD3] text-black shadow-xs">
-                  <Truck className="w-4 h-4 text-black" />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-2 sm:p-2.5 rounded-xl bg-white border border-[#E5DCD3] text-black shadow-xs shrink-0">
+                  <Truck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-black">Free Delivery</div>
-                  <div className="text-[11px] text-[#5C554E]">Orders over ₹999</div>
+                  <div className="text-[11px] sm:text-xs font-bold text-black">Free Delivery</div>
+                  <div className="text-[10px] sm:text-[11px] text-[#5C554E]">Orders over ₹999</div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-white border border-[#E5DCD3] text-black shadow-xs">
-                  <RefreshCw className="w-4 h-4 text-black" />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-2 sm:p-2.5 rounded-xl bg-white border border-[#E5DCD3] text-black shadow-xs shrink-0">
+                  <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-black">Easy Returns</div>
-                  <div className="text-[11px] text-[#5C554E]">7-Day doorstep pickup</div>
+                  <div className="text-[11px] sm:text-xs font-bold text-black">Easy Returns</div>
+                  <div className="text-[10px] sm:text-[11px] text-[#5C554E]">7-Day doorstep pickup</div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-white border border-[#E5DCD3] text-black shadow-xs">
-                  <ShieldCheck className="w-4 h-4 text-black" />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-2 sm:p-2.5 rounded-xl bg-white border border-[#E5DCD3] text-black shadow-xs shrink-0">
+                  <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-black">Razorpay Secure</div>
-                  <div className="text-[11px] text-[#5C554E]">256-Bit SSL payment</div>
+                  <div className="text-[11px] sm:text-xs font-bold text-black">Razorpay Secure</div>
+                  <div className="text-[10px] sm:text-[11px] text-[#5C554E]">256-Bit SSL payment</div>
                 </div>
               </div>
             </div>
