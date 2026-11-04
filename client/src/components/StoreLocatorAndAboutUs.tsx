@@ -18,7 +18,7 @@ export const StoreLocatorAndAboutUs: React.FC = () => {
       id="about-and-store-locator"
       className="bg-[#FAF6F2] py-14 sm:py-20 border-b border-[#E5DCD3] text-left"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 sm:space-y-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14 sm:space-y-16">
         
         {/* ========================================================= */}
         {/* PART 1: ABOUT US BRAND HERITAGE                           */}
@@ -112,10 +112,10 @@ export const StoreLocatorAndAboutUs: React.FC = () => {
         </div>
 
         {/* ========================================================= */}
-        {/* PART 2: PHYSICAL STORE LOCATOR & VISIT EXPERIENCE         */}
+        {/* PART 2: PHYSICAL STORE LOCATOR                            */}
         {/* ========================================================= */}
         <div className="bg-white rounded-3xl p-6 sm:p-10 border border-[#E5DCD3] shadow-sm">
-          <div className="max-w-3xl mb-8">
+          <div className="max-w-3xl mb-6 sm:mb-8">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF6F2] text-black text-xs font-bold border border-[#E5DCD3] mb-2">
               <MapPin className="w-3.5 h-3.5 text-black" />
               <span>Physical Storefront</span>
@@ -124,59 +124,37 @@ export const StoreLocatorAndAboutUs: React.FC = () => {
               Visit Our Flagship Store in Chennai
             </h3>
             <p className="text-xs sm:text-sm text-[#5C554E] mt-1">
-              Step into our experiential store to feel the weight of pure zari silks, sample freshly roasted gourmet nuts, and experience handcrafted Kannauj attars.
+              Step into our experiential store to feel the weight of pure zari silks, sample freshly roasted gourmet nuts, and experience handcrafted Kannauj attars in person.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-stretch">
-            {/* Store Information Card */}
-            <div className="lg:col-span-7 bg-[#FAF6F2] rounded-2xl p-5 sm:p-7 border border-[#E5DCD3] space-y-5 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-black text-white flex items-center justify-center shrink-0 mt-0.5">
-                    <MapPin className="w-4 h-4 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-black text-black">
-                      Kavi Boutique & Lifestyle Studio
-                    </h4>
-                    <p className="text-xs text-[#5C554E] mt-0.5 leading-relaxed">
-                      No. 42, Usman Road (Near Panagal Park), T. Nagar, Chennai, Tamil Nadu — 600017
-                    </p>
-                    <span className="inline-block mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                      ● Open Today • Valet Parking Available
-                    </span>
-                  </div>
+          {/* Store Information Card */}
+          <div className="bg-[#FAF6F2] rounded-3xl p-6 sm:p-8 border border-[#E5DCD3] space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#E5DCD3]">
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-2xl bg-black text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                  <MapPin className="w-5 h-5 text-white" />
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                  <div className="flex items-start gap-2.5 p-3 bg-white rounded-xl border border-[#E5DCD3]">
-                    <Clock className="w-4 h-4 text-black shrink-0 mt-0.5" />
-                    <div className="text-xs">
-                      <p className="font-bold text-black">Store Timings</p>
-                      <p className="text-[11px] text-[#5C554E]">Mon–Sat: 10:00 AM – 9:00 PM</p>
-                      <p className="text-[11px] text-[#5C554E]">Sunday: 11:00 AM – 8:00 PM</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-2.5 p-3 bg-white rounded-xl border border-[#E5DCD3]">
-                    <Phone className="w-4 h-4 text-black shrink-0 mt-0.5" />
-                    <div className="text-xs">
-                      <p className="font-bold text-black">Direct Store Line</p>
-                      <p className="text-[11px] text-[#5C554E]">+91 98400 12345</p>
-                      <p className="text-[11px] text-[#5C554E]">care@kavislifestyle.com</p>
-                    </div>
-                  </div>
+                <div>
+                  <h4 className="text-base font-black text-black">
+                    Kavi Boutique & Lifestyle Studio
+                  </h4>
+                  <p className="text-xs sm:text-sm text-[#5C554E] mt-0.5 leading-relaxed">
+                    No. 42, Usman Road (Near Panagal Park), T. Nagar, Chennai, Tamil Nadu — 600017
+                  </p>
+                  <span className="inline-block mt-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                    ● Store Open Today • Valet Parking Available
+                  </span>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-2.5 pt-3 border-t border-[#E5DCD3]">
+              <div className="flex flex-wrap items-center gap-2.5 pt-2 md:pt-0">
                 <a
                   href="https://maps.google.com/?q=Usman+Road+T+Nagar+Chennai"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-2.5 bg-black hover:bg-[#2A2A2A] text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition shadow-xs active:scale-95"
+                  className="px-4 py-2.5 bg-black hover:bg-[#2A2A2A] text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition shadow-xs active:scale-95 cursor-pointer"
                 >
                   <span>Get Directions on Google Maps</span>
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -184,7 +162,7 @@ export const StoreLocatorAndAboutUs: React.FC = () => {
 
                 <a
                   href="tel:+919840012345"
-                  className="px-4 py-2.5 bg-white hover:bg-neutral-100 text-black font-bold text-xs rounded-xl border border-[#E5DCD3] flex items-center gap-1.5 transition active:scale-95"
+                  className="px-4 py-2.5 bg-white hover:bg-neutral-100 text-black font-bold text-xs rounded-xl border border-[#E5DCD3] flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
                 >
                   <Phone className="w-3.5 h-3.5" />
                   <span>Call Store</span>
@@ -194,7 +172,7 @@ export const StoreLocatorAndAboutUs: React.FC = () => {
                   href="https://wa.me/919840012345?text=Hi%20Kavi's%20Lifestyle,%20I%20would%20like%20to%20inquire%20about%20visiting%20the%20Chennai%20store."
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition shadow-xs active:scale-95"
+                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition shadow-xs active:scale-95 cursor-pointer"
                 >
                   <MessageCircle className="w-3.5 h-3.5" />
                   <span>WhatsApp Store</span>
@@ -202,54 +180,33 @@ export const StoreLocatorAndAboutUs: React.FC = () => {
               </div>
             </div>
 
-            {/* In-Store Highlights Card */}
-            <div className="lg:col-span-5 bg-black text-white rounded-2xl p-6 sm:p-7 flex flex-col justify-between">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-[#FFE169]">
-                  In-Store Highlights
-                </span>
-                <h4 className="text-base sm:text-lg font-black text-white mt-1">
-                  Complimentary Patron Services
-                </h4>
-
-                <ul className="space-y-3 mt-4 text-xs text-[#E5DCD3]">
-                  <li className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-white/10 text-[#FFE169] flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
-                      ✓
-                    </span>
-                    <span>
-                      <strong className="text-white">Bridal Saree Draping Lounge:</strong> Try bridal weaves with customized styling guidance from experienced draping specialists.
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-white/10 text-[#FFE169] flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
-                      ✓
-                    </span>
-                    <span>
-                      <strong className="text-white">Pure Silver Zari Purity Testing:</strong> Live microscopic and burn testing to verify pure silk and zari authenticity.
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-white/10 text-[#FFE169] flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
-                      ✓
-                    </span>
-                    <span>
-                      <strong className="text-white">Gourmet Nut Roasting Bar:</strong> Sample freshly roasted California almonds, Kashmiri walnuts, and Afghan figs.
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-white/10 text-[#FFE169] flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
-                      ✓
-                    </span>
-                    <span>
-                      <strong className="text-white">Custom Wedding & Corporate Gifting:</strong> Bespoke wooden boxes with engraved message cards and pan-India dispatch.
-                    </span>
-                  </li>
-                </ul>
+            {/* Store Timing & Contact Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+              <div className="flex items-start gap-3 p-4 bg-white rounded-2xl border border-[#E5DCD3] shadow-2xs">
+                <Clock className="w-5 h-5 text-black shrink-0 mt-0.5" />
+                <div className="text-xs">
+                  <p className="font-bold text-black">Opening Hours</p>
+                  <p className="text-[11px] text-[#5C554E] mt-0.5">Mon–Sat: 10:00 AM – 9:00 PM</p>
+                  <p className="text-[11px] text-[#5C554E]">Sunday: 11:00 AM – 8:00 PM</p>
+                </div>
               </div>
 
-              <div className="pt-4 mt-4 border-t border-white/15 flex items-center justify-between text-xs text-[#E5DCD3]">
-                <span>Visiting Chennai? Walk-ins welcome anytime.</span>
+              <div className="flex items-start gap-3 p-4 bg-white rounded-2xl border border-[#E5DCD3] shadow-2xs">
+                <Phone className="w-5 h-5 text-black shrink-0 mt-0.5" />
+                <div className="text-xs">
+                  <p className="font-bold text-black">Direct Assistance</p>
+                  <p className="text-[11px] text-[#5C554E] mt-0.5">+91 98400 12345</p>
+                  <p className="text-[11px] text-[#5C554E]">care@kavislifestyle.com</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 p-4 bg-white rounded-2xl border border-[#E5DCD3] shadow-2xs">
+                <Navigation className="w-5 h-5 text-black shrink-0 mt-0.5" />
+                <div className="text-xs">
+                  <p className="font-bold text-black">Landmark & Access</p>
+                  <p className="text-[11px] text-[#5C554E] mt-0.5">Near Panagal Park, T. Nagar</p>
+                  <p className="text-[11px] text-[#5C554E]">Chennai Central: 8 km (Metro nearby)</p>
+                </div>
               </div>
             </div>
           </div>

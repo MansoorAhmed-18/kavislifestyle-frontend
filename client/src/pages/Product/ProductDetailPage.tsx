@@ -17,6 +17,7 @@ import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCurrency } from '../../context/CurrencyContext';
 import { useProducts } from '../../context/ProductContext';
+import { useLocation } from '../../context/LocationContext';
 import { Navbar } from '../../components/Navbar';
 import { Footer } from '../../components/Footer';
 import { ProductCard } from '../../components/ProductCard';
@@ -40,6 +41,15 @@ export default function ProductDetailPage() {
   const [deliveryEstimate, setDeliveryEstimate] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'details' | 'specs' | 'reviews'>('details');
   const [isAdded, setIsAdded] = useState(false);
+
+  const { location } = useLocation();
+
+  useEffect(() => {
+    if (location.isSet) {
+      setPincode(location.pincode);
+      setDeliveryEstimate(`Express Delivery to ${location.city} (${location.pincode}): Arriving in 2 to 3 Business Days via Bluedart. Free shipping unlocked!`);
+    }
+  }, [location]);
 
   useEffect(() => {
     if (product) {

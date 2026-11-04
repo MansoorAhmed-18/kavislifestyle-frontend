@@ -9,6 +9,7 @@ import { useCart } from '../../context/CartContext';
 import { useCurrency } from '../../context/CurrencyContext';
 import { useAuth } from '../../context/AuthContext';
 import { useOrders } from '../../context/OrderContext';
+import { useLocation } from '../../context/LocationContext';
 import { ShippingAddress } from '../../types';
 import { validateEmail, validatePhone, sanitizeEmailInput, sanitizePhoneInput } from '../../utils/validation';
 
@@ -18,6 +19,7 @@ export default function CheckoutPage() {
   const { formatPrice } = useCurrency();
   const { user, addresses, addAddress, updateProfile } = useAuth();
   const { placeOrder } = useOrders();
+  const { location } = useLocation();
 
   const [selectedAddressId, setSelectedAddressId] = useState<string>('new');
   const [saveToAccount, setSaveToAccount] = useState<boolean>(true);
@@ -28,14 +30,14 @@ export default function CheckoutPage() {
     email: user?.email || '',
     phone: user?.phone || '',
     address: '',
-    city: '',
-    state: '',
-    pincode: '',
+    city: location.isSet ? location.city : '',
+    state: location.isSet ? location.state : '',
+    pincode: location.isSet ? location.pincode : '',
     country: 'India',
     paymentMethod: 'razorpay'
   });
 
-  // Automatically pre-fill contact and shipping details from active account & saved addresses
+  // Automatically pre-fill contact and shipping details from active account, saved addresses & delivery location
   useEffect(() => {
     if (user) {
       const defaultAddr = addresses.find(a => a.isDefault) || addresses[0];
@@ -46,28 +48,33 @@ export default function CheckoutPage() {
           email: user.email || '',
           phone: defaultAddr.phone || user.phone || '',
           address: defaultAddr.street || '',
-          city: defaultAddr.city || '',
-          state: defaultAddr.state || '',
-          pincode: defaultAddr.postalCode || '',
+          city: defaultAddr.city || (location.isSet ? location.city : ''),
+          state: defaultAddr.state || (location.isSet ? location.state : ''),
+          pincode: defaultAddr.postalCode || (location.isSet ? location.pincode : ''),
           country: defaultAddr.country || 'India',
           paymentMethod: 'razorpay'
         });
       } else {
         setSelectedAddressId('new');
-        setFormData({
-          fullName: user.fullName || '',
-          email: user.email || '',
-          phone: user.phone || '',
-          address: '',
-          city: '',
-          state: '',
-          pincode: '',
-          country: 'India',
-          paymentMethod: 'razorpay'
-        });
+        setFormData(prev => ({
+          ...prev,
+          fullName: user.fullName || prev.fullName,
+          email: user.email || prev.email,
+          phone: user.phone || prev.phone,
+          city: location.isSet ? location.city : prev.city,
+          state: location.isSet ? location.state : prev.state,
+          pincode: location.isSet ? location.pincode : prev.pincode,
+        }));
       }
+    } else if (location.isSet) {
+      setFormData(prev => ({
+        ...prev,
+        city: prev.city || location.city,
+        state: prev.state || location.state,
+        pincode: prev.pincode || location.pincode,
+      }));
     }
-  }, [user?.email, addresses]);
+  }, [user?.email, addresses, location]);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
@@ -96,9 +103,9 @@ export default function CheckoutPage() {
     setFormData(prev => ({
       ...prev,
       address: '',
-      city: '',
-      state: '',
-      pincode: '',
+      city: location.isSet ? location.city : '',
+      state: location.isSet ? location.state : '',
+      pincode: location.isSet ? location.pincode : '',
       country: 'India'
     }));
   };
@@ -407,6 +414,17 @@ export default function CheckoutPage() {
                           </div>
                         );
                       })}
+                    </div>
+                  </div>
+                )}
+
+                {location.isSet && selectedAddressId === 'new' && (
+                  <div className="p-3 bg-[#FAF6F2] rounded-xl border border-[#E5DCD3] flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-black shrink-0" />
+                      <span className="text-[#5C554E]">
+                        Delivering to: <strong className="text-black">{location.city} - {location.pincode}</strong> (Auto-filled from your delivery location)
+                      </span>
                     </div>
                   </div>
                 )}

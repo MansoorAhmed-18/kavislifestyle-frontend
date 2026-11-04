@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, X, Navigation, Check, ChevronRight } from 'lucide-react';
+import { MapPin, X, Navigation, Check, ChevronRight, Loader2 } from 'lucide-react';
 import { useLocation } from '../context/LocationContext';
 
 const POPULAR_CITIES = [
@@ -13,29 +13,57 @@ const POPULAR_CITIES = [
   { city: 'Kolkata', pincode: '700001', state: 'West Bengal' },
 ];
 
-// Helper to determine city name from PIN prefix
-const lookupPincode = (pin: string): { city: string; state: string } => {
-  const prefix2 = pin.slice(0, 2);
-  if (prefix2 === '60' || prefix2 === '61' || prefix2 === '62' || prefix2 === '63' || prefix2 === '64') {
-    if (pin.startsWith('600')) return { city: 'Chennai', state: 'Tamil Nadu' };
-    if (pin.startsWith('641')) return { city: 'Coimbatore', state: 'Tamil Nadu' };
-    if (pin.startsWith('625')) return { city: 'Madurai', state: 'Tamil Nadu' };
-    return { city: 'Tamil Nadu', state: 'Tamil Nadu' };
-  }
-  if (prefix2 === '56' || prefix2 === '57' || prefix2 === '58' || prefix2 === '59') {
-    if (pin.startsWith('560')) return { city: 'Bengaluru', state: 'Karnataka' };
-    return { city: 'Karnataka', state: 'Karnataka' };
-  }
-  if (prefix2 === '40' || prefix2 === '41' || prefix2 === '42' || prefix2 === '43' || prefix2 === '44') {
-    if (pin.startsWith('400')) return { city: 'Mumbai', state: 'Maharashtra' };
-    if (pin.startsWith('411')) return { city: 'Pune', state: 'Maharashtra' };
-    return { city: 'Maharashtra', state: 'Maharashtra' };
-  }
-  if (prefix2 === '11') return { city: 'New Delhi', state: 'Delhi' };
-  if (prefix2 === '50') return { city: 'Hyderabad', state: 'Telangana' };
-  if (prefix2 === '70') return { city: 'Kolkata', state: 'West Bengal' };
-  if (prefix2 === '68' || prefix2 === '69') return { city: 'Kochi / Kerala', state: 'Kerala' };
-  if (prefix2 === '38' || prefix2 === '39') return { city: 'Ahmedabad', state: 'Gujarat' };
+// Offline fallback for Indian postal circle prefixes
+const getOfflineStateCityFromPin = (pin: string): { city: string; state: string } => {
+  const p2 = parseInt(pin.slice(0, 2), 10);
+  const p3 = parseInt(pin.slice(0, 3), 10);
+
+  // Exact major city checks
+  if (p3 === 600) return { city: 'Chennai', state: 'Tamil Nadu' };
+  if (p3 === 641) return { city: 'Coimbatore', state: 'Tamil Nadu' };
+  if (p3 === 625) return { city: 'Madurai', state: 'Tamil Nadu' };
+  if (p3 === 620) return { city: 'Tiruchirappalli', state: 'Tamil Nadu' };
+  if (p3 === 636) return { city: 'Salem', state: 'Tamil Nadu' };
+  if (p3 === 560) return { city: 'Bengaluru', state: 'Karnataka' };
+  if (p3 === 570) return { city: 'Mysuru', state: 'Karnataka' };
+  if (p3 === 400) return { city: 'Mumbai', state: 'Maharashtra' };
+  if (p3 === 411) return { city: 'Pune', state: 'Maharashtra' };
+  if (p3 === 440) return { city: 'Nagpur', state: 'Maharashtra' };
+  if (p3 === 110) return { city: 'New Delhi', state: 'Delhi' };
+  if (p3 === 500) return { city: 'Hyderabad', state: 'Telangana' };
+  if (p3 === 700) return { city: 'Kolkata', state: 'West Bengal' };
+  if (p3 === 380) return { city: 'Ahmedabad', state: 'Gujarat' };
+  if (p3 === 395) return { city: 'Surat', state: 'Gujarat' };
+  if (p3 === 302) return { city: 'Jaipur', state: 'Rajasthan' };
+  if (p3 === 226) return { city: 'Lucknow', state: 'Uttar Pradesh' };
+  if (p3 === 682) return { city: 'Kochi', state: 'Kerala' };
+  if (p3 === 695) return { city: 'Thiruvananthapuram', state: 'Kerala' };
+  if (p3 === 800) return { city: 'Patna', state: 'Bihar' };
+  if (p3 === 751) return { city: 'Bhubaneswar', state: 'Odisha' };
+  if (p3 === 781) return { city: 'Guwahati', state: 'Assam' };
+  if (p3 === 160) return { city: 'Chandigarh', state: 'Chandigarh' };
+
+  // Regional 2-digit Circle prefix fallback
+  if (p2 === 11) return { city: 'Delhi', state: 'Delhi' };
+  if (p2 === 12 || p2 === 13) return { city: 'Haryana', state: 'Haryana' };
+  if (p2 >= 14 && p2 <= 16) return { city: 'Punjab', state: 'Punjab' };
+  if (p2 === 17) return { city: 'Himachal Pradesh', state: 'Himachal Pradesh' };
+  if (p2 === 18 || p2 === 19) return { city: 'Jammu & Kashmir', state: 'Jammu & Kashmir' };
+  if (p2 >= 20 && p2 <= 28) return { city: 'Uttar Pradesh', state: 'Uttar Pradesh' };
+  if (p2 >= 30 && p2 <= 34) return { city: 'Rajasthan', state: 'Rajasthan' };
+  if (p2 >= 36 && p2 <= 39) return { city: 'Gujarat', state: 'Gujarat' };
+  if (p2 >= 40 && p2 <= 44) return { city: 'Maharashtra', state: 'Maharashtra' };
+  if (p2 >= 45 && p2 <= 49) return { city: 'Madhya Pradesh', state: 'Madhya Pradesh' };
+  if (p2 >= 50 && p2 <= 53) return { city: 'Andhra / Telangana', state: 'Telangana' };
+  if (p2 >= 56 && p2 <= 59) return { city: 'Karnataka', state: 'Karnataka' };
+  if (p2 >= 60 && p2 <= 64) return { city: 'Tamil Nadu', state: 'Tamil Nadu' };
+  if (p2 >= 67 && p2 <= 69) return { city: 'Kerala', state: 'Kerala' };
+  if (p2 >= 70 && p2 <= 74) return { city: 'West Bengal', state: 'West Bengal' };
+  if (p2 >= 75 && p2 <= 77) return { city: 'Odisha', state: 'Odisha' };
+  if (p2 === 78) return { city: 'Assam', state: 'Assam' };
+  if (p2 === 79) return { city: 'North East', state: 'North East' };
+  if (p2 >= 80 && p2 <= 85) return { city: 'Bihar / Jharkhand', state: 'Bihar' };
+
   return { city: 'India', state: 'India' };
 };
 
@@ -77,24 +105,64 @@ export const DeliveryLocationModal: React.FC = () => {
   const [pincodeInput, setPincodeInput] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [isDetecting, setIsDetecting] = useState(false);
+  const [isLookingUp, setIsLookingUp] = useState(false);
 
   if (!isLocationModalOpen) return null;
 
-  const handleApplyPincode = (e?: React.FormEvent) => {
+  const handleApplyPincode = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const cleaned = pincodeInput.trim();
     if (!/^\d{6}$/.test(cleaned)) {
-      setErrorMsg('Please enter a valid 6-digit Indian PIN Code (e.g. 600017)');
+      setErrorMsg('Please enter a valid 6-digit Indian PIN Code (e.g. 560001, 600017)');
       return;
     }
-    const info = lookupPincode(cleaned);
+
+    setIsLookingUp(true);
+    setErrorMsg('');
+
+    try {
+      // 1. Try official Indian Postal Pincode API
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+      const response = await fetch(`https://api.postalpincode.in/pincode/${cleaned}`, {
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data) && data[0]?.Status === 'Success' && data[0]?.PostOffice?.length > 0) {
+          const po = data[0].PostOffice[0];
+          const city = po.District || po.Block || po.Name || 'India';
+          const state = po.State || 'India';
+
+          setLocation({
+            pincode: cleaned,
+            city,
+            state,
+            isSet: true,
+          });
+          setIsLookingUp(false);
+          setPincodeInput('');
+          setIsLocationModalOpen(false);
+          return;
+        }
+      }
+    } catch {
+      // Fall through to offline lookup if network request fails or times out
+    }
+
+    // 2. Offline Fallback Lookup
+    const fallback = getOfflineStateCityFromPin(cleaned);
     setLocation({
       pincode: cleaned,
-      city: info.city,
-      state: info.state,
+      city: fallback.city,
+      state: fallback.state,
       isSet: true,
     });
-    setErrorMsg('');
+
+    setIsLookingUp(false);
     setPincodeInput('');
     setIsLocationModalOpen(false);
   };
@@ -120,22 +188,92 @@ export const DeliveryLocationModal: React.FC = () => {
     setErrorMsg('');
 
     navigator.geolocation.getCurrentPosition(
-      () => {
-        // Detected current location successfully (default to flagship Chennai hub / live detected)
-        setLocation({
-          pincode: '600017',
-          city: 'Chennai (Current Location)',
-          state: 'Tamil Nadu',
-          isSet: true,
-        });
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+
+        try {
+          // 1. Try BigDataCloud reverse geocoding
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+          const res = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
+            { signal: controller.signal }
+          );
+          clearTimeout(timeoutId);
+
+          if (res.ok) {
+            const data = await res.json();
+            const rawPostcode = data.postcode || '';
+            const cleanPin = rawPostcode.replace(/\D/g, '').slice(0, 6);
+            const city = data.city || data.locality || data.principalSubdivision || 'Detected Location';
+            const state = data.principalSubdivision || 'India';
+
+            if (cleanPin && cleanPin.length === 6) {
+              setLocation({
+                pincode: cleanPin,
+                city,
+                state,
+                isSet: true,
+              });
+              setIsDetecting(false);
+              setIsLocationModalOpen(false);
+              return;
+            } else if (city) {
+              // Location detected, fallback pin from city
+              setLocation({
+                pincode: '600017',
+                city,
+                state,
+                isSet: true,
+              });
+              setIsDetecting(false);
+              setIsLocationModalOpen(false);
+              return;
+            }
+          }
+        } catch {
+          // Fall through to OpenStreetMap Nominatim
+        }
+
+        try {
+          // 2. Fallback to OpenStreetMap Nominatim
+          const nomRes = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+          );
+          if (nomRes.ok) {
+            const nomData = await nomRes.json();
+            const addr = nomData.address || {};
+            const pin = (addr.postcode || '').replace(/\D/g, '').slice(0, 6);
+            const city = addr.city || addr.town || addr.county || addr.state_district || 'Detected Location';
+            const state = addr.state || 'India';
+
+            setLocation({
+              pincode: pin && pin.length === 6 ? pin : '600017',
+              city,
+              state,
+              isSet: true,
+            });
+            setIsDetecting(false);
+            setIsLocationModalOpen(false);
+            return;
+          }
+        } catch {
+          // Both failed
+        }
+
         setIsDetecting(false);
-        setIsLocationModalOpen(false);
+        setErrorMsg('Could not detect exact postal code. Please enter your 6-digit PIN code below.');
       },
-      () => {
+      (err) => {
         setIsDetecting(false);
-        setErrorMsg('Location access denied. Please enter your 6-digit PIN code manually below.');
+        if (err.code === err.PERMISSION_DENIED) {
+          setErrorMsg('Location permission was denied. Please enter your 6-digit PIN code manually below.');
+        } else {
+          setErrorMsg('Unable to retrieve location. Please enter your 6-digit PIN code manually.');
+        }
       },
-      { timeout: 8000 }
+      { timeout: 10000, enableHighAccuracy: true }
     );
   };
 
@@ -148,7 +286,7 @@ export const DeliveryLocationModal: React.FC = () => {
         {/* Close Button */}
         <button
           onClick={() => setIsLocationModalOpen(false)}
-          className="absolute right-5 top-5 p-1.5 rounded-full text-neutral-400 hover:text-black hover:bg-[#FAF6F2] transition"
+          className="absolute right-5 top-5 p-1.5 rounded-full text-neutral-400 hover:text-black hover:bg-[#FAF6F2] transition cursor-pointer"
           aria-label="Close modal"
         >
           <X className="w-5 h-5" />
@@ -164,7 +302,7 @@ export const DeliveryLocationModal: React.FC = () => {
               Choose Delivery Location
             </h3>
             <p className="text-xs text-[#5C554E]">
-              Check delivery timelines & product availability for your address
+              Check delivery timelines & shipping availability for your address
             </p>
           </div>
         </div>
@@ -177,8 +315,12 @@ export const DeliveryLocationModal: React.FC = () => {
             disabled={isDetecting}
             className="w-full py-2.5 px-3 bg-[#FAF6F2] hover:bg-[#EFE8E0] text-black font-bold text-xs rounded-xl border border-[#E5DCD3] flex items-center justify-center gap-2 transition cursor-pointer active:scale-98"
           >
-            <Navigation className={`w-3.5 h-3.5 text-black ${isDetecting ? 'animate-spin' : ''}`} />
-            <span>{isDetecting ? 'Detecting GPS location...' : 'Use my current location'}</span>
+            {isDetecting ? (
+              <Loader2 className="w-3.5 h-3.5 text-black animate-spin" />
+            ) : (
+              <Navigation className="w-3.5 h-3.5 text-black" />
+            )}
+            <span>{isDetecting ? 'Detecting your GPS location...' : 'Use my current location'}</span>
           </button>
         </div>
 
@@ -202,14 +344,16 @@ export const DeliveryLocationModal: React.FC = () => {
                 setPincodeInput(e.target.value.replace(/\D/g, ''));
                 if (errorMsg) setErrorMsg('');
               }}
-              placeholder="Enter 6-digit Indian PIN (e.g. 600017)"
+              placeholder="Enter 6-digit Indian PIN (e.g. 560001, 400001)"
               className="flex-1 px-3.5 py-2.5 text-xs font-semibold border border-[#E5DCD3] rounded-xl outline-none focus:border-black bg-white"
             />
             <button
               type="submit"
-              className="px-5 py-2.5 bg-black hover:bg-[#2A2A2A] text-white font-bold text-xs rounded-xl transition shadow-xs cursor-pointer active:scale-95"
+              disabled={isLookingUp}
+              className="px-5 py-2.5 bg-black hover:bg-[#2A2A2A] text-white font-bold text-xs rounded-xl transition shadow-xs cursor-pointer active:scale-95 flex items-center gap-1.5"
             >
-              Apply
+              {isLookingUp && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+              <span>Apply</span>
             </button>
           </div>
           {errorMsg && (
@@ -244,16 +388,18 @@ export const DeliveryLocationModal: React.FC = () => {
           </div>
         </div>
 
-        {/* Delivery Guarantee Info */}
+        {/* Delivery Timeline Indicator */}
         <div className="mt-5 pt-3 border-t border-[#E5DCD3] text-[11px] text-[#5C554E] space-y-1">
           <p className="font-semibold text-black">
-            ⚡ Chennai & Metro Cities: Express Delivery in 24–48 Hours
+            ⚡ Metro Cities: Express Delivery in 24–48 Hours
           </p>
           <p>
-            📦 Pan-India Courier Dispatched via Bluedart & Delhivery with Live Tracking
+            📦 Pan-India Courier Dispatched via Bluedart & Delhivery with Live SMS Tracking
           </p>
         </div>
       </div>
     </div>
   );
 };
+
+export default DeliveryLocationModal;
