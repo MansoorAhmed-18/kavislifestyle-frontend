@@ -70,6 +70,21 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-2.5 text-xs text-[#E5DCD3]">
               <li>
+                <Link to="/support" className="hover:text-white transition font-medium text-white font-bold">
+                  24/7 Support & FAQs →
+                </Link>
+              </li>
+              <li>
+                <Link to="/store-locator" className="hover:text-white transition font-medium text-white font-bold">
+                  Flagship Store Locator →
+                </Link>
+              </li>
+              <li>
+                <Link to="/about" className="hover:text-white transition font-medium">
+                  About Kavi's Lifestyle
+                </Link>
+              </li>
+              <li>
                 <Link to="/account?tab=orders" className="hover:text-white transition font-medium">
                   Track Your Order
                 </Link>

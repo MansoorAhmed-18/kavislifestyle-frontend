@@ -30,6 +30,7 @@ import {
 import { DEPARTMENTS, DepartmentInfo } from '../data/departments';
 import { Product } from '../types';
 import { BrandLogo } from './BrandLogo';
+import { DeliveryLocationBar } from './DeliveryLocationModal';
 
 // Vector Icon Components matching Flipkart aesthetic with warm brand accents
 const HighlightText: React.FC<{ text: string; query: string }> = ({ text, query }) => {
@@ -924,6 +925,24 @@ export const Navbar: React.FC = () => {
         </div>
 
         {/* ========================================================= */}
+        {/* ROW 2.5: DELIVERY LOCATION BAR (MATCHING USER SCREENSHOT) */}
+        {/* ========================================================= */}
+        <div className="bg-[#FAF6F2] border-t border-[#E5DCD3] px-3 sm:px-6 py-1.5 flex items-center justify-between text-xs">
+          <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
+            <DeliveryLocationBar />
+            <div className="hidden sm:flex items-center gap-4 text-xs font-semibold text-[#5C554E]">
+              <Link to="/store-locator" className="hover:text-black hover:underline flex items-center gap-1">
+                <span>Flagship Store (T. Nagar, Chennai)</span>
+              </Link>
+              <span className="text-[#D8CFC5]">•</span>
+              <Link to="/support" className="hover:text-black hover:underline flex items-center gap-1">
+                <span>Customer Support & FAQs</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* ========================================================= */}
         {/* LINE 3: CATEGORY ROW MATCHING MINIMALIST 2ND SCREENSHOT   */}
         {/* ========================================================= */}
         <div className="bg-white border-t border-[#E5DCD3]/80 pt-1.5 pb-2 sm:pt-2.5 sm:pb-3 px-2 sm:px-6 overflow-x-auto scrollbar-none">
@@ -1215,6 +1234,24 @@ export const Navbar: React.FC = () => {
 
             {/* Mobile Footer Links */}
             <div className="p-4 border-t border-[#E5DCD3] bg-white space-y-2 text-xs">
+              <Link
+                to="/store-locator"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-between py-1.5 font-semibold text-neutral-800"
+              >
+                <span>Store Locator & About Us</span>
+                <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  Chennai Store
+                </span>
+              </Link>
+              <Link
+                to="/support"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-between py-1.5 font-semibold text-neutral-800"
+              >
+                <span>Customer Support & FAQ</span>
+                <span className="text-[10px] text-neutral-500 font-bold">24/7</span>
+              </Link>
               <Link
                 to="/wishlist"
                 onClick={() => setIsMobileMenuOpen(false)}

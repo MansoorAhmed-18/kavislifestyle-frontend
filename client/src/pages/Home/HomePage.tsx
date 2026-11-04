@@ -7,21 +7,20 @@ import { DepartmentCards } from '../../components/DepartmentCards';
 import { FeaturedProducts } from '../../components/FeaturedProducts';
 import { TestimonialsSection } from '../../components/TestimonialsSection';
 import { SocialGalleryAndNewsletter } from '../../components/SocialGalleryAndNewsletter';
+import { StoreLocatorAndAboutUs } from '../../components/StoreLocatorAndAboutUs';
+import { CustomerSupportAndFAQ } from '../../components/CustomerSupportAndFAQ';
 import { Footer } from '../../components/Footer';
-import { useNavigate } from 'react-router-dom';
 
 export default function HomePage() {
-  const navigate = useNavigate();
-
   return (
     <div className="min-h-screen flex flex-col bg-[#F5EFEB] pb-16 md:pb-0">
       {/* Announcement Bar */}
       <AnnouncementBar />
 
-      {/* Main Navigation */}
+      {/* Main Navigation with Delivery Location */}
       <Navbar />
 
-      {/* Top Store Update & Festive Promotional Banner Carousel (Next to Header) */}
+      {/* Top Store Update & Festive Promotional Banner Carousel */}
       <TopStoreUpdateBanner />
 
       {/* Hero Section with 3D Emblem Showcase */}
@@ -37,8 +36,14 @@ export default function HomePage() {
         {/* Real Customer Stories & Reviews */}
         <TestimonialsSection />
 
-        {/* Social Instagram Lookbook & Newsletter */}
+        {/* Social Instagram Lookbook */}
         <SocialGalleryAndNewsletter />
+
+        {/* Flagship Store Locator & Brand Heritage (About Us) */}
+        <StoreLocatorAndAboutUs />
+
+        {/* Customer Support & Frequently Asked Questions (FAQ) */}
+        <CustomerSupportAndFAQ />
       </main>
 
       {/* Complete Footer */}
