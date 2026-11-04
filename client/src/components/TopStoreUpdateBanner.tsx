@@ -48,6 +48,9 @@ export const TopStoreUpdateBanner: React.FC = () => {
   activeIndexRef.current = activeIndex;
   const isInteractingRef = useRef(false);
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isScrollingProgrammatically = useRef(false);
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
 
   // Read admin updates from localStorage and filter strictly for valid, active products within 24 hours
   const activeAdminUpdates: StoreUpdateItem[] = useMemo(() => {
@@ -218,16 +221,21 @@ export const TopStoreUpdateBanner: React.FC = () => {
     const targetCard = children[targetIndex];
 
     if (targetCard) {
-      const containerRect = container.getBoundingClientRect();
-      const cardRect = targetCard.getBoundingClientRect();
-      const currentScroll = container.scrollLeft;
-      const targetScroll = currentScroll + (cardRect.left - containerRect.left) - 4;
+      isScrollingProgrammatically.current = true;
+      setActiveIndex(targetIndex);
+
+      // Exact native pixel scroll position relative to container
+      const targetScroll = targetCard.offsetLeft - container.offsetLeft;
 
       container.scrollTo({
         left: Math.max(0, targetScroll),
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
-      setActiveIndex(targetIndex);
+
+      // Release programmatic scrolling lock after smooth animation completes
+      setTimeout(() => {
+        isScrollingProgrammatically.current = false;
+      }, 500);
     }
   };
 
@@ -253,9 +261,11 @@ export const TopStoreUpdateBanner: React.FC = () => {
 
   // Track active dot index on manual swipe / scroll
   const handleScroll = () => {
+    if (isScrollingProgrammatically.current) return;
     if (!scrollRef.current) return;
+
     const container = scrollRef.current;
-    const containerRect = container.getBoundingClientRect();
+    const containerScroll = container.scrollLeft;
     const children = Array.from(container.children) as HTMLElement[];
     if (children.length === 0) return;
 
@@ -263,15 +273,48 @@ export const TopStoreUpdateBanner: React.FC = () => {
     let minDiff = Infinity;
 
     children.forEach((child, idx) => {
-      const childRect = child.getBoundingClientRect();
-      const diff = Math.abs(childRect.left - containerRect.left);
+      const childOffset = child.offsetLeft - container.offsetLeft;
+      const diff = Math.abs(childOffset - containerScroll);
       if (diff < minDiff) {
         minDiff = diff;
         closestIndex = idx;
       }
     });
 
-    setActiveIndex(closestIndex);
+    if (closestIndex !== activeIndexRef.current) {
+      setActiveIndex(closestIndex);
+    }
+  };
+
+  // Touch gesture handlers for mobile thumb swiping
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchEndX.current = null;
+    isInteractingRef.current = true;
+    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current !== null && touchEndX.current !== null) {
+      const diff = touchStartX.current - touchEndX.current;
+      // If user swiped more than 40px left or right with thumb
+      if (diff > 40) {
+        scrollNext();
+      } else if (diff < -40) {
+        scrollPrev();
+      }
+    }
+    touchStartX.current = null;
+    touchEndX.current = null;
+
+    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+    resumeTimerRef.current = setTimeout(() => {
+      isInteractingRef.current = false;
+    }, 4000);
   };
 
   if (cards.length === 0) return null;
@@ -284,16 +327,6 @@ export const TopStoreUpdateBanner: React.FC = () => {
       }}
       onMouseLeave={() => {
         isInteractingRef.current = false;
-      }}
-      onTouchStart={() => {
-        isInteractingRef.current = true;
-        if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
-      }}
-      onTouchEnd={() => {
-        if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
-        resumeTimerRef.current = setTimeout(() => {
-          isInteractingRef.current = false;
-        }, 3000);
       }}
       aria-label="Festive Offers and Store Updates"
     >
@@ -323,15 +356,20 @@ export const TopStoreUpdateBanner: React.FC = () => {
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex items-center gap-3.5 sm:gap-4 md:gap-5 overflow-x-auto scrollbar-none scroll-smooth pb-1 px-1 -webkit-overflow-scrolling-touch"
-          style={{ scrollSnapType: 'x mandatory' }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="flex items-center gap-2.5 sm:gap-4 md:gap-5 overflow-x-auto scrollbar-none scroll-smooth pb-1 px-0.5"
+          style={{
+            scrollSnapType: 'x mandatory',
+          }}
         >
           {cards.map((card) => (
             <div
               key={card.id}
               style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}
               onClick={() => navigate(card.link)}
-              className="w-[88vw] sm:w-[460px] md:w-[490px] lg:w-[520px] shrink-0 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 relative cursor-pointer group mobile-banner-card"
+              className="w-[calc(100vw-1.5rem)] sm:w-[460px] md:w-[490px] lg:w-[520px] shrink-0 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 relative cursor-pointer group mobile-banner-card"
             >
               {/* Decorative Top Scalloped Golden Garland Arch */}
               <div className="absolute top-0 left-0 right-0 h-3 sm:h-3.5 z-20 pointer-events-none flex justify-around opacity-95 overflow-hidden">

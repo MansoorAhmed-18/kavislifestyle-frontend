@@ -197,10 +197,10 @@ html, body {
     touch-action: pan-y !important;
   }
 
-  /* Mobile Banner Carousel Cards */
+  /* Mobile Banner Carousel Cards - Full Width Single-Slide on Mobile */
   .mobile-banner-card {
-    width: calc(100vw - 2rem) !important;
-    max-width: 90vw !important;
+    width: calc(100vw - 1.5rem) !important;
+    max-width: calc(100vw - 1.5rem) !important;
   }
 }
 
