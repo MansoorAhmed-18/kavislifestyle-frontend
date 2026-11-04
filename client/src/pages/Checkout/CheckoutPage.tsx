@@ -9,7 +9,6 @@ import { useCart } from '../../context/CartContext';
 import { useCurrency } from '../../context/CurrencyContext';
 import { useAuth } from '../../context/AuthContext';
 import { useOrders } from '../../context/OrderContext';
-import { useLocation } from '../../context/LocationContext';
 import { ShippingAddress } from '../../types';
 import { validateEmail, validatePhone, sanitizeEmailInput, sanitizePhoneInput } from '../../utils/validation';
 
@@ -19,41 +18,56 @@ export default function CheckoutPage() {
   const { formatPrice } = useCurrency();
   const { user, addresses, addAddress, updateProfile } = useAuth();
   const { placeOrder } = useOrders();
-  const { location } = useLocation();
 
   const [selectedAddressId, setSelectedAddressId] = useState<string>('new');
   const [saveToAccount, setSaveToAccount] = useState<boolean>(true);
 
-  // Form State
-  const [formData, setFormData] = useState({
-    fullName: user?.fullName || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    address: '',
-    city: location.isSet ? location.city : '',
-    state: location.isSet ? location.state : '',
-    pincode: location.isSet ? location.pincode : '',
-    country: 'India',
-    paymentMethod: 'razorpay'
+  // Form State: strictly populated from saved address or clean
+  const [formData, setFormData] = useState(() => {
+    const defaultAddr = addresses.find(a => a.isDefault) || addresses[0];
+    if (defaultAddr) {
+      return {
+        fullName: defaultAddr.fullName || user?.fullName || '',
+        email: user?.email || '',
+        phone: defaultAddr.phone || user?.phone || '',
+        address: defaultAddr.street || '',
+        city: defaultAddr.city || '',
+        state: defaultAddr.state || '',
+        pincode: defaultAddr.postalCode || '',
+        country: defaultAddr.country || 'India',
+        paymentMethod: 'razorpay'
+      };
+    }
+    return {
+      fullName: user?.fullName || '',
+      email: user?.email || '',
+      phone: user?.phone || '',
+      address: '',
+      city: '',
+      state: '',
+      pincode: '',
+      country: 'India',
+      paymentMethod: 'razorpay'
+    };
   });
 
-  // Automatically pre-fill contact and shipping details from active account, saved addresses & delivery location
+  // Automatically pre-fill contact and shipping details from saved address
   useEffect(() => {
     if (user) {
       const defaultAddr = addresses.find(a => a.isDefault) || addresses[0];
       if (defaultAddr) {
         setSelectedAddressId(defaultAddr.id);
-        setFormData({
-          fullName: defaultAddr.fullName || user.fullName || '',
-          email: user.email || '',
-          phone: defaultAddr.phone || user.phone || '',
+        setFormData(prev => ({
+          ...prev,
+          fullName: defaultAddr.fullName || user.fullName || prev.fullName,
+          email: user.email || prev.email,
+          phone: defaultAddr.phone || user.phone || prev.phone,
           address: defaultAddr.street || '',
-          city: defaultAddr.city || (location.isSet ? location.city : ''),
-          state: defaultAddr.state || (location.isSet ? location.state : ''),
-          pincode: defaultAddr.postalCode || (location.isSet ? location.pincode : ''),
+          city: defaultAddr.city || '',
+          state: defaultAddr.state || '',
+          pincode: defaultAddr.postalCode || '',
           country: defaultAddr.country || 'India',
-          paymentMethod: 'razorpay'
-        });
+        }));
       } else {
         setSelectedAddressId('new');
         setFormData(prev => ({
@@ -61,20 +75,10 @@ export default function CheckoutPage() {
           fullName: user.fullName || prev.fullName,
           email: user.email || prev.email,
           phone: user.phone || prev.phone,
-          city: location.isSet ? location.city : prev.city,
-          state: location.isSet ? location.state : prev.state,
-          pincode: location.isSet ? location.pincode : prev.pincode,
         }));
       }
-    } else if (location.isSet) {
-      setFormData(prev => ({
-        ...prev,
-        city: prev.city || location.city,
-        state: prev.state || location.state,
-        pincode: prev.pincode || location.pincode,
-      }));
     }
-  }, [user?.email, addresses, location]);
+  }, [user?.email, addresses]);
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
@@ -103,9 +107,9 @@ export default function CheckoutPage() {
     setFormData(prev => ({
       ...prev,
       address: '',
-      city: location.isSet ? location.city : '',
-      state: location.isSet ? location.state : '',
-      pincode: location.isSet ? location.pincode : '',
+      city: '',
+      state: '',
+      pincode: '',
       country: 'India'
     }));
   };
@@ -548,16 +552,6 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-                {location.isSet && selectedAddressId === 'new' && (
-                  <div className="p-3 bg-[#FAF6F2] rounded-xl border border-[#E5DCD3] flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-black shrink-0" />
-                      <span className="text-[#5C554E]">
-                        Delivering to: <strong className="text-black">{location.city} - {location.pincode}</strong> (Auto-filled from your delivery location)
-                      </span>
-                    </div>
-                  </div>
-                )}
 
                 <div>
                   <label className="text-xs font-bold text-black block mb-1">Street Address / House / Flat *</label>

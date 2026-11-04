@@ -280,6 +280,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAddresses([]);
     localStorage.removeItem('kavis_user');
     localStorage.removeItem('kavis_addresses');
+    localStorage.removeItem('kavis_delivery_location');
+    localStorage.removeItem('kavis_delivery_loc_guest');
   };
 
   /**

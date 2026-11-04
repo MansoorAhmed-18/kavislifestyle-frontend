@@ -2,6 +2,57 @@ import React, { useState } from 'react';
 import { MapPin, X, Navigation, Check, ChevronRight, Loader2 } from 'lucide-react';
 import { useLocation } from '../context/LocationContext';
 
+const TAMIL_TO_ENGLISH_MAP: Record<string, string> = {
+  'திருத்தணி': 'Tiruttani',
+  'சென்னை': 'Chennai',
+  'தமிழ்நாடு': 'Tamil Nadu',
+  'தமிழ் நாடு': 'Tamil Nadu',
+  'திருவள்ளூர்': 'Tiruvallur',
+  'காஞ்சிபுரம்': 'Kanchipuram',
+  'செங்கல்பட்டு': 'Chengalpattu',
+  'கோயம்புத்தூர்': 'Coimbatore',
+  'கோவை': 'Coimbatore',
+  'மதுரை': 'Madurai',
+  'திருச்சிராப்பள்ளி': 'Tiruchirappalli',
+  'திருச்சி': 'Tiruchirappalli',
+  'சேலம்': 'Salem',
+  'வேலூர்': 'Vellore',
+  'ஈரோடு': 'Erode',
+  'திருப்பூர்': 'Tiruppur',
+  'திண்டுக்கல்': 'Dindigul',
+  'தஞ்சாவூர்': 'Thanjavur',
+  'திருநெல்வேலி': 'Tirunelveli',
+  'தூத்துக்குடி': 'Thoothukudi',
+  'கன்னியாகுமரி': 'Kanyakumari',
+  'நாமக்கல்': 'Namakkal',
+  'கரூர்': 'Karur',
+  'விழுப்புரம்': 'Viluppuram',
+  'கடலூர்': 'Cuddalore',
+  'நாகப்பட்டினம்': 'Nagapattinam',
+  'சிவகங்கை': 'Sivaganga',
+  'ராமநாதபுரம்': 'Ramanathapuram',
+  'விருதுநகர்': 'Virudhunagar',
+  'தேனி': 'Theni',
+  'நீலகிரி': 'Nilgiris',
+  'பெரம்பலூர்': 'Perambalur',
+  'அரியலூர்': 'Ariyalur',
+  'கிருஷ்ணகிரி': 'Krishnagiri',
+  'தருமபுரி': 'Dharmapuri',
+  'புதுச்சேரி': 'Puducherry',
+  'இந்தியா': 'India'
+};
+
+export const sanitizeToEnglish = (text: string): string => {
+  if (!text) return '';
+  let cleaned = text;
+  for (const [ta, en] of Object.entries(TAMIL_TO_ENGLISH_MAP)) {
+    cleaned = cleaned.replace(new RegExp(ta, 'g'), en);
+  }
+  // Remove any remaining Tamil unicode block characters (\u0B80-\u0BFF)
+  cleaned = cleaned.replace(/[\u0B80-\u0BFF]/g, '').trim();
+  return cleaned.replace(/\s+/g, ' ').replace(/^,\s*|,\s*$/g, '').trim();
+};
+
 const POPULAR_CITIES = [
   { city: 'Chennai', pincode: '600017', state: 'Tamil Nadu' },
   { city: 'Bengaluru', pincode: '560001', state: 'Karnataka' },
@@ -134,8 +185,10 @@ export const DeliveryLocationModal: React.FC = () => {
         const data = await response.json();
         if (Array.isArray(data) && data[0]?.Status === 'Success' && data[0]?.PostOffice?.length > 0) {
           const po = data[0].PostOffice[0];
-          const city = po.District || po.Block || po.Name || 'India';
-          const state = po.State || 'India';
+          const rawCity = po.District || po.Block || po.Name || 'India';
+          const rawState = po.State || 'India';
+          const city = sanitizeToEnglish(rawCity);
+          const state = sanitizeToEnglish(rawState);
 
           setLocation({
             pincode: cleaned,
@@ -191,8 +244,101 @@ export const DeliveryLocationModal: React.FC = () => {
       async (pos) => {
         const { latitude, longitude } = pos.coords;
 
+        // 1. Try OpenStreetMap Nominatim with strict English language
         try {
-          // 1. Try BigDataCloud reverse geocoding
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+          const nomRes = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&accept-language=en`,
+            {
+              signal: controller.signal,
+              headers: {
+                'Accept-Language': 'en-US,en;q=1.0',
+                'User-Agent': 'KavisLifestyleEcommerce/1.0',
+              },
+            }
+          );
+          clearTimeout(timeoutId);
+
+          if (nomRes.ok) {
+            const nomData = await nomRes.json();
+            const addr = nomData.address || {};
+            const pin = (addr.postcode || '').replace(/\D/g, '').slice(0, 6);
+            const rawCity = addr.city || addr.town || addr.suburb || addr.county || addr.state_district || '';
+            const rawState = addr.state || 'India';
+            const city = sanitizeToEnglish(rawCity);
+            const state = sanitizeToEnglish(rawState);
+            const area = sanitizeToEnglish(addr.suburb || addr.neighbourhood || addr.road || '');
+
+            if (pin && pin.length === 6) {
+              // Try resolving official Post Office in English via India Post
+              try {
+                const poRes = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+                if (poRes.ok) {
+                  const poData = await poRes.json();
+                  if (poData?.[0]?.Status === 'Success' && poData[0]?.PostOffice?.length > 0) {
+                    const po = poData[0].PostOffice[0];
+                    setLocation({
+                      pincode: pin,
+                      city: sanitizeToEnglish(po.District || city || 'India'),
+                      state: sanitizeToEnglish(po.State || state || 'India'),
+                      area: area || sanitizeToEnglish(po.Name || ''),
+                      isSet: true,
+                    });
+                    setIsDetecting(false);
+                    setIsLocationModalOpen(false);
+                    return;
+                  }
+                }
+              } catch {
+                // fall through
+              }
+
+              setLocation({
+                pincode: pin,
+                city: city || 'India',
+                state: state || 'India',
+                area,
+                isSet: true,
+              });
+              setIsDetecting(false);
+              setIsLocationModalOpen(false);
+              return;
+            } else if (city) {
+              // Search post office by town name
+              try {
+                const poRes = await fetch(`https://api.postalpincode.in/postoffice/${encodeURIComponent(city)}`);
+                if (poRes.ok) {
+                  const poData = await poRes.json();
+                  if (poData?.[0]?.Status === 'Success' && poData[0]?.PostOffice?.length > 0) {
+                    const po = poData[0].PostOffice[0];
+                    const poPin = (po.Pincode || '').replace(/\D/g, '').slice(0, 6);
+                    if (poPin && poPin.length === 6) {
+                      setLocation({
+                        pincode: poPin,
+                        city: sanitizeToEnglish(po.District || city),
+                        state: sanitizeToEnglish(po.State || state),
+                        area: sanitizeToEnglish(po.Name || ''),
+                        isSet: true,
+                      });
+                      setIsDetecting(false);
+                      setIsLocationModalOpen(false);
+                      return;
+                    }
+                  }
+                }
+              } catch {
+                // fall through
+              }
+            }
+          }
+        } catch {
+          // fall through
+        }
+
+        // 2. Fallback to BigDataCloud reverse geocoding with English forced
+        try {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 5000);
 
@@ -206,24 +352,13 @@ export const DeliveryLocationModal: React.FC = () => {
             const data = await res.json();
             const rawPostcode = data.postcode || '';
             const cleanPin = rawPostcode.replace(/\D/g, '').slice(0, 6);
-            const city = data.city || data.locality || data.principalSubdivision || 'Detected Location';
-            const state = data.principalSubdivision || 'India';
+            const city = sanitizeToEnglish(data.city || data.locality || data.principalSubdivision || '');
+            const state = sanitizeToEnglish(data.principalSubdivision || 'India');
 
             if (cleanPin && cleanPin.length === 6) {
               setLocation({
                 pincode: cleanPin,
-                city,
-                state,
-                isSet: true,
-              });
-              setIsDetecting(false);
-              setIsLocationModalOpen(false);
-              return;
-            } else if (city) {
-              // Location detected, fallback pin from city
-              setLocation({
-                pincode: '600017',
-                city,
+                city: city || 'India',
                 state,
                 isSet: true,
               });
@@ -233,37 +368,11 @@ export const DeliveryLocationModal: React.FC = () => {
             }
           }
         } catch {
-          // Fall through to OpenStreetMap Nominatim
-        }
-
-        try {
-          // 2. Fallback to OpenStreetMap Nominatim
-          const nomRes = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-          );
-          if (nomRes.ok) {
-            const nomData = await nomRes.json();
-            const addr = nomData.address || {};
-            const pin = (addr.postcode || '').replace(/\D/g, '').slice(0, 6);
-            const city = addr.city || addr.town || addr.county || addr.state_district || 'Detected Location';
-            const state = addr.state || 'India';
-
-            setLocation({
-              pincode: pin && pin.length === 6 ? pin : '600017',
-              city,
-              state,
-              isSet: true,
-            });
-            setIsDetecting(false);
-            setIsLocationModalOpen(false);
-            return;
-          }
-        } catch {
-          // Both failed
+          // fall through
         }
 
         setIsDetecting(false);
-        setErrorMsg('Could not detect exact postal code. Please enter your 6-digit PIN code below.');
+        setErrorMsg('Location detected roughly, but exact 6-digit PIN is needed. Please enter your 6-digit PIN code below.');
       },
       (err) => {
         setIsDetecting(false);
