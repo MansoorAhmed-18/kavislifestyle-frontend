@@ -87,7 +87,11 @@ const FAQS: FAQItem[] = [
   },
 ];
 
-export const CustomerSupportAndFAQ: React.FC = () => {
+interface CustomerSupportAndFAQProps {
+  embedded?: boolean;
+}
+
+export const CustomerSupportAndFAQ: React.FC<CustomerSupportAndFAQProps> = ({ embedded = false }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [openFaqId, setOpenFaqId] = useState<string | null>('faq-1');
@@ -108,29 +112,25 @@ export const CustomerSupportAndFAQ: React.FC = () => {
     setOpenFaqId((prev) => (prev === id ? null : id));
   };
 
-  return (
-    <section
-      id="customer-support-faq"
-      className="bg-[#F5EFEB] py-14 sm:py-20 border-b border-[#E5DCD3] text-left"
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-        
-        {/* Header */}
-        <div className="text-center max-w-2xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black text-white text-xs font-bold shadow-2xs">
-            <HelpCircle className="w-3.5 h-3.5 text-[#FFE169]" />
-            <span>Customer Care & Help Center</span>
-          </div>
-          <h2 className="text-2xl sm:text-4xl font-black text-black tracking-tight">
-            Customer Support & Frequently Asked Questions
-          </h2>
-          <p className="text-xs sm:text-sm text-[#5C554E]">
-            Have a question about pan-India shipping, Silk Mark purity, or your order? We’re always here to assist.
-          </p>
+  const content = (
+    <div className={embedded ? "space-y-8" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12"}>
+      
+      {/* Header */}
+      <div className={embedded ? "space-y-2 pb-4 border-b border-[#E5DCD3]" : "text-center max-w-2xl mx-auto space-y-3"}>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black text-white text-xs font-bold shadow-2xs">
+          <HelpCircle className="w-3.5 h-3.5 text-[#FFE169]" />
+          <span>Customer Care & Help Center</span>
         </div>
+        <h2 className={`${embedded ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-4xl'} font-black text-black tracking-tight`}>
+          Customer Support & Frequently Asked Questions
+        </h2>
+        <p className="text-xs sm:text-sm text-[#5C554E]">
+          Have a question about pan-India shipping, Silk Mark purity, or your order? We’re always here to assist.
+        </p>
+      </div>
 
-        {/* Quick Contact Support Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+      {/* Quick Contact Support Grid */}
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${embedded ? 'lg:grid-cols-2' : 'lg:grid-cols-4'} gap-3.5 sm:gap-4`}>
           <a
             href="https://wa.me/919840012345?text=Hello%20Kavi's%20Lifestyle%20Support,%20I%20need%20help%20with%20an%20order."
             target="_blank"
@@ -283,6 +283,18 @@ export const CustomerSupportAndFAQ: React.FC = () => {
         </div>
 
       </div>
+  );
+
+  if (embedded) {
+    return <div className="text-left w-full">{content}</div>;
+  }
+
+  return (
+    <section
+      id="customer-support-faq"
+      className="bg-[#F5EFEB] py-14 sm:py-20 border-b border-[#E5DCD3] text-left"
+    >
+      {content}
     </section>
   );
 };

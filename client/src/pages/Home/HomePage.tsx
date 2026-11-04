@@ -2,13 +2,10 @@ import React from 'react';
 import { AnnouncementBar } from '../../components/AnnouncementBar';
 import { Navbar } from '../../components/Navbar';
 import { TopStoreUpdateBanner } from '../../components/TopStoreUpdateBanner';
-import { Hero } from '../../components/Hero';
 import { DepartmentCards } from '../../components/DepartmentCards';
 import { FeaturedProducts } from '../../components/FeaturedProducts';
 import { TestimonialsSection } from '../../components/TestimonialsSection';
-import { SocialGalleryAndNewsletter } from '../../components/SocialGalleryAndNewsletter';
 import { StoreLocatorAndAboutUs } from '../../components/StoreLocatorAndAboutUs';
-import { CustomerSupportAndFAQ } from '../../components/CustomerSupportAndFAQ';
 import { Footer } from '../../components/Footer';
 
 export default function HomePage() {
@@ -17,16 +14,13 @@ export default function HomePage() {
       {/* Announcement Bar */}
       <AnnouncementBar />
 
-      {/* Main Navigation with Delivery Location */}
+      {/* Main Navigation */}
       <Navbar />
 
       {/* Top Store Update & Festive Promotional Banner Carousel */}
       <TopStoreUpdateBanner />
 
-      {/* Hero Section with 3D Emblem Showcase */}
       <main className="flex-1">
-        <Hero />
-
         {/* 4 Brand Departments Showcase */}
         <DepartmentCards />
 
@@ -36,14 +30,8 @@ export default function HomePage() {
         {/* Real Customer Stories & Reviews */}
         <TestimonialsSection />
 
-        {/* Social Instagram Lookbook */}
-        <SocialGalleryAndNewsletter />
-
         {/* Flagship Store Locator & Brand Heritage (About Us) */}
         <StoreLocatorAndAboutUs />
-
-        {/* Customer Support & Frequently Asked Questions (FAQ) */}
-        <CustomerSupportAndFAQ />
       </main>
 
       {/* Complete Footer */}

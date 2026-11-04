@@ -20,8 +20,10 @@ import {
   BellRing,
   Lock,
   Edit3,
-  Star
+  Star,
+  HelpCircle
 } from 'lucide-react';
+import { CustomerSupportAndFAQ } from '../../components/CustomerSupportAndFAQ';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCurrency } from '../../context/CurrencyContext';
@@ -115,8 +117,8 @@ export default function AccountPage() {
     }
   }, [user, navigate]);
 
-  const activeTabParam = searchParams.get('tab') as 'orders' | 'profile' | 'addresses' | 'notifications' | null;
-  const [activeTab, setActiveTab] = useState<'orders' | 'profile' | 'addresses' | 'notifications'>(
+  const activeTabParam = searchParams.get('tab') as 'orders' | 'profile' | 'addresses' | 'notifications' | 'help' | null;
+  const [activeTab, setActiveTab] = useState<'orders' | 'profile' | 'addresses' | 'notifications' | 'help'>(
     activeTabParam || (userOrders.length > 0 ? 'orders' : 'profile')
   );
 
@@ -293,7 +295,7 @@ export default function AccountPage() {
     isDefault: false
   });
 
-  const handleTabChange = (tab: 'orders' | 'profile' | 'addresses' | 'notifications') => {
+  const handleTabChange = (tab: 'orders' | 'profile' | 'addresses' | 'notifications' | 'help') => {
     setActiveTab(tab);
     setSearchParams({ tab });
   };
@@ -535,21 +537,21 @@ export default function AccountPage() {
             <ChevronRight className="w-4 h-4 text-purple-600 shrink-0" />
           </div>
 
-          {/* Two Big Action Buttons: Orders & Wishlist */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Three Action Buttons: Orders, Wishlist & Help */}
+          <div className="grid grid-cols-3 gap-2.5">
             <button
               onClick={() => handleTabChange('orders')}
-              className={`p-3.5 rounded-2xl border transition-all text-left flex items-center gap-3 bg-white shadow-2xs ${
+              className={`p-3 rounded-2xl border transition-all text-left flex items-center gap-2.5 bg-white shadow-2xs ${
                 activeTab === 'orders'
                   ? 'border-[#E44A2D] ring-2 ring-[#E44A2D]/20'
                   : 'border-[#E5DCD3] hover:border-black'
               }`}
             >
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
-                <Box className="w-5 h-5 text-[#2563EB]" />
+              <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
+                <Box className="w-4 h-4 text-[#2563EB]" />
               </div>
               <div className="min-w-0">
-                <span className="text-xs font-black text-black block">Orders</span>
+                <span className="text-xs font-black text-black block truncate">Orders</span>
                 <span className="text-[10px] text-[#786F66] block truncate">
                   {userOrders.length} placed
                 </span>
@@ -558,18 +560,37 @@ export default function AccountPage() {
 
             <Link
               to="/wishlist"
-              className="p-3.5 rounded-2xl border border-[#E5DCD3] hover:border-black bg-white transition-all text-left flex items-center gap-3 shadow-2xs"
+              className="p-3 rounded-2xl border border-[#E5DCD3] hover:border-black bg-white transition-all text-left flex items-center gap-2.5 shadow-2xs"
             >
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
-                <Heart className="w-5 h-5 text-[#2563EB]" />
+              <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0">
+                <Heart className="w-4 h-4 text-rose-600" />
               </div>
               <div className="min-w-0">
-                <span className="text-xs font-black text-black block">Wishlist</span>
+                <span className="text-xs font-black text-black block truncate">Wishlist</span>
                 <span className="text-[10px] text-[#786F66] block truncate">
                   {wishlistCount} items
                 </span>
               </div>
             </Link>
+
+            <button
+              onClick={() => handleTabChange('help')}
+              className={`p-3 rounded-2xl border transition-all text-left flex items-center gap-2.5 bg-white shadow-2xs ${
+                activeTab === 'help'
+                  ? 'border-[#E44A2D] ring-2 ring-[#E44A2D]/20'
+                  : 'border-[#E5DCD3] hover:border-black'
+              }`}
+            >
+              <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center shrink-0">
+                <HelpCircle className="w-4 h-4 text-amber-700" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs font-black text-black block truncate">Help</span>
+                <span className="text-[10px] text-[#786F66] block truncate">
+                  Support & FAQ
+                </span>
+              </div>
+            </button>
           </div>
 
           {/* Finance Options / Lifestyle Privileges */}
@@ -834,6 +855,22 @@ export default function AccountPage() {
               }`}>
                 {unreadCount}
               </span>
+            </button>
+
+            {/* Menu Item 4: Help & FAQs */}
+            <button
+              onClick={() => handleTabChange('help')}
+              className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-bold transition ${
+                activeTab === 'help'
+                  ? 'bg-black text-white shadow-sm'
+                  : 'text-black hover:bg-[#FAF6F2]'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <HelpCircle className="w-4 h-4" />
+                <span>Help & FAQs</span>
+              </div>
+              <ChevronRight className={`w-4 h-4 ${activeTab === 'help' ? 'text-white' : 'opacity-40'}`} />
             </button>
 
             <div className="pt-4 mt-4 border-t border-slate-100">
@@ -1443,6 +1480,13 @@ export default function AccountPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* TAB 5: HELP & CUSTOMER SUPPORT */}
+            {activeTab === 'help' && (
+              <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[#E5DCD3] shadow-xs text-left">
+                <CustomerSupportAndFAQ embedded={true} />
               </div>
             )}
 
