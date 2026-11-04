@@ -3,88 +3,158 @@ import {
   HelpCircle,
   ChevronDown,
   Search,
-  MessageCircle,
-  Phone,
-  Mail,
   Truck,
-  ShieldCheck,
   RotateCcw,
-  Sparkles,
+  CreditCard,
+  Package,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  ArrowRight,
+  ShieldCheck,
+  RefreshCw,
+  XCircle,
+  FileText,
+  ChevronRight,
+  Check
 } from 'lucide-react';
+import { useOrders } from '../context/OrderContext';
+import { useAuth } from '../context/AuthContext';
+import { useCurrency } from '../context/CurrencyContext';
 
-interface FAQItem {
+interface HelpTopicItem {
   id: string;
-  category: 'shipping' | 'sarees' | 'gourmet' | 'payments';
+  category: 'returns' | 'delivery' | 'refunds' | 'product';
   categoryLabel: string;
   question: string;
-  answer: string;
+  answer: string[];
+  actionLabel?: string;
+  actionType?: 'return' | 'track' | 'refund' | 'contact';
 }
 
-const FAQS: FAQItem[] = [
+const HELP_TOPICS: HelpTopicItem[] = [
+  // 1. Returns & Replacements
   {
-    id: 'faq-1',
-    category: 'shipping',
-    categoryLabel: 'Orders & Shipping',
-    question: 'How long does delivery take to my PIN code?',
-    answer:
-      'We dispatch all confirmed orders within 24 hours. Metro cities (Chennai, Bengaluru, Mumbai, Delhi, Hyderabad) typically receive delivery in 24 to 48 hours. For the rest of India, standard delivery takes 2 to 4 business days via Bluedart and Delhivery with real-time SMS tracking updates.',
+    id: 'topic-ret-1',
+    category: 'returns',
+    categoryLabel: 'Returns & Replacements',
+    question: 'How do I return or exchange an item within 7 days?',
+    answer: [
+      'You can initiate a return or exchange within 7 days of delivery for pure silk sarees, unworn garments, or unopened gourmet packs.',
+      'Select your order from the "Recent Orders" list above and click "Request Return / Replacement".',
+      'Select your reason (e.g. size/fit, defect, color mismatch) and confirm.',
+      'Our courier partner (BlueDart) will arrive at your doorstep within 2 business days to pick up the package at zero extra cost.',
+      'Refund is initiated immediately upon pickup verification.'
+    ],
+    actionLabel: 'Select Order to Return',
+    actionType: 'return'
   },
   {
-    id: 'faq-2',
-    category: 'shipping',
-    categoryLabel: 'Orders & Shipping',
-    question: 'How can I track my order status?',
-    answer:
-      'As soon as your order is dispatched, you will receive an SMS and email with your airway bill (AWB) tracking link. You can also view live delivery progress anytime by visiting the "Customer Support" or "My Account > Orders" section on our storefront.',
+    id: 'topic-ret-2',
+    category: 'returns',
+    categoryLabel: 'Returns & Replacements',
+    question: 'When will my return pickup happen? What if pickup is delayed?',
+    answer: [
+      'Return pickups are scheduled within 24 to 48 hours of submitting a request.',
+      'You will receive an SMS from BlueDart Logistics with the pickup agent’s name and contact number on the morning of pickup.',
+      'If your pickup was missed due to unavailability, the courier will re-attempt automatically on the next business day.'
+    ]
   },
   {
-    id: 'faq-3',
-    category: 'sarees',
-    categoryLabel: 'Sarees & Authenticity',
-    question: 'Are Kavi’s silk sarees certified by Silk Mark India?',
-    answer:
-      'Yes, 100%! Every pure silk saree in our collection carries the authorized government Silk Mark Organization of India tag with a unique serial barcode that you can scan and verify directly on the official Silk Mark portal.',
+    id: 'topic-ret-3',
+    category: 'returns',
+    categoryLabel: 'Returns & Replacements',
+    question: 'Do I need original tags and boutique box for return?',
+    answer: [
+      'Yes, please keep all original brand tags, government Silk Mark tags, and packaging intact.',
+      'Our pickup agent will verify the product condition and hand you an official BlueDart return acknowledgment slip.'
+    ]
+  },
+
+  // 2. Delivery & Order Tracking
+  {
+    id: 'topic-del-1',
+    category: 'delivery',
+    categoryLabel: 'Delivery & Shipping',
+    question: 'How many days does delivery take to my location?',
+    answer: [
+      'Chennai & Tamil Nadu: Guaranteed 1–2 Business Days via BlueDart Local Express.',
+      'Major Metros (Bengaluru, Mumbai, Delhi NCR, Hyderabad, Kolkata, Pune): 2–3 Business Days via BlueDart Air Express.',
+      'Rest of India: 3–4 Business Days via Delhivery Express.',
+      'All orders are dispatched within 24 hours from our Chennai Flagship Studio.'
+    ],
+    actionLabel: 'Check Live Order Status',
+    actionType: 'track'
   },
   {
-    id: 'faq-4',
-    category: 'sarees',
-    categoryLabel: 'Sarees & Authenticity',
-    question: 'Can I request complimentary fall, pico, or custom blouse stitching?',
-    answer:
-      'Yes! We provide complimentary fall and edging (pico) service on all sarees upon request. After completing your order, simply message our boutique WhatsApp care team (+91 98400 12345) with your Order ID, and our in-house master tailors will prepare your saree prior to dispatch.',
+    id: 'topic-del-2',
+    category: 'delivery',
+    categoryLabel: 'Delivery & Shipping',
+    question: 'Where can I track my shipment live with AWB tracking ID?',
+    answer: [
+      'Once dispatched, your tracking ID (e.g. BD-982341209IN) is generated and visible in your "Orders" tab.',
+      'You also receive real-time SMS alerts at every milestone: Out for Dispatch, In Transit at Hub, and Out for Delivery.'
+    ]
   },
   {
-    id: 'faq-5',
-    category: 'gourmet',
-    categoryLabel: 'Gourmet & Fragrances',
-    question: 'How do you guarantee freshness and shelf-life for dry fruits and nuts?',
-    answer:
-      'Our nuts and dried fruits are harvested freshly from certified orchards in Kashmir and California, triple-sorted for size, and nitrogen-flushed in food-grade airtight pouches with oxygen absorbers. This preserves crunch, essential oils, and natural sweetness for up to 9 months.',
+    id: 'topic-del-3',
+    category: 'delivery',
+    categoryLabel: 'Delivery & Shipping',
+    question: 'What if my package status shows "Delivered" but I haven’t received it?',
+    answer: [
+      'Occasionally courier partners mark delivery when reaching your building security, reception, or neighbor.',
+      'Please check with family members or building security.',
+      'If still not found, click "Need Help with this Order" above to flag an instant investigation with our priority courier dispatch manager.'
+    ]
+  },
+
+  // 3. Refunds & Payment Queries
+  {
+    id: 'topic-ref-1',
+    category: 'refunds',
+    categoryLabel: 'Refunds & Payments',
+    question: 'When will my refund reflect in my bank account / UPI?',
+    answer: [
+      'UPI (Google Pay, PhonePe, Paytm, BHIM): 24 to 48 hours from the time refund is initiated.',
+      'Credit / Debit Cards: 3 to 5 business days depending on your issuing bank.',
+      'Net Banking: 2 to 4 business days.',
+      'Cash on Delivery (COD) Returns: Refund is transferred directly to your Google Pay / PhonePe UPI ID or verified bank account within 24 hours of return pickup.'
+    ],
+    actionLabel: 'Check Refund Status',
+    actionType: 'refund'
   },
   {
-    id: 'faq-6',
-    category: 'gourmet',
-    categoryLabel: 'Gourmet & Fragrances',
-    question: 'Are your traditional Kannauj attars 100% alcohol-free?',
-    answer:
-      'Yes. Our attars are extracted using ancient Deg-Bhapka hydro-distillation in copper stills in Kannauj, Uttar Pradesh. They are 100% pure botanical concentrates aged on pure sandalwood or organic carrier bases, free from alcohol, synthetic stabilizers, and harsh chemicals.',
+    id: 'topic-ref-2',
+    category: 'refunds',
+    categoryLabel: 'Refunds & Payments',
+    question: 'Money was deducted from my account, but my order is not showing?',
+    answer: [
+      'This happens if your internet connection dropped during 3D Secure OTP verification.',
+      'If payment was debited, your bank automatically reconciles and refunds the amount within 24–48 hours, or our automated webhook generates your order within 15 minutes.'
+    ]
+  },
+
+  // 4. Product Quality & Saree Care
+  {
+    id: 'topic-prd-1',
+    category: 'product',
+    categoryLabel: 'Product & Authenticity',
+    question: 'How do I verify the Silk Mark purity of my Kanchipuram saree?',
+    answer: [
+      'Every pure silk saree from Kavi’s Lifestyle comes with an official government-issued Silk Mark Organization of India tag.',
+      'The tag has a unique serial number and holographic QR code that you can verify at silkmarkindia.com.'
+    ]
   },
   {
-    id: 'faq-7',
-    category: 'payments',
-    categoryLabel: 'Payments & Returns',
-    question: 'What payment methods do you support? Is online payment secure?',
-    answer:
-      'We accept all major Indian and international payment methods through 256-bit SSL encrypted Razorpay checkout: UPI (Google Pay, PhonePe, Paytm, BHIM), Credit & Debit cards (Visa, MasterCard, RuPay), and Net Banking across 50+ banks.',
-  },
-  {
-    id: 'faq-8',
-    category: 'payments',
-    categoryLabel: 'Payments & Returns',
-    question: 'What is your return and exchange policy?',
-    answer:
-      'We provide a straightforward 7-day return and exchange policy. If an item arrives damaged, defective, or does not meet your expectations, we will arrange a doorstep courier pickup at zero cost to you and process a replacement or full refund to your original payment method.',
-  },
+    id: 'topic-prd-2',
+    category: 'product',
+    categoryLabel: 'Product & Authenticity',
+    question: 'Can I request complimentary fall, pico, or blouse stitching?',
+    answer: [
+      'Yes! We provide complimentary fall and edging (pico) service on all sarees.',
+      'Simply choose your order above and request custom fall/pico prior to dispatch.'
+    ]
+  }
 ];
 
 interface CustomerSupportAndFAQProps {
@@ -92,212 +162,454 @@ interface CustomerSupportAndFAQProps {
 }
 
 export const CustomerSupportAndFAQ: React.FC<CustomerSupportAndFAQProps> = ({ embedded = false }) => {
+  const { user } = useAuth();
+  const { getUserOrders } = useOrders();
+  const { formatPrice } = useCurrency();
+  const userOrders = getUserOrders(user?.email);
+
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [openFaqId, setOpenFaqId] = useState<string | null>('faq-1');
+  const [openTopicId, setOpenTopicId] = useState<string | null>('topic-ret-1');
 
-  const filteredFaqs = useMemo(() => {
-    return FAQS.filter((faq) => {
+  // Interactive Order Resolution State (Flipkart-style)
+  const [selectedOrderForHelp, setSelectedOrderForHelp] = useState<string | null>(
+    userOrders.length > 0 ? userOrders[0].id : null
+  );
+  const [activeIssueAction, setActiveIssueAction] = useState<string | null>(null);
+  const [returnReason, setReturnReason] = useState<string>('Size or fit issue');
+  const [returnConfirmedMsg, setReturnConfirmedMsg] = useState<string | null>(null);
+
+  const activeOrder = useMemo(() => {
+    return userOrders.find((o) => o.id === selectedOrderForHelp) || userOrders[0];
+  }, [userOrders, selectedOrderForHelp]);
+
+  const filteredTopics = useMemo(() => {
+    return HELP_TOPICS.filter((topic) => {
       const matchesCategory =
-        selectedCategory === 'all' || faq.category === selectedCategory;
+        selectedCategory === 'all' || topic.category === selectedCategory;
       const matchesSearch =
-        faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        faq.answer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        faq.categoryLabel.toLowerCase().includes(searchQuery.toLowerCase());
+        topic.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        topic.categoryLabel.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        topic.answer.some((ans) => ans.toLowerCase().includes(searchQuery.toLowerCase()));
       return matchesCategory && matchesSearch;
     });
   }, [selectedCategory, searchQuery]);
 
-  const toggleFaq = (id: string) => {
-    setOpenFaqId((prev) => (prev === id ? null : id));
+  const toggleTopic = (id: string) => {
+    setOpenTopicId((prev) => (prev === id ? null : id));
   };
 
-  const content = (
-    <div className={embedded ? "space-y-8" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12"}>
+  const handleConfirmReturn = (orderNumber: string, total: number) => {
+    setReturnConfirmedMsg(
+      `Return Request #RET-${Math.floor(100000 + Math.random() * 900000)} Approved! Doorstep pickup scheduled via BlueDart within 48 hours. Refund of ${formatPrice(total)} will be credited within 24-48 hours after pickup.`
+    );
+  };
+
+  return (
+    <div className={embedded ? "space-y-6 text-left" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 text-left"}>
       
-      {/* Header */}
-      <div className={embedded ? "space-y-2 pb-4 border-b border-[#E5DCD3]" : "text-center max-w-2xl mx-auto space-y-3"}>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black text-white text-xs font-bold shadow-2xs">
-          <HelpCircle className="w-3.5 h-3.5 text-[#FFE169]" />
-          <span>Customer Care & Help Center</span>
+      {/* Help Center Header */}
+      <div className="bg-white rounded-2xl p-5 sm:p-6 border border-[#E5DCD3] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold mb-2">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+            <span>24x7 Self-Help & Resolution Center</span>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-black text-black tracking-tight">
+            Help Center
+          </h2>
+          <p className="text-xs text-[#5C554E] mt-0.5 font-medium">
+            Track return pickups, check refund status, and resolve order issues instantly.
+          </p>
         </div>
-        <h2 className={`${embedded ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-4xl'} font-black text-black tracking-tight`}>
-          Customer Support & Frequently Asked Questions
-        </h2>
-        <p className="text-xs sm:text-sm text-[#5C554E]">
-          Have a question about pan-India shipping, Silk Mark purity, or your order? We’re always here to assist.
-        </p>
+
+        {/* Live Search Input */}
+        <div className="relative max-w-xs w-full">
+          <Search className="w-4 h-4 text-[#786F66] absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search return, refund, delivery..."
+            className="w-full pl-9 pr-3.5 py-2.5 text-xs font-semibold bg-[#FAF6F2] focus:bg-white border border-[#E5DCD3] rounded-xl outline-none focus:border-black transition text-black"
+          />
+        </div>
       </div>
 
-      {/* Quick Contact Support Grid */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 ${embedded ? 'lg:grid-cols-2' : 'lg:grid-cols-4'} gap-3.5 sm:gap-4`}>
-          <a
-            href="https://wa.me/919840012345?text=Hello%20Kavi's%20Lifestyle%20Support,%20I%20need%20help%20with%20an%20order."
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-5 bg-white rounded-2xl border border-[#E5DCD3] shadow-2xs hover:shadow-md transition group flex items-start gap-3.5 cursor-pointer"
-          >
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-              <MessageCircle className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-xs font-black text-black uppercase tracking-wider">
-                WhatsApp Live Help
-              </h4>
-              <p className="text-xs font-bold text-emerald-700 mt-0.5">+91 98400 12345</p>
-              <p className="text-[11px] text-[#5C554E] mt-0.5">Instant chat for saree videos & sizing</p>
-            </div>
-          </a>
-
-          <a
-            href="tel:+919840012345"
-            className="p-5 bg-white rounded-2xl border border-[#E5DCD3] shadow-2xs hover:shadow-md transition group flex items-start gap-3.5 cursor-pointer"
-          >
-            <div className="w-10 h-10 rounded-xl bg-[#FAF6F2] text-black border border-[#E5DCD3] flex items-center justify-center shrink-0 group-hover:bg-black group-hover:text-white transition-colors">
-              <Phone className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-xs font-black text-black uppercase tracking-wider">
-                Phone Support
-              </h4>
-              <p className="text-xs font-bold text-black mt-0.5">+91 98400 12345</p>
-              <p className="text-[11px] text-[#5C554E] mt-0.5">Mon–Sat, 10 AM – 7 PM IST</p>
-            </div>
-          </a>
-
-          <a
-            href="mailto:care@kavislifestyle.com"
-            className="p-5 bg-white rounded-2xl border border-[#E5DCD3] shadow-2xs hover:shadow-md transition group flex items-start gap-3.5 cursor-pointer"
-          >
-            <div className="w-10 h-10 rounded-xl bg-[#FAF6F2] text-black border border-[#E5DCD3] flex items-center justify-center shrink-0 group-hover:bg-black group-hover:text-white transition-colors">
-              <Mail className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-xs font-black text-black uppercase tracking-wider">
-                Email Desk
-              </h4>
-              <p className="text-xs font-bold text-black mt-0.5">care@kavislifestyle.com</p>
-              <p className="text-[11px] text-[#5C554E] mt-0.5">Replies within 2 to 4 hours</p>
-            </div>
-          </a>
-
-          <div className="p-5 bg-white rounded-2xl border border-[#E5DCD3] shadow-2xs hover:shadow-md transition group flex items-start gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-[#FAF6F2] text-black border border-[#E5DCD3] flex items-center justify-center shrink-0">
-              <Truck className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-xs font-black text-black uppercase tracking-wider">
-                Pan-India Express
-              </h4>
-              <p className="text-xs font-bold text-black mt-0.5">19,000+ PIN Codes</p>
-              <p className="text-[11px] text-[#5C554E] mt-0.5">Bluedart & Delhivery with SMS tracking</p>
-            </div>
+      {/* SECTION 1: FLIPKART-STYLE ORDER ISSUE RESOLVER */}
+      <div className="bg-white rounded-2xl p-5 sm:p-6 border border-[#E5DCD3] shadow-xs space-y-4">
+        <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-[#E5DCD3]">
+          <div>
+            <h3 className="text-sm font-black text-black flex items-center gap-2">
+              <Package className="w-4 h-4 text-black" />
+              <span>Select an Order to get Instant Help</span>
+            </h3>
+            <p className="text-[11px] text-[#5C554E] mt-0.5">
+              Choose your recent purchase to check return eligibility, refund status, or delivery timeline.
+            </p>
           </div>
+          {userOrders.length > 0 && (
+            <span className="text-xs font-bold text-[#786F66] bg-[#FAF6F2] px-2.5 py-1 rounded-lg border border-[#E5DCD3]">
+              {userOrders.length} Recent {userOrders.length === 1 ? 'Order' : 'Orders'}
+            </span>
+          )}
         </div>
 
-        {/* Search & Filter Bar */}
-        <div className="bg-white rounded-3xl p-5 sm:p-7 border border-[#E5DCD3] shadow-2xs space-y-4">
-          <div className="flex flex-col sm:flex-row items-center gap-3">
-            {/* Search Input */}
-            <div className="relative flex-1 w-full">
-              <Search className="w-4 h-4 text-[#5C554E] absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search FAQs (e.g. delivery time, silk mark, returns, zari)..."
-                className="w-full pl-10 pr-4 py-2.5 bg-[#FAF6F2] text-xs font-medium border border-[#E5DCD3] rounded-xl outline-none focus:border-black"
-              />
-            </div>
-
-            {/* Category Filter Chips */}
-            <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
-              {[
-                { id: 'all', label: 'All FAQs' },
-                { id: 'shipping', label: 'Shipping & Delivery' },
-                { id: 'sarees', label: 'Sarees & Purity' },
-                { id: 'gourmet', label: 'Gourmet & Attars' },
-                { id: 'payments', label: 'Payments & Returns' },
-              ].map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                    selectedCategory === cat.id
-                      ? 'bg-black text-white shadow-2xs'
-                      : 'bg-[#FAF6F2] text-[#5C554E] hover:bg-[#EFE8E0] hover:text-black border border-[#E5DCD3]'
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
+        {userOrders.length === 0 ? (
+          <div className="p-6 bg-[#FAF6F2] rounded-xl border border-[#E5DCD3] text-center space-y-2">
+            <Package className="w-8 h-8 text-[#786F66] mx-auto opacity-50" />
+            <p className="text-xs font-bold text-black">No active orders placed yet</p>
+            <p className="text-[11px] text-[#5C554E] max-w-md mx-auto">
+              When you purchase an item, 1-click return pickup requests, live BlueDart tracking, and refund status will appear right here.
+            </p>
           </div>
-
-          {/* Accordion List */}
-          <div className="space-y-2.5 pt-2">
-            {filteredFaqs.length > 0 ? (
-              filteredFaqs.map((faq) => {
-                const isOpen = openFaqId === faq.id;
-                return (
-                  <div
-                    key={faq.id}
-                    className={`rounded-2xl border transition-all ${
-                      isOpen
-                        ? 'bg-[#FAF6F2] border-black shadow-2xs'
-                        : 'bg-white border-[#E5DCD3] hover:border-neutral-400'
+        ) : (
+          <div className="space-y-4">
+            {/* Horizontal Order Picker if multiple orders exist */}
+            {userOrders.length > 1 && (
+              <div className="flex gap-2.5 overflow-x-auto scrollbar-none pb-1">
+                {userOrders.map((ord) => (
+                  <button
+                    key={ord.id}
+                    onClick={() => {
+                      setSelectedOrderForHelp(ord.id);
+                      setActiveIssueAction(null);
+                      setReturnConfirmedMsg(null);
+                    }}
+                    className={`px-3 py-2 rounded-xl border text-xs font-bold whitespace-nowrap transition flex items-center gap-2 cursor-pointer ${
+                      activeOrder?.id === ord.id
+                        ? 'bg-black text-white border-black shadow-xs'
+                        : 'bg-[#FAF6F2] text-black border-[#E5DCD3] hover:border-black'
                     }`}
                   >
-                    <button
-                      type="button"
-                      onClick={() => toggleFaq(faq.id)}
-                      className="w-full px-4 sm:px-5 py-3.5 sm:py-4 flex items-center justify-between gap-3 text-left cursor-pointer"
-                      aria-expanded={isOpen}
-                    >
-                      <span className="text-xs sm:text-sm font-bold text-black flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-black shrink-0" />
-                        <span>{faq.question}</span>
-                      </span>
-                      <ChevronDown
-                        className={`w-4 h-4 text-black shrink-0 transition-transform duration-200 ${
-                          isOpen ? 'rotate-180' : ''
-                        }`}
-                      />
-                    </button>
+                    <span>Order #{ord.orderNumber}</span>
+                    <span className="text-[10px] opacity-75">({formatPrice(ord.total)})</span>
+                  </button>
+                ))}
+              </div>
+            )}
 
-                    {isOpen && (
-                      <div className="px-4 sm:px-5 pb-4 pt-1 text-xs text-[#5C554E] leading-relaxed border-t border-[#E5DCD3]/60">
-                        {faq.answer}
+            {/* Active Selected Order Detail Card */}
+            {activeOrder && (
+              <div className="bg-[#FAF6F2] rounded-xl p-4 sm:p-5 border border-[#E5DCD3] space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    {activeOrder.items?.[0]?.image ? (
+                      <img
+                        src={activeOrder.items[0].image}
+                        alt=""
+                        className="w-14 h-14 rounded-lg object-cover bg-white border border-[#E5DCD3]"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 rounded-lg bg-white border border-[#E5DCD3] flex items-center justify-center">
+                        <Package className="w-6 h-6 text-black" />
+                      </div>
+                    )}
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-black text-black">
+                        {activeOrder.items?.[0]?.name || `Order #${activeOrder.orderNumber}`}
+                      </h4>
+                      <p className="text-[11px] text-[#5C554E] mt-0.5">
+                        Order #{activeOrder.orderNumber} • Total: <strong>{formatPrice(activeOrder.total)}</strong>
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className={`px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider border ${
+                    activeOrder.status === 'delivered'
+                      ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                      : activeOrder.status === 'shipped'
+                      ? 'bg-blue-100 text-blue-900 border-blue-300'
+                      : 'bg-amber-100 text-amber-900 border-amber-300'
+                  }`}>
+                    {activeOrder.status === 'placed' ? 'Order Placed' : activeOrder.status}
+                  </span>
+                </div>
+
+                {/* Instant Problem Solving Action Buttons (Flipkart-style) */}
+                <div className="pt-2 border-t border-[#E5DCD3] grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <button
+                    onClick={() => {
+                      setActiveIssueAction('return');
+                      setReturnConfirmedMsg(null);
+                    }}
+                    className={`p-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                      activeIssueAction === 'return'
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white hover:bg-neutral-50 text-black border-[#E5DCD3]'
+                    }`}
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Return / Exchange</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setActiveIssueAction('track');
+                      setReturnConfirmedMsg(null);
+                    }}
+                    className={`p-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                      activeIssueAction === 'track'
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white hover:bg-neutral-50 text-black border-[#E5DCD3]'
+                    }`}
+                  >
+                    <Truck className="w-3.5 h-3.5" />
+                    <span>Track Delivery</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setActiveIssueAction('refund');
+                      setReturnConfirmedMsg(null);
+                    }}
+                    className={`p-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                      activeIssueAction === 'refund'
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white hover:bg-neutral-50 text-black border-[#E5DCD3]'
+                    }`}
+                  >
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>Refund Status</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setActiveIssueAction('cancel');
+                      setReturnConfirmedMsg(null);
+                    }}
+                    className={`p-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                      activeIssueAction === 'cancel'
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white hover:bg-neutral-50 text-black border-[#E5DCD3]'
+                    }`}
+                  >
+                    <XCircle className="w-3.5 h-3.5" />
+                    <span>Cancel / Modify</span>
+                  </button>
+                </div>
+
+                {/* ACTION 1: RETURN OR EXCHANGE PROBLEM SOLVER */}
+                {activeIssueAction === 'return' && (
+                  <div className="bg-white p-4 rounded-xl border border-emerald-300 shadow-2xs space-y-3 animate-in fade-in">
+                    <div className="flex items-center gap-2 text-emerald-800 text-xs font-bold">
+                      <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                      <span>Kavi's 7-Day Doorstep Return & Exchange Policy</span>
+                    </div>
+
+                    {returnConfirmedMsg ? (
+                      <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-lg text-xs font-bold text-emerald-900 space-y-1">
+                        <p>{returnConfirmedMsg}</p>
+                        <p className="text-[11px] font-normal text-emerald-800">
+                          Pickup Location: {activeOrder.customer?.address || 'Your saved address'}, {activeOrder.customer?.city || 'Chennai'} - {activeOrder.customer?.pincode || '600017'}.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <label className="text-xs font-bold text-black block">
+                          Please select the reason for return/exchange:
+                        </label>
+                        <select
+                          value={returnReason}
+                          onChange={(e) => setReturnReason(e.target.value)}
+                          className="w-full p-2.5 text-xs font-semibold bg-[#FAF6F2] border border-[#E5DCD3] rounded-xl outline-none focus:border-black text-black cursor-pointer"
+                        >
+                          <option value="Size or fit issue">Size or fit issue (Request exchange for different size)</option>
+                          <option value="Received defective or damaged piece">Received defective or damaged piece (Free replacement)</option>
+                          <option value="Color or zari pattern differs from photo">Color or zari pattern differs from photo</option>
+                          <option value="Delivery was delayed / No longer needed">Delivery was delayed / No longer needed</option>
+                          <option value="Quality did not match expectations">Quality did not match expectations</option>
+                        </select>
+
+                        <div className="p-2.5 bg-neutral-50 rounded-lg border border-neutral-200 text-[11px] text-[#5C554E] space-y-1">
+                          <p>• <strong>Free Doorstep Pickup:</strong> BlueDart agent will inspect & collect the item.</p>
+                          <p>• <strong>Refund Amount:</strong> {formatPrice(activeOrder.total)} transferred within 24–48 hours of pickup.</p>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleConfirmReturn(activeOrder.orderNumber, activeOrder.total)}
+                            className="flex-1 py-2.5 bg-black hover:bg-neutral-800 text-white font-bold text-xs rounded-xl transition cursor-pointer"
+                          >
+                            Schedule Free Doorstep Return Pickup
+                          </button>
+                          <button
+                            onClick={() => setActiveIssueAction(null)}
+                            className="px-4 py-2.5 border border-[#E5DCD3] text-black font-bold text-xs rounded-xl hover:bg-[#FAF6F2] transition cursor-pointer"
+                          >
+                            Close
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
-                );
-              })
-            ) : (
-              <div className="p-8 text-center text-xs text-[#5C554E]">
-                No answers found matching "{searchQuery}". Contact our team directly on WhatsApp (+91 98400 12345).
+                )}
+
+                {/* ACTION 2: TRACK DELIVERY STATUS */}
+                {activeIssueAction === 'track' && (
+                  <div className="bg-white p-4 rounded-xl border border-blue-300 shadow-2xs space-y-3 animate-in fade-in text-xs">
+                    <div className="flex items-center justify-between pb-2 border-b border-neutral-100 font-bold text-black">
+                      <span className="flex items-center gap-1.5 text-blue-700">
+                        <Truck className="w-4 h-4" />
+                        Live Dispatch & Tracking
+                      </span>
+                      <span>Courier: {activeOrder.carrier || 'BlueDart Air Express'}</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
+                      <div className="bg-neutral-50 p-2.5 rounded-lg border border-neutral-200">
+                        <span className="text-[#786F66] block">Tracking AWB ID</span>
+                        <strong className="text-black font-mono">{activeOrder.trackingNumber || 'BD-' + activeOrder.orderNumber.replace(/[^0-9]/g, '').slice(-6) + 'IN'}</strong>
+                      </div>
+                      <div className="bg-neutral-50 p-2.5 rounded-lg border border-neutral-200">
+                        <span className="text-[#786F66] block">Dispatch Hub</span>
+                        <strong className="text-black">Chennai Flagship Studio</strong>
+                      </div>
+                      <div className="bg-neutral-50 p-2.5 rounded-lg border border-neutral-200 col-span-2 sm:col-span-1">
+                        <span className="text-[#786F66] block">Destination</span>
+                        <strong className="text-black truncate block">{activeOrder.customer?.city || 'India'} - {activeOrder.customer?.pincode || '600017'}</strong>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-lg text-[11px] text-blue-900 font-medium">
+                      🚚 <strong>Turnaround Guarantee:</strong> Dispatched within 24 hours. Metro deliveries arrive in 24–48 hours; Pan-India express arrives in 3–4 business days with real-time SMS out-for-delivery alerts.
+                    </div>
+                  </div>
+                )}
+
+                {/* ACTION 3: REFUND STATUS */}
+                {activeIssueAction === 'refund' && (
+                  <div className="bg-white p-4 rounded-xl border border-purple-300 shadow-2xs space-y-3 animate-in fade-in text-xs">
+                    <div className="flex items-center gap-1.5 font-bold text-purple-900 pb-2 border-b border-neutral-100">
+                      <CreditCard className="w-4 h-4 text-purple-700" />
+                      <span>Refund Status & Bank Transfer Timelines</span>
+                    </div>
+
+                    <div className="space-y-2 text-[11px] text-[#5C554E]">
+                      <div className="p-3 bg-purple-50 rounded-lg border border-purple-200 space-y-1">
+                        <p className="font-bold text-purple-950">
+                          Total Eligible Refund: {formatPrice(activeOrder.total)}
+                        </p>
+                        <p>
+                          Payment Method: <strong>{activeOrder.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Prepaid (Razorpay UPI/Cards)'}</strong>
+                        </p>
+                      </div>
+
+                      <div className="space-y-1.5 pt-1">
+                        <p>• <strong>UPI (GPay / PhonePe / Paytm):</strong> Credited within 24–48 hours after return pickup.</p>
+                        <p>• <strong>Credit / Debit Cards:</strong> Reflected on card statement within 3–5 working days.</p>
+                        <p>• <strong>COD Orders:</strong> Transferred directly to your UPI ID or bank account instantly upon pickup verification.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ACTION 4: CANCEL ORDER */}
+                {activeIssueAction === 'cancel' && (
+                  <div className="bg-white p-4 rounded-xl border border-red-300 shadow-2xs space-y-3 animate-in fade-in text-xs">
+                    <div className="flex items-center gap-1.5 font-bold text-red-700 pb-2 border-b border-neutral-100">
+                      <XCircle className="w-4 h-4 text-red-600" />
+                      <span>Order Cancellation Request</span>
+                    </div>
+
+                    {activeOrder.status === 'shipped' || activeOrder.status === 'delivered' ? (
+                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-900 space-y-1">
+                        <p className="font-bold">This order has already been dispatched via courier.</p>
+                        <p>Please decline delivery at doorstep or click "Return / Exchange" above to schedule an immediate free pickup after receipt.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <p className="text-[11px] text-[#5C554E]">
+                          Since Order #{activeOrder.orderNumber} is currently <strong>{activeOrder.status}</strong>, you can cancel it with 1-click and receive an immediate 100% refund.
+                        </p>
+                        <button
+                          onClick={() => {
+                            setReturnConfirmedMsg(`Order #${activeOrder.orderNumber} Cancelled Successfully. Full refund of ${formatPrice(activeOrder.total)} initiated via original payment method.`);
+                            setActiveIssueAction('return');
+                          }}
+                          className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl transition cursor-pointer"
+                        >
+                          Confirm Instant Cancellation & Refund
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
+        )}
+      </div>
+
+      {/* SECTION 2: BROWSE BY ISSUE TOPIC (FLIPKART STYLE) */}
+      <div className="bg-white rounded-2xl p-5 sm:p-6 border border-[#E5DCD3] shadow-xs space-y-5">
+        <div>
+          <h3 className="text-sm font-black text-black">
+            Frequently Asked Issue Resolutions
+          </h3>
+          <p className="text-[11px] text-[#5C554E] mt-0.5">
+            Click on any issue topic below to get immediate step-by-step guidance.
+          </p>
         </div>
 
+        {/* Category Filter Pills */}
+        <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1">
+          {[
+            { id: 'all', label: 'All Issues' },
+            { id: 'returns', label: 'Returns & Exchange' },
+            { id: 'delivery', label: 'Delivery & Tracking' },
+            { id: 'refunds', label: 'Refunds & Payments' },
+            { id: 'product', label: 'Silk Mark & Saree Care' },
+          ].map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                selectedCategory === cat.id
+                  ? 'bg-black text-white shadow-xs'
+                  : 'bg-[#FAF6F2] hover:bg-neutral-100 text-black border border-[#E5DCD3]'
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Issue Accordion List */}
+        <div className="divide-y divide-[#E5DCD3]/60 border-t border-[#E5DCD3]">
+          {filteredTopics.map((topic) => {
+            const isOpen = openTopicId === topic.id;
+            return (
+              <div key={topic.id} className="py-3.5">
+                <button
+                  onClick={() => toggleTopic(topic.id)}
+                  className="w-full flex items-center justify-between gap-3 text-left font-bold text-xs sm:text-sm text-black hover:text-[#AA8222] transition cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-black shrink-0" />
+                    <span>{topic.question}</span>
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-black shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isOpen && (
+                  <div className="mt-2.5 pl-3.5 pr-2 text-xs text-[#5C554E] space-y-1.5 leading-relaxed bg-[#FAF6F2]/50 p-3.5 rounded-xl border border-[#E5DCD3]/70 animate-in fade-in">
+                    {topic.answer.map((line, idx) => (
+                      <p key={idx} className="flex items-start gap-1.5">
+                        <span className="text-black font-bold">•</span>
+                        <span>{line}</span>
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
-  );
 
-  if (embedded) {
-    return <div className="text-left w-full">{content}</div>;
-  }
-
-  return (
-    <section
-      id="customer-support-faq"
-      className="bg-[#F5EFEB] py-14 sm:py-20 border-b border-[#E5DCD3] text-left"
-    >
-      {content}
-    </section>
+    </div>
   );
 };
 
 export default CustomerSupportAndFAQ;
-
