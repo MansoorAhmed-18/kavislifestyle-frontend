@@ -104,10 +104,18 @@ export default function ShopPage() {
         if (effectivePrice > priceRange) return false;
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase().trim();
-          const matchesName = product.name.toLowerCase().includes(q);
-          const matchesCat = product.category.toLowerCase().includes(q);
-          const matchesDesc = (product.description ?? '').toLowerCase().includes(q);
-          if (!matchesName && !matchesCat && !matchesDesc) return false;
+          const tokens = q.split(/\s+/).filter(Boolean);
+          const name = product.name.toLowerCase();
+          const cat = product.category.toLowerCase();
+          const sub = (product.subcategory || '').toLowerCase();
+          const brand = (product.brand || '').toLowerCase();
+          const desc = (product.shortDescription || product.description || '').toLowerCase();
+          const attrs = Object.values(product.attributes || {}).join(' ').toLowerCase();
+          const sku = (product.sku || '').toLowerCase();
+          const searchBlob = `${name} ${cat} ${sub} ${brand} ${desc} ${attrs} ${sku}`;
+
+          const matchesAllTokens = tokens.every((token) => searchBlob.includes(token));
+          if (!matchesAllTokens) return false;
         }
         return true;
       })
