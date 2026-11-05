@@ -10,23 +10,22 @@ export const INITIAL_PRODUCTS: Product[] = [
     category: 'Sarees',
     subcategory: 'Cotton Sarees',
     brand: "Kavi's Handloom Weaves",
-    description: 'Fine count breathable pure handloom cotton saree woven with traditional temple border and contrast striped pallu. Perfect for daily grace, summer comfort, and festive pujas.',
-    shortDescription: 'Breathable pure handloom cotton saree with temple border.',
+    description: 'Fine count breathable pure handloom cotton saree in subtle peach-pink woven with delicate white floral embroidery motifs and silver zari border. Perfect for daily grace, summer comfort, and festive occasions.',
+    shortDescription: 'Breathable pure handloom cotton saree with silver zari border and floral embroidery.',
     price: 1199,
     discountPrice: 825,
     discountPercentage: 31,
     rating: 4.8,
     reviewsCount: 34,
     images: [
-      'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1609357605129-26f69add5d6e?auto=format&fit=crop&w=800&q=80'
+      '/images/products/sarees/saree-1.jpg'
     ],
     stock: 25,
     sku: 'KV-SAR-COT-825',
     isBestSeller: true,
     attributes: {
       Fabric: '100% Pure Combed Cotton',
-      Weave: 'Traditional Handloom',
+      Weave: 'Traditional Handloom with Silver Zari',
       Length: '6.2 Meters with Blouse Piece',
       Care: 'Gentle Hand Wash or Machine Wash'
     }
@@ -39,23 +38,22 @@ export const INITIAL_PRODUCTS: Product[] = [
     category: 'Sarees',
     subcategory: 'Semi-Silk Sarees',
     brand: "Kavi's Festive Silks",
-    description: 'Lightweight festive semi silk drape with radiant silky sheen, subtle zari flower buttas across the body, and rich contrast woven borders for celebratory elegance.',
-    shortDescription: 'Lightweight semi silk drape with delicate golden zari motifs.',
+    description: 'Radiant mustard yellow festive semi silk saree with vibrant teal-cyan contrast border, subtle woven motifs across the body, and rich celebratory pallu for effortless elegance.',
+    shortDescription: 'Lightweight mustard yellow semi silk drape with contrast teal-cyan border.',
     price: 899,
     discountPrice: 599,
     discountPercentage: 33,
     rating: 4.7,
     reviewsCount: 29,
     images: [
-      'https://images.unsplash.com/photo-1616949755610-8c9bbc08f138?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=800&q=80'
+      '/images/products/sarees/saree-2.jpg'
     ],
     stock: 30,
     sku: 'KV-SAR-SMS-599',
     isFeatured: true,
     attributes: {
       Fabric: 'Artisanal Semi Silk Blend',
-      Zari: 'Gold Shimmer Zari',
+      Border: 'Contrast Teal-Cyan Woven Border',
       Length: '6.2 Meters with Blouse Piece',
       Care: 'Dry Clean or Cold Hand Wash'
     }
@@ -68,23 +66,22 @@ export const INITIAL_PRODUCTS: Product[] = [
     category: 'Sarees',
     subcategory: 'Silk Cotton Sarees',
     brand: "Kavi's Heritage Handloom",
-    description: 'Masterpiece sico weave combining pure mulberry silk warp with fine combed cotton weft. Offers luxurious royal sheen, featherlight comfort, and rich zari work pallu.',
-    shortDescription: 'Pure silk warp and combed cotton weft with rich zari pallu.',
+    description: 'Masterpiece sico weave combining pure royal blue mulberry silk warp with fine combed cotton weft. Features rich peach-copper zari borders, floral buttas, and handcrafted tassel pallu.',
+    shortDescription: 'Royal blue pure silk warp and combed cotton weft with copper zari border.',
     price: 1750,
     discountPrice: 1240,
     discountPercentage: 29,
     rating: 4.9,
     reviewsCount: 41,
     images: [
-      'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'
+      '/images/products/sarees/saree-3.jpg'
     ],
     stock: 22,
     sku: 'KV-SAR-SIC-1240',
     isBestSeller: true,
     attributes: {
       Fabric: 'Silk Cotton Blend (Sico)',
-      Zari: 'Fine Half-Gold Zari',
+      Zari: 'Rich Peach-Copper Zari with Tassels',
       Length: '6.2 Meters with Blouse Piece',
       Care: 'Dry Clean Recommended'
     }
@@ -97,23 +94,22 @@ export const INITIAL_PRODUCTS: Product[] = [
     category: 'Sarees',
     subcategory: 'Brocade Sarees',
     brand: "Kavi's Royal Silks",
-    description: 'Opulent brocade body woven with rich golden zari floral jaal, ornate scalloped border, and heavy celebratory pallu. Includes matching unstitched designer blouse piece.',
-    shortDescription: 'Heavy gold brocade weave with ornate floral jaal patterns.',
+    description: 'Opulent royal blue brocade saree woven with ornate circular mandala motifs, intricate copper-gold floral jaal, heavy celebratory pallu, and handcrafted tassel embellishments.',
+    shortDescription: 'Heavy gold and copper brocade weave with ornate mandala motifs.',
     price: 1150,
     discountPrice: 750,
     discountPercentage: 35,
     rating: 4.8,
     reviewsCount: 36,
     images: [
-      'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80'
+      '/images/products/sarees/saree-4.jpg'
     ],
     stock: 28,
     sku: 'KV-SAR-BRO-750',
     isFeatured: true,
     attributes: {
       Fabric: 'Royal Brocade Weave',
-      Zari: 'Intricate Gold Brocade Threadwork',
+      Zari: 'Intricate Copper-Gold Brocade Threadwork',
       Length: '6.2 Meters with Blouse Piece',
       Care: 'Dry Clean Only'
     }
@@ -126,16 +122,15 @@ export const INITIAL_PRODUCTS: Product[] = [
     category: 'Sarees',
     subcategory: 'Premium Sarees',
     brand: "Kavi's Kanchipuram Weaves",
-    description: 'Majestic Kanchipuram bridal wedding saree featuring heavy golden zari embossing, authentic temple korvai border, and regal grand pallu designed for weddings and momentous occasions.',
-    shortDescription: 'Heavy Kanchi bridal wedding silk with authentic temple korvai border.',
+    description: 'Majestic Kanchipuram bridal wedding saree featuring subtle metallic gold checks body, authentic temple korvai border in rich wine-purple, and regal embossed grand zari pallu.',
+    shortDescription: 'Gold checks Kanchi bridal silk with authentic wine-purple temple korvai border.',
     price: 2199,
     discountPrice: 1399,
     discountPercentage: 36,
     rating: 5.0,
     reviewsCount: 52,
     images: [
-      'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=800&q=80'
+      '/images/products/sarees/saree-5.jpg'
     ],
     stock: 18,
     sku: 'KV-SAR-KPR-1399',
@@ -143,36 +138,35 @@ export const INITIAL_PRODUCTS: Product[] = [
     isBestSeller: true,
     attributes: {
       Fabric: 'Kanchi Premium Silk',
-      Zari: 'Rich Golden Zari Border',
+      Zari: 'Heavy Wine-Purple Embossed Zari Border',
       Length: '6.2 Meters with Blouse Piece',
       Care: 'Dry Clean Only'
     }
   },
   {
     id: 'prod-sar-kanchi-silk-mark',
-    name: 'Kanchi Silk Saree (Silk Mark Certificate)',
+    name: 'Kanchipuram Silk Saree (Silk Mark Certified)',
     slug: 'kanchi-silk-saree-silk-mark-certified',
     departmentId: 'womens-fashion',
     category: 'Sarees',
     subcategory: 'Kanchipuram Silk Sarees',
     brand: "Kavi's Certified Silks",
-    description: '100% pure authenticated mulberry silk saree carrying official Silk Mark Certification. Handcrafted by master weavers in Kanchipuram with pure half-fine gold zari.',
-    shortDescription: 'Official Silk Mark certified pure Kanchipuram silk saree with rich zari.',
+    description: '100% pure authenticated mulberry silk saree in vibrant magenta pink carrying official Silk Mark Certification. Handcrafted in Kanchipuram with contrast royal purple border and pure golden zari work.',
+    shortDescription: 'Official Silk Mark certified pure magenta Kanchipuram silk saree with royal purple border.',
     price: 2499,
     discountPrice: 1575,
     discountPercentage: 37,
     rating: 5.0,
     reviewsCount: 64,
     images: [
-      'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'
+      '/images/products/sarees/saree-6.jpg'
     ],
     stock: 15,
     sku: 'KV-SAR-KSMC-1575',
     isFeatured: true,
     isBestSeller: true,
     attributes: {
-      Certification: 'Official Silk Mark Certified',
+      Certification: 'Official Silk Mark Certified (100% Pure Silk)',
       Fabric: '100% Pure Mulberry Silk',
       Zari: 'Authentic Traditional Gold Zari',
       Length: '6.2 Meters with Blouse Piece',
@@ -187,80 +181,79 @@ export const INITIAL_PRODUCTS: Product[] = [
     category: 'Sarees',
     subcategory: 'Katan Silk Sarees',
     brand: "Kavi's Banarasi Weaves",
-    description: 'Lustrous Banarasi Katan silk woven using pure twisted silk filaments, featuring intricate kadwa gold booti, antique zari borders, and a royal, regal drape.',
-    shortDescription: 'Pure twisted filament Katan silk with Banarasi gold kadwa bootis.',
+    description: 'Lustrous chocolate brown and deep maroon Katan silk saree woven using pure twisted silk filaments, featuring gold and red temple borders, fine floral buttas, and a regal drape with tassels.',
+    shortDescription: 'Pure twisted filament Katan silk in deep chocolate maroon with gold temple border.',
     price: 2299,
     discountPrice: 1575,
     discountPercentage: 31,
     rating: 4.9,
     reviewsCount: 47,
     images: [
-      'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=800&q=80'
+      '/images/products/sarees/saree-7.jpg'
     ],
     stock: 16,
     sku: 'KV-SAR-KAT-1575',
     isFeatured: true,
     attributes: {
       Fabric: 'Pure Twisted Katan Silk',
-      Weave: 'Banarasi Kadwa Weave',
+      Weave: 'Banarasi Kadwa Weave with Temple Borders',
       Length: '6.2 Meters with Blouse Piece',
       Care: 'Dry Clean Only'
     }
   },
   {
     id: 'prod-sar-mul-cotton',
-    name: 'Mul Cotton Saree',
+    name: 'Mul Cotton Saree (Set of 3 Variants)',
     slug: 'mul-cotton-saree-soft',
     departmentId: 'womens-fashion',
     category: 'Sarees',
     subcategory: 'Cotton Sarees',
     brand: "Kavi's Daily Weaves",
-    description: 'Extraordinarily soft 100% mulmul cotton saree with handcrafted botanical prints. Featherlight, flowy, and designed for effortless all-day elegance.',
-    shortDescription: 'Ultra-soft featherlight 100% mulmul cotton with botanical prints.',
+    description: 'Extraordinarily soft 100% pure mulmul cotton sarees. Available in 3 signature designs: Cream with festive contrast border, Yellow-Black-Grey checks, and Classic Monochrome Grey-White checks with tassel pallu. Featherlight and breathable for all-day comfort.',
+    shortDescription: 'Ultra-soft featherlight 100% mulmul cotton saree available in 3 artisanal designs.',
     price: 1499,
     discountPrice: 1049,
     discountPercentage: 30,
     rating: 4.8,
     reviewsCount: 38,
     images: [
-      'https://images.unsplash.com/photo-1609357605129-26f69add5d6e?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=800&q=80'
+      '/images/products/sarees/saree-8.jpg',
+      '/images/products/sarees/saree-9.jpg',
+      '/images/products/sarees/saree-10.jpg'
     ],
     stock: 35,
     sku: 'KV-SAR-MUL-1049',
     isNewArrival: true,
     attributes: {
-      Fabric: '100% Mulmul Cotton',
-      Prints: 'Eco-Friendly Handblock Print',
+      Fabric: '100% Pure Mulmul Cotton',
+      Prints: 'Handcrafted Border, Checks & Tassel Pallu',
       Length: '6.2 Meters with Blouse Piece',
       Care: 'Gentle Hand Wash'
     }
   },
   {
     id: 'prod-sar-kadhi-cotton',
-    name: 'Kadhi Cotton Saree',
+    name: 'Khadhi Cotton Saree',
     slug: 'kadhi-cotton-saree-handspun',
     departmentId: 'womens-fashion',
     category: 'Sarees',
     subcategory: 'Cotton Sarees',
     brand: "Kavi's Organic Khadi",
-    description: 'Authentic handspun, handwoven khadi cotton saree with natural earthy organic texture, mineral dye stripes, and a rustic woven border celebrating Indian craft heritage.',
-    shortDescription: 'Authentic handspun khadi cotton saree with rustic earthen texture.',
+    description: 'Authentic handspun, handwoven khadi cotton saree in vivid royal blue with delicate golden round buttas, breathable organic texture, and handcrafted tassel border.',
+    shortDescription: 'Vivid royal blue handspun khadi cotton saree with gold buttas and tassels.',
     price: 899,
     discountPrice: 599,
     discountPercentage: 33,
     rating: 4.7,
     reviewsCount: 27,
     images: [
-      'https://images.unsplash.com/photo-1560781290-7dc94c0f8f4f?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=800&q=80'
+      '/images/products/sarees/saree-11.jpg'
     ],
     stock: 25,
     sku: 'KV-SAR-KAD-599',
     attributes: {
       Fabric: 'Handspun Khadi Cotton',
-      Drape: 'Breathable & Textured',
+      Drape: 'Breathable & Textured with Tassels',
       Length: '6.2 Meters with Blouse Piece',
       Care: 'Hand Wash in Cold Water'
     }
@@ -273,16 +266,15 @@ export const INITIAL_PRODUCTS: Product[] = [
     category: 'Sarees',
     subcategory: 'Cotton Sarees',
     brand: "Kavi's Madurai Sungudi",
-    description: 'Traditional Madurai Sungudi tie-and-dye cotton saree featuring authentic round knot micro-dots, vibrant temple borders, and contrast golden zari patti.',
-    shortDescription: 'Traditional Madurai Sungudi tie-and-dye cotton saree with zari border.',
+    description: 'Traditional Madurai Sungudi cotton saree in rich deep purple featuring woven golden zari stripes and striking turquoise blue peacock temple border and pallu.',
+    shortDescription: 'Traditional deep purple Madurai Sungudi cotton saree with turquoise blue peacock border.',
     price: 1199,
     discountPrice: 799,
     discountPercentage: 33,
     rating: 4.9,
     reviewsCount: 43,
     images: [
-      'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=800&q=80'
+      '/images/products/sarees/saree-12.jpg'
     ],
     stock: 24,
     sku: 'KV-SAR-SUN-799',
@@ -290,7 +282,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     attributes: {
       Origin: 'Madurai, Tamil Nadu',
       Fabric: 'Pure Sungudi Combed Cotton',
-      Craft: 'Traditional Tie & Dye Micro-Dots',
+      Border: 'Turquoise Blue Peacock Temple Border',
       Length: '6.2 Meters with Blouse Piece',
       Care: 'Gentle Cold Wash'
     }
@@ -303,16 +295,15 @@ export const INITIAL_PRODUCTS: Product[] = [
     category: 'Sarees',
     subcategory: 'Cotton Sarees',
     brand: "Kavi's Chettinad Heritage",
-    description: 'Renowned Tamil Nadu Chettinad handloom cotton saree featuring bold earthy checks, contrast temple borders, and distinctive thick handspun body for supreme daily dignity.',
-    shortDescription: 'Heritage Tamil Nadu Chettinad checks cotton saree with temple border.',
+    description: 'Renowned Tamil Nadu Chettinad handloom cotton saree in deep plum purple, adorned with striking parrot green traditional temple elephant motif border and matching green tassel pallu.',
+    shortDescription: 'Plum purple Chettinad handloom cotton saree with parrot green elephant temple border.',
     price: 1699,
     discountPrice: 1200,
     discountPercentage: 29,
     rating: 4.8,
     reviewsCount: 35,
     images: [
-      'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1609357605129-26f69add5d6e?auto=format&fit=crop&w=800&q=80'
+      '/images/products/sarees/saree-13.jpg'
     ],
     stock: 20,
     sku: 'KV-SAR-CHE-1200',
@@ -320,7 +311,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     attributes: {
       Origin: 'Chettinad, Tamil Nadu',
       Fabric: 'Sturdy Handloom Cotton',
-      Pattern: 'Classic Geometric Checks & Stripes',
+      Border: 'Parrot Green Traditional Elephant Temple Border',
       Length: '6.2 Meters with Blouse Piece',
       Care: 'Gentle Hand Wash'
     }

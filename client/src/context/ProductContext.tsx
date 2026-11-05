@@ -13,7 +13,7 @@ interface ProductContextType {
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
-const PRODUCT_STORAGE_KEY = 'kavis_catalog_products_v4';
+const PRODUCT_STORAGE_KEY = 'kavis_catalog_products_v5';
 const DELETED_PRODUCTS_KEY = 'kavis_deleted_product_ids_v1';
 
 export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

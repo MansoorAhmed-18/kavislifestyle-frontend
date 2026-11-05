@@ -18,7 +18,7 @@ export const DEPARTMENTS: DepartmentInfo[] = [
     title: "Women's Fashion",
     subtitle: 'From Heritage Sarees to Modern Comfort',
     tagline: 'Pure Silk, Artisanal Cottons, Salwars & Western Essentials',
-    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1000&q=80',
+    image: '/images/products/sarees/saree-6.jpg',
     itemCount: '150+ Styles',
     accentColor: '#173F46',
     bgGradient: 'from-[#173F46]/90 to-[#0d262b]',
@@ -67,7 +67,7 @@ export const CATEGORIES: Category[] = [
     slug: 'sarees',
     departmentId: 'womens-fashion',
     description: 'Timeless handwoven silks, pure cottons, and opulent brocades.',
-    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80',
+    image: '/images/products/sarees/saree-4.jpg',
     subcategories: [
       'Kanchipuram Silk Sarees',
       'Katan Silk Sarees',

@@ -152,7 +152,7 @@ export const TopStoreUpdateBanner: React.FC = () => {
       title: 'Heritage Mysore & Silks Min. 70% Off',
       subtitle: 'Pure zari sarees, bridal silks & more',
       priceTag: 'Under ₹1,999',
-      image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=700&q=80',
+      image: '/images/products/sarees/saree-6.jpg',
       link: '/shop?dept=womens-fashion',
       bgGradient: 'from-[#D71921] via-[#E85D04] to-[#F48C06]',
     });
