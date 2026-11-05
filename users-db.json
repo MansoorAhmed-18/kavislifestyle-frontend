@@ -34,13 +34,26 @@
   },
   {
     "id": "usr-mansoor-01",
-    "fullName": "mansoor",
+    "fullName": "Mansoor",
     "email": "simplysarath01@gmail.com",
     "password": "man@123",
-    "phone": "",
+    "phone": "+91 98400 12345",
     "role": "customer",
     "createdAt": "2026-03-01T10:00:00.000Z",
-    "addresses": []
+    "addresses": [
+      {
+        "id": "addr-mansoor-1",
+        "fullName": "Mansoor",
+        "phone": "+91 98400 12345",
+        "street": "Near Railway Station, Tiruvallur Road",
+        "apartment": "",
+        "city": "Chennai",
+        "state": "Tamil Nadu",
+        "postalCode": "600075",
+        "country": "India",
+        "isDefault": true
+      }
+    ]
   }
 ]
 

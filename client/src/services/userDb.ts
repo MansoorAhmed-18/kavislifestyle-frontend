@@ -50,13 +50,26 @@ const SEED_USERS: StoredUserAccount[] = [
   },
   {
     id: 'usr-mansoor-01',
-    fullName: 'mansoor',
+    fullName: 'Mansoor',
     email: 'simplysarath01@gmail.com',
     password: 'man@123',
-    phone: '',
+    phone: '+91 98400 12345',
     role: 'customer',
     createdAt: '2026-03-01T10:00:00.000Z',
-    addresses: [],
+    addresses: [
+      {
+        id: 'addr-mansoor-1',
+        fullName: 'Mansoor',
+        phone: '+91 98400 12345',
+        street: 'Near Railway Station, Tiruvallur Road',
+        apartment: '',
+        city: 'Chennai',
+        state: 'Tamil Nadu',
+        postalCode: '600075',
+        country: 'India',
+        isDefault: true,
+      },
+    ],
   },
 ];
 
@@ -76,7 +89,9 @@ export function getAllStoredUsers(): StoredUserAccount[] {
       // Clean up any unintended demo address that may have leaked to other user accounts
       const cleaned = parsed.map((u: StoredUserAccount) => {
         if (u.email.toLowerCase().trim() === 'simplysarath01@gmail.com') {
-          return { ...u, password: 'man@123', addresses: (u.addresses || []).filter((a) => a.id !== 'addr-1') };
+          const nonAddr1 = (u.addresses || []).filter((a) => a.id !== 'addr-1');
+          const finalAddresses = nonAddr1.length > 0 ? nonAddr1 : SEED_USERS[2].addresses;
+          return { ...u, fullName: u.fullName || 'Mansoor', password: 'man@123', addresses: finalAddresses };
         }
         if (u.email.toLowerCase().trim() !== 'priya@kavislifestyle.com') {
           const filteredAddresses = (u.addresses || []).filter((a) => a.id !== 'addr-1');

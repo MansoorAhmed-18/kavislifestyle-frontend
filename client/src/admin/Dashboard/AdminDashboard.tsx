@@ -332,29 +332,29 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-[#F5EFEB] flex flex-col font-sans text-black">
       {/* Top Admin Navbar */}
-      <header className="bg-black text-white px-6 py-4 flex items-center justify-between border-b border-black shadow-md">
-        <div className="flex items-center gap-4">
+      <header className="bg-black text-white px-3 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between border-b border-black shadow-md gap-2">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
           <Link
             to="/"
-            className="flex items-center gap-1.5 text-xs text-[#E5DCD3] hover:text-white transition font-medium"
+            className="flex items-center gap-1 sm:gap-1.5 text-xs text-[#E5DCD3] hover:text-white transition font-medium shrink-0"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Storefront</span>
+            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden xs:inline">Storefront</span>
           </Link>
-          <div className="h-4 w-px bg-white/20" />
-          <div className="flex items-center gap-2.5">
-            <BrandLogo variant="icon" size="sm" />
-            <h1 className="font-extrabold text-sm sm:text-base tracking-wide flex items-center gap-2">
-              <span>KAVI'S LIFESTYLE</span>
-              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-white text-black">
-                Admin Portal
+          <div className="h-4 w-px bg-white/20 shrink-0" />
+          <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
+            <BrandLogo variant="icon" size="sm" className="shrink-0" />
+            <h1 className="font-extrabold text-xs sm:text-base tracking-wide flex items-center gap-1.5 sm:gap-2 min-w-0">
+              <span className="truncate">KAVI'S LIFESTYLE</span>
+              <span className="text-[9px] sm:text-[10px] uppercase font-bold px-1.5 sm:px-2 py-0.5 rounded bg-white text-black shrink-0 whitespace-nowrap">
+                Admin
               </span>
             </h1>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-xs">
-          <span className="hidden sm:inline text-[#E5DCD3]">
+        <div className="flex items-center gap-2 sm:gap-4 text-xs shrink-0">
+          <span className="hidden md:inline text-[#E5DCD3]">
             Logged in as: <strong className="text-white">Admin (Kavi)</strong>
           </span>
           <button
@@ -362,44 +362,44 @@ export default function AdminDashboard() {
               logout();
               navigate('/');
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition text-xs"
+            className="shrink-0 flex items-center gap-1 sm:gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition text-xs whitespace-nowrap min-w-max"
           >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>Sign Out</span>
+            <LogOut className="w-3.5 h-3.5 shrink-0" />
+            <span className="whitespace-nowrap font-bold">Sign Out</span>
           </button>
         </div>
       </header>
 
       {/* Main Container */}
       <div className="flex-1 flex flex-col md:flex-row">
-        {/* Sidebar */}
-        <aside className="w-full md:w-64 bg-white border-r border-[#E5DCD3] p-4 space-y-1.5">
+        {/* Sidebar / Mobile Tabs */}
+        <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-[#E5DCD3] p-2.5 sm:p-4 flex md:flex-col gap-1.5 overflow-x-auto no-scrollbar shrink-0">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition ${
+            className={`shrink-0 md:w-full flex items-center gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
               activeTab === 'overview'
                 ? 'bg-[#E44A2D] text-white shadow-xs'
                 : 'text-[#5C554E] hover:bg-[#F5EFEB] hover:text-[#E44A2D]'
             }`}
           >
-            <BarChart3 className="w-4 h-4" />
+            <BarChart3 className="w-4 h-4 shrink-0" />
             <span>Dashboard Overview</span>
           </button>
 
           <button
             onClick={() => setActiveTab('orders')}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition ${
+            className={`shrink-0 md:w-full flex items-center justify-between gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
               activeTab === 'orders'
                 ? 'bg-[#E44A2D] text-white shadow-xs'
                 : 'text-[#5C554E] hover:bg-[#F5EFEB] hover:text-[#E44A2D]'
             }`}
           >
-            <div className="flex items-center gap-2.5">
-              <ShoppingBag className="w-4 h-4" />
+            <div className="flex items-center gap-2">
+              <ShoppingBag className="w-4 h-4 shrink-0" />
               <span>Customer Orders</span>
             </div>
             <span
-              className={`text-[10px] px-2 py-0.5 rounded-full ${
+              className={`text-[10px] px-2 py-0.5 rounded-full font-bold ml-1 ${
                 activeTab === 'orders' ? 'bg-white/20 text-white' : 'bg-[#E44A2D] text-white'
               }`}
             >
@@ -409,18 +409,18 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('products')}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition ${
+            className={`shrink-0 md:w-full flex items-center justify-between gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
               activeTab === 'products'
                 ? 'bg-[#E44A2D] text-white shadow-xs'
                 : 'text-[#5C554E] hover:bg-[#F5EFEB] hover:text-[#E44A2D]'
             }`}
           >
-            <div className="flex items-center gap-2.5">
-              <Package className="w-4 h-4" />
+            <div className="flex items-center gap-2">
+              <Package className="w-4 h-4 shrink-0" />
               <span>Products Catalog</span>
             </div>
             <span
-              className={`text-[10px] px-2 py-0.5 rounded-full ${
+              className={`text-[10px] px-2 py-0.5 rounded-full font-bold ml-1 ${
                 activeTab === 'products' ? 'bg-white/20 text-white' : 'bg-[#E5DCD3] text-black'
               }`}
             >
@@ -430,7 +430,7 @@ export default function AdminDashboard() {
         </aside>
 
         {/* Tab Content */}
-        <main className="flex-1 p-6 sm:p-8 space-y-8 max-w-7xl">
+        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-7xl min-w-0">
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
             <div className="space-y-8">
@@ -529,9 +529,179 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Orders Table */}
+              {/* Orders Container (Mobile Card View + Desktop Table) */}
               <div className="bg-white rounded-2xl border border-[#E5DCD3] shadow-xs overflow-hidden">
-                <div className="overflow-x-auto">
+                {/* 1. Mobile Card List (md:hidden) */}
+                <div className="md:hidden divide-y divide-[#E5DCD3]">
+                  {filteredOrders.length === 0 ? (
+                    <div className="py-8 text-center text-xs text-[#5C554E]">
+                      No orders found for the selected status.
+                    </div>
+                  ) : (
+                    filteredOrders.map((order) => (
+                      <div key={order.id} className="p-4 space-y-3 hover:bg-[#FAF6F2]/50 transition">
+                        {/* Header: Order Number & Date & Payment Status */}
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="font-mono font-bold text-sm text-black block">{order.orderNumber}</span>
+                            <span className="text-[10px] text-[#5C554E]">
+                              {new Date(order.createdAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="font-black text-black block text-sm">{formatRupees(order.total)}</span>
+                            <span
+                              className={`inline-block mt-0.5 px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
+                                order.paymentStatus === 'paid'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : 'bg-amber-100 text-amber-800'
+                              }`}
+                            >
+                              {order.paymentStatus}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Customer & Address */}
+                        <div className="bg-[#FAF6F2] p-2.5 rounded-xl text-xs space-y-0.5">
+                          <div className="font-bold text-black flex items-center justify-between">
+                            <span>{order.customer.name}</span>
+                            <span className="text-[11px] text-[#5C554E] font-normal">{order.customer.phone}</span>
+                          </div>
+                          <div className="text-[11px] text-[#5C554E]">
+                            {order.customer.address}, {order.customer.city} - {order.customer.pincode}
+                          </div>
+                          {order.customer.email && (
+                            <div className="text-[10px] text-[#8C827A] truncate">
+                              Account: {order.customer.email}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Items Ordered */}
+                        <div className="space-y-1.5">
+                          <span className="text-[11px] font-bold text-[#5C554E] block">
+                            Ordered Items ({order.items.length})
+                          </span>
+                          <div className="space-y-1">
+                            {order.items.map((item, i) => (
+                              <div key={i} className="flex items-center gap-2 text-xs">
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-9 h-9 object-cover rounded-lg border border-[#E5DCD3] shrink-0"
+                                  onError={(e) => {
+                                    (e.target as HTMLElement).style.display = 'none';
+                                  }}
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-semibold text-black truncate">{item.name}</div>
+                                  <div className="text-[10px] text-[#5C554E]">
+                                    Qty: {item.quantity} • {formatRupees(item.unitPrice || item.price || 0)}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Status Selector & 1-Click Advance */}
+                        <div className="pt-2 border-t border-[#E5DCD3] space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <label className="text-[11px] font-bold text-[#5C554E]">Order Status:</label>
+                            <select
+                              value={order.status}
+                              onChange={(e) =>
+                                updateOrderStatus(order.id, e.target.value as OrderStatus)
+                              }
+                              className={`flex-1 text-xs font-bold px-2.5 py-1.5 rounded-lg border outline-none cursor-pointer ${
+                                order.status === 'delivered'
+                                  ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                                  : order.status === 'shipped'
+                                  ? 'bg-blue-100 text-blue-900 border-blue-300'
+                                  : order.status === 'packed'
+                                  ? 'bg-purple-100 text-purple-900 border-purple-300'
+                                  : order.status === 'confirmed'
+                                  ? 'bg-sky-100 text-sky-900 border-sky-300'
+                                  : 'bg-amber-100 text-amber-900 border-amber-300'
+                              }`}
+                            >
+                              <option value="placed">1. Placed (Ordered)</option>
+                              <option value="confirmed">2. Confirmed</option>
+                              <option value="packed">3. Packed</option>
+                              <option value="shipped">4. Shipped</option>
+                              <option value="delivered">5. Delivered</option>
+                              <option value="cancelled">Cancelled</option>
+                            </select>
+                          </div>
+
+                          {/* Quick 1-Click Advance Buttons */}
+                          {order.status === 'placed' && (
+                            <button
+                              type="button"
+                              onClick={() => updateOrderStatus(order.id, 'confirmed')}
+                              className="w-full py-2 px-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-2xs"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Click to Confirm Order</span>
+                            </button>
+                          )}
+                          {order.status === 'confirmed' && (
+                            <button
+                              type="button"
+                              onClick={() => updateOrderStatus(order.id, 'packed')}
+                              className="w-full py-2 px-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-2xs"
+                            >
+                              <Box className="w-3.5 h-3.5" />
+                              <span>Click to Pack Saree/Item</span>
+                            </button>
+                          )}
+                          {order.status === 'packed' && (
+                            <button
+                              type="button"
+                              onClick={() => updateOrderStatus(order.id, 'shipped')}
+                              className="w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-2xs"
+                            >
+                              <Truck className="w-3.5 h-3.5" />
+                              <span>Click to Handover & Ship</span>
+                            </button>
+                          )}
+                          {order.status === 'shipped' && (
+                            <button
+                              type="button"
+                              onClick={() => updateOrderStatus(order.id, 'delivered')}
+                              className="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 transition shadow-2xs"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Mark as Delivered</span>
+                            </button>
+                          )}
+                          {order.status === 'delivered' && (
+                            <div className="py-1.5 text-center text-xs font-bold text-emerald-700 bg-emerald-50 rounded-lg">
+                              ✓ Successfully Delivered
+                            </div>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => setSelectedOrder(order)}
+                            className="w-full py-2 px-3 bg-black hover:bg-[#2A2A2A] text-white rounded-lg font-bold text-xs transition"
+                          >
+                            View Order Details Modal
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* 2. Desktop Table (hidden md:block) */}
+                <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead className="bg-[#FAF6F2] text-[#5C554E] font-bold border-b border-[#E5DCD3]">
                       <tr>

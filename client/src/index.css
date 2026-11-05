@@ -215,3 +215,16 @@ html, body {
   }
 }
 
+/* Responsive Button & Badge Safeguards */
+.btn-nowrap, button.whitespace-nowrap {
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+/* Touch-friendly min target sizes */
+@media (max-width: 768px) {
+  button, a.button {
+    min-height: 38px;
+  }
+}
+

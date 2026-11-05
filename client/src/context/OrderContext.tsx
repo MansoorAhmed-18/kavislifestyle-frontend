@@ -62,9 +62,81 @@ interface OrderContextType {
 
 const INITIAL_DEMO_ORDERS: Order[] = [
   {
+    id: 'ord-103024',
+    orderNumber: 'KV-103024',
+    createdAt: '2026-11-05T14:16:00.000Z',
+    userId: 'usr-mansoor-01',
+    userEmail: 'simplysarath01@gmail.com',
+    customer: {
+      name: 'Mansoor',
+      email: 'simplysarath01@gmail.com',
+      phone: '+91 98400 12345',
+      address: 'Near Railway Station, Tiruvallur Road',
+      city: 'Chennai',
+      state: 'Tamil Nadu',
+      pincode: '600075'
+    },
+    items: [
+      {
+        id: 'item-sms-01',
+        name: 'Semi Silk Saree',
+        image: '/images/products/sarees/saree-2.jpg',
+        variant: 'Mustard Yellow with Teal Border',
+        quantity: 1,
+        unitPrice: 599,
+        totalPrice: 599
+      }
+    ],
+    subtotal: 599,
+    discount: 0,
+    shipping: 99,
+    total: 698,
+    paymentMethod: 'Prepaid Online (Razorpay 256-Bit SSL)',
+    paymentStatus: 'paid',
+    status: 'placed',
+    carrier: 'BlueDart Express',
+    trackingNumber: 'BD-88103024IN'
+  },
+  {
+    id: 'ord-102988',
+    orderNumber: 'KV-102988',
+    createdAt: '2026-11-05T12:30:00.000Z',
+    userId: 'usr-mansoor-01',
+    userEmail: 'simplysarath01@gmail.com',
+    customer: {
+      name: 'Mansoor',
+      email: 'simplysarath01@gmail.com',
+      phone: '+91 98400 12345',
+      address: '12, Trunk Road, Poonamallee',
+      city: 'Chennai',
+      state: 'Tamil Nadu',
+      pincode: '600075'
+    },
+    items: [
+      {
+        id: 'item-cot-01',
+        name: 'Cotton Saree',
+        image: '/images/products/sarees/saree-1.jpg',
+        variant: 'Peach Pink Handloom with Silver Zari',
+        quantity: 1,
+        unitPrice: 830,
+        totalPrice: 830
+      }
+    ],
+    subtotal: 830,
+    discount: 0,
+    shipping: 99,
+    total: 929,
+    paymentMethod: 'Prepaid Online (Razorpay 256-Bit SSL)',
+    paymentStatus: 'paid',
+    status: 'placed',
+    carrier: 'BlueDart Express',
+    trackingNumber: 'BD-88102988IN'
+  },
+  {
     id: 'ord-406008',
     orderNumber: 'KV-406008',
-    createdAt: new Date().toISOString(),
+    createdAt: '2026-11-04T14:30:00.000Z',
     userId: 'usr-priya-01',
     userEmail: 'priya@kavislifestyle.com',
     customer: {
@@ -80,7 +152,7 @@ const INITIAL_DEMO_ORDERS: Order[] = [
       {
         id: 'item-101',
         name: 'Kanchipuram Pure Zari Bridal Silk Saree',
-        image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80',
+        image: '/images/products/sarees/saree-6.jpg',
         variant: 'Bridal Crimson Red',
         quantity: 1,
         unitPrice: 9999,
@@ -116,7 +188,7 @@ const INITIAL_DEMO_ORDERS: Order[] = [
       {
         id: 'item-1',
         name: 'Kanchipuram Pure Zari Bridal Silk Saree',
-        image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80',
+        image: '/images/products/sarees/saree-6.jpg',
         variant: 'Bridal Crimson Red',
         quantity: 1,
         unitPrice: 9999,
@@ -138,7 +210,7 @@ const INITIAL_DEMO_ORDERS: Order[] = [
     total: 10077,
     paymentMethod: 'Online Payment (Razorpay)',
     paymentStatus: 'paid',
-    status: 'shipped',
+    status: 'delivered',
     carrier: 'BlueDart Express',
     trackingNumber: 'BD-982341209IN'
   },
@@ -172,7 +244,7 @@ const INITIAL_DEMO_ORDERS: Order[] = [
     total: 3199,
     paymentMethod: 'Cash on Delivery',
     paymentStatus: 'pending',
-    status: 'delivered',
+    status: 'placed',
     carrier: 'Delivery Surface',
     trackingNumber: 'DEL-449120391'
   }
@@ -187,16 +259,19 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const savedV3 = localStorage.getItem(ORDER_STORAGE_KEY);
       if (savedV3) {
-        return JSON.parse(savedV3);
+        const parsed = JSON.parse(savedV3);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Ensure KV-103024 is preserved
+          const has103024 = parsed.some((o) => o.orderNumber === 'KV-103024');
+          if (!has103024) {
+            return [INITIAL_DEMO_ORDERS[0], ...parsed];
+          }
+          return parsed;
+        }
       }
       const savedV2 = localStorage.getItem('kavis_global_orders_v2');
       if (savedV2) {
         const parsed: Order[] = JSON.parse(savedV2);
-        // Ensure KV-406008 is present
-        const has406008 = parsed.some((o) => o.orderNumber === 'KV-406008');
-        if (!has406008) {
-          return [INITIAL_DEMO_ORDERS[0], ...parsed];
-        }
         return parsed;
       }
     } catch (e) {
@@ -204,6 +279,11 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     return INITIAL_DEMO_ORDERS;
   });
+
+  const ordersRef = React.useRef<Order[]>(orders);
+  useEffect(() => {
+    ordersRef.current = orders;
+  }, [orders]);
 
   useEffect(() => {
     try {
@@ -222,47 +302,49 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (data.success && Array.isArray(data.orders)) {
           const serverOrders: Order[] = data.orders;
 
+          // Check if local orders have any order missing on server
+          const localList = ordersRef.current || [];
+          const missingOnServer = localList.filter((lo) => {
+            const key = lo.id || lo.orderNumber;
+            return !serverOrders.some((so) => (so.id || so.orderNumber) === key);
+          });
+
+          if (missingOnServer.length > 0) {
+            // Push local orders to server bulk sync outside setOrders updater
+            try {
+              fetch('/api/orders/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orders: localList })
+              }).catch(() => {});
+            } catch {}
+          }
+
+          // Build merged map: server orders are base, missing local orders appended
+          const map = new Map<string, Order>();
+          serverOrders.forEach((so) => {
+            const key = so.id || so.orderNumber;
+            if (key) map.set(key, so);
+          });
+          localList.forEach((lo) => {
+            const key = lo.id || lo.orderNumber;
+            if (key && !map.has(key)) {
+              map.set(key, lo);
+            }
+          });
+
+          const merged = Array.from(map.values()).sort(
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+
           setOrders((prev) => {
-            const map = new Map<string, Order>();
-
-            // 1. Load all server orders
-            serverOrders.forEach((so) => {
-              const key = so.id || so.orderNumber;
-              map.set(key, so);
-            });
-
-            // 2. Preserve any local orders that server may not have yet (e.g. placed while offline or before sync)
-            let hasLocalOnly = false;
-            prev.forEach((lo) => {
-              const key = lo.id || lo.orderNumber;
-              if (!map.has(key)) {
-                map.set(key, lo);
-                hasLocalOnly = true;
-                // Auto-upload missing local order to server so other devices (e.g. laptop admin) get it
-                try {
-                  fetch('/api/orders', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(lo)
-                  }).catch(() => {});
-                } catch {}
-              }
-            });
-
-            const merged = Array.from(map.values()).sort(
-              (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-            );
-
-            // Determine if there is any difference with previous state
-            const hasChange =
-              hasLocalOnly ||
+            if (
               merged.length !== prev.length ||
               merged.some((m, idx) => {
                 const p = prev[idx];
                 return !p || p.id !== m.id || p.status !== m.status || p.carrier !== m.carrier;
-              });
-
-            if (hasChange) {
+              })
+            ) {
               return merged;
             }
             return prev;
@@ -278,21 +360,23 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // 1. Initial sync
     syncOrdersFromServer();
 
-    // 2. Poll every 2.5 seconds so admin status changes immediately appear on mobile phone
-    const pollTimer = setInterval(syncOrdersFromServer, 2500);
+    // 2. Poll every 2 seconds so admin status changes immediately appear on mobile phone
+    const pollTimer = setInterval(syncOrdersFromServer, 2000);
 
-    // 3. Fast sync whenever user returns to browser tab
+    // 3. Fast sync whenever user returns to browser tab or comes online
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
         syncOrdersFromServer();
       }
     };
     window.addEventListener('focus', syncOrdersFromServer);
+    window.addEventListener('online', syncOrdersFromServer);
     document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       clearInterval(pollTimer);
       window.removeEventListener('focus', syncOrdersFromServer);
+      window.removeEventListener('online', syncOrdersFromServer);
       document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, []);
@@ -331,14 +415,18 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     setOrders((prev) => [newOrder, ...prev]);
 
-    // Push new order to shared cross-device server
-    try {
-      fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newOrder)
-      }).catch(() => {});
-    } catch {}
+    // Push new order to shared cross-device server immediately
+    (async () => {
+      try {
+        await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newOrder)
+        });
+      } catch (err) {
+        console.error('Failed to post order to server:', err);
+      }
+    })();
 
     // Track order ID in session so it always shows up in this browser session
     try {
@@ -376,13 +464,17 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
 
     // Push updated status to shared cross-device server so mobile updates in real-time
-    try {
-      fetch('/api/orders/status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId, status, carrier, trackingNumber })
-      }).catch(() => {});
-    } catch {}
+    (async () => {
+      try {
+        await fetch('/api/orders/status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId, status, carrier, trackingNumber })
+        });
+      } catch (err) {
+        console.error('Failed to update order status on server:', err);
+      }
+    })();
   };
 
   const getOrderById = (orderId: string) => {

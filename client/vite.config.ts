@@ -5,8 +5,23 @@ import path from 'path'
 import fs from 'fs'
 
 function crossDeviceDataSyncPlugin(): Plugin {
-  const ordersDbPath = path.resolve(import.meta.dirname, '../orders-db.json')
-  const usersDbPath = path.resolve(import.meta.dirname, '../users-db.json')
+  const resolveDbPath = (filename: string): string => {
+    const candidates = [
+      path.resolve(process.cwd(), filename),
+      path.resolve(process.cwd(), '..', filename),
+      path.resolve(import.meta.dirname || '', '..', filename),
+      path.resolve('D:/kavislifestyle', filename)
+    ]
+    for (const c of candidates) {
+      try {
+        if (fs.existsSync(c)) return c
+      } catch {}
+    }
+    return path.resolve(process.cwd(), '..', filename)
+  }
+
+  const ordersDbPath = resolveDbPath('orders-db.json')
+  const usersDbPath = resolveDbPath('users-db.json')
 
   const readJson = (filePath: string, fallback: any = []) => {
     try {
@@ -15,7 +30,7 @@ function crossDeviceDataSyncPlugin(): Plugin {
         return JSON.parse(raw)
       }
     } catch (e) {
-      console.error(`Failed to read ${filePath}`, e)
+      console.error(`[CrossDevice API] Failed to read ${filePath}`, e)
     }
     return fallback
   }
@@ -24,14 +39,37 @@ function crossDeviceDataSyncPlugin(): Plugin {
     try {
       fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8')
     } catch (e) {
-      console.error(`Failed to write ${filePath}`, e)
+      console.error(`[CrossDevice API] Failed to write ${filePath}`, e)
     }
+  }
+
+  const parseRequestBody = (req: any): Promise<any> => {
+    return new Promise((resolve) => {
+      if (req.body && typeof req.body === 'object') {
+        return resolve(req.body)
+      }
+      let rawData = ''
+      req.on('data', (chunk: any) => {
+        rawData += chunk
+      })
+      req.on('end', () => {
+        if (!rawData) return resolve({})
+        try {
+          resolve(JSON.parse(rawData))
+        } catch {
+          resolve({})
+        }
+      })
+      req.on('error', () => {
+        resolve({})
+      })
+    })
   }
 
   return {
     name: 'cross-device-data-sync',
     configureServer(server) {
-      server.middlewares.use((req, res, next) => {
+      server.middlewares.use(async (req, res, next) => {
         // Universal CORS headers for all devices on local network
         res.setHeader('Access-Control-Allow-Origin', '*')
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
@@ -53,44 +91,35 @@ function crossDeviceDataSyncPlugin(): Plugin {
         }
 
         // ==========================================
-        // 1. ORDERS API (/api/orders, /api/orders/status)
+        // 1. ORDERS API (/api/orders, /api/orders/sync, /api/orders/status)
         // ==========================================
         if (pathname === '/api/orders' || pathname.startsWith('/api/orders/')) {
-          // Status update
+          // Status update (POST /api/orders/status or PUT /api/orders/:id/status)
           if ((req.method === 'POST' || req.method === 'PUT') && pathname.includes('/status')) {
-            let body = ''
-            req.on('data', chunk => { body += chunk })
-            req.on('end', () => {
-              try {
-                const data = JSON.parse(body || '{}')
-                const orderId = data.orderId || pathname.split('/')[3]
-                const { status, carrier, trackingNumber } = data
+            const data = await parseRequestBody(req)
+            const orderId = data.orderId || pathname.split('/')[3]
+            const { status, carrier, trackingNumber } = data
 
-                const orders = readJson(ordersDbPath, [])
-                let updatedOrder = null
-                const nextOrders = orders.map((o: any) => {
-                  if (o.id === orderId || o.orderNumber === orderId) {
-                    updatedOrder = {
-                      ...o,
-                      status: status || o.status,
-                      carrier: carrier || o.carrier,
-                      trackingNumber: trackingNumber || o.trackingNumber,
-                      updatedAt: new Date().toISOString()
-                    }
-                    return updatedOrder
-                  }
-                  return o
-                })
-
-                writeJson(ordersDbPath, nextOrders)
-                res.setHeader('Content-Type', 'application/json')
-                res.end(JSON.stringify({ success: true, order: updatedOrder, orders: nextOrders }))
-              } catch (err: any) {
-                res.statusCode = 400
-                res.setHeader('Content-Type', 'application/json')
-                res.end(JSON.stringify({ error: err.message }))
+            const orders = readJson(ordersDbPath, [])
+            let updatedOrder = null
+            const nextOrders = orders.map((o: any) => {
+              if (o.id === orderId || o.orderNumber === orderId) {
+                updatedOrder = {
+                  ...o,
+                  status: status || o.status,
+                  carrier: carrier || o.carrier,
+                  trackingNumber: trackingNumber || o.trackingNumber,
+                  updatedAt: new Date().toISOString()
+                }
+                return updatedOrder
               }
+              return o
             })
+
+            writeJson(ordersDbPath, nextOrders)
+            console.log(`[CrossDevice API] Updated order status for ${orderId} -> ${status}`)
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ success: true, order: updatedOrder, orders: nextOrders }))
             return
           }
 
@@ -102,38 +131,79 @@ function crossDeviceDataSyncPlugin(): Plugin {
             return
           }
 
-          // POST /api/orders (place new order or upsert existing order)
-          if (req.method === 'POST' && (pathname === '/api/orders' || pathname === '/api/orders/')) {
-            let body = ''
-            req.on('data', chunk => { body += chunk })
-            req.on('end', () => {
-              try {
-                const newOrder = JSON.parse(body || '{}')
-                if (!newOrder.id && !newOrder.orderNumber) {
-                  res.statusCode = 400
-                  res.setHeader('Content-Type', 'application/json')
-                  res.end(JSON.stringify({ error: 'Order must contain id or orderNumber' }))
-                  return
-                }
-                const orders = readJson(ordersDbPath, [])
-                const existingIdx = orders.findIndex(
-                  (o: any) => o.id === newOrder.id || o.orderNumber === newOrder.orderNumber
-                )
-                let nextOrders
-                if (existingIdx >= 0) {
-                  nextOrders = orders.map((o: any, idx: number) => (idx === existingIdx ? { ...o, ...newOrder } : o))
+          // POST /api/orders/sync (bulk sync from mobile or laptop)
+          if (req.method === 'POST' && pathname === '/api/orders/sync') {
+            const payload = await parseRequestBody(req)
+            const incomingList: any[] = Array.isArray(payload)
+              ? payload
+              : Array.isArray(payload.orders)
+              ? payload.orders
+              : payload.order
+              ? [payload.order]
+              : []
+
+            const existingOrders = readJson(ordersDbPath, [])
+            const map = new Map<string, any>()
+
+            // Load existing
+            existingOrders.forEach((o: any) => {
+              const k = o.orderNumber || o.id
+              if (k) map.set(k, o)
+            })
+
+            // Merge incoming
+            incomingList.forEach((inc: any) => {
+              const k = inc.orderNumber || inc.id
+              if (k) {
+                if (map.has(k)) {
+                  map.set(k, { ...map.get(k), ...inc })
                 } else {
-                  nextOrders = [newOrder, ...orders]
+                  map.set(k, inc)
                 }
-                writeJson(ordersDbPath, nextOrders)
-                res.setHeader('Content-Type', 'application/json')
-                res.end(JSON.stringify({ success: true, order: newOrder, orders: nextOrders }))
-              } catch (err: any) {
-                res.statusCode = 400
-                res.setHeader('Content-Type', 'application/json')
-                res.end(JSON.stringify({ error: err.message }))
               }
             })
+
+            const merged = Array.from(map.values()).sort(
+              (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            )
+
+            writeJson(ordersDbPath, merged)
+            console.log(`[CrossDevice API] Bulk sync: received ${incomingList.length} orders -> total on server: ${merged.length}`)
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ success: true, orders: merged }))
+            return
+          }
+
+          // POST /api/orders (place new order or upsert single order)
+          if (req.method === 'POST' && (pathname === '/api/orders' || pathname === '/api/orders/')) {
+            const payload = await parseRequestBody(req)
+            const newOrder = payload.order || payload
+
+            if (!newOrder.id && !newOrder.orderNumber) {
+              res.statusCode = 400
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: 'Order must contain id or orderNumber' }))
+              return
+            }
+
+            const orders = readJson(ordersDbPath, [])
+            const existingIdx = orders.findIndex(
+              (o: any) => o.id === newOrder.id || o.orderNumber === newOrder.orderNumber
+            )
+
+            let nextOrders
+            if (existingIdx >= 0) {
+              nextOrders = orders.map((o: any, idx: number) =>
+                idx === existingIdx ? { ...o, ...newOrder } : o
+              )
+            } else {
+              nextOrders = [newOrder, ...orders]
+            }
+
+            writeJson(ordersDbPath, nextOrders)
+            console.log(`[CrossDevice API] Upsert order ${newOrder.orderNumber || newOrder.id} (${newOrder.customer?.email}) -> total: ${nextOrders.length}`)
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ success: true, order: newOrder, orders: nextOrders }))
             return
           }
         }
@@ -152,39 +222,33 @@ function crossDeviceDataSyncPlugin(): Plugin {
 
           // POST /api/users (register or upsert user account)
           if (req.method === 'POST') {
-            let body = ''
-            req.on('data', chunk => { body += chunk })
-            req.on('end', () => {
-              try {
-                const userAccount = JSON.parse(body || '{}')
-                if (!userAccount.email) {
-                  res.statusCode = 400
-                  res.setHeader('Content-Type', 'application/json')
-                  res.end(JSON.stringify({ error: 'User email is required' }))
-                  return
-                }
-                const users = readJson(usersDbPath, [])
-                const normEmail = userAccount.email.toLowerCase().trim()
-                const existingIdx = users.findIndex(
-                  (u: any) => u.email.toLowerCase().trim() === normEmail
-                )
-                let nextUsers
-                if (existingIdx >= 0) {
-                  nextUsers = users.map((u: any, idx: number) =>
-                    idx === existingIdx ? { ...u, ...userAccount } : u
-                  )
-                } else {
-                  nextUsers = [...users, userAccount]
-                }
-                writeJson(usersDbPath, nextUsers)
-                res.setHeader('Content-Type', 'application/json')
-                res.end(JSON.stringify({ success: true, user: userAccount, users: nextUsers }))
-              } catch (err: any) {
-                res.statusCode = 400
-                res.setHeader('Content-Type', 'application/json')
-                res.end(JSON.stringify({ error: err.message }))
-              }
-            })
+            const userAccount = await parseRequestBody(req)
+            if (!userAccount.email) {
+              res.statusCode = 400
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: 'User email is required' }))
+              return
+            }
+
+            const users = readJson(usersDbPath, [])
+            const normEmail = userAccount.email.toLowerCase().trim()
+            const existingIdx = users.findIndex(
+              (u: any) => u.email.toLowerCase().trim() === normEmail
+            )
+
+            let nextUsers
+            if (existingIdx >= 0) {
+              nextUsers = users.map((u: any, idx: number) =>
+                idx === existingIdx ? { ...u, ...userAccount } : u
+              )
+            } else {
+              nextUsers = [...users, userAccount]
+            }
+
+            writeJson(usersDbPath, nextUsers)
+            console.log(`[CrossDevice API] Saved user account: ${userAccount.email}`)
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ success: true, user: userAccount, users: nextUsers }))
             return
           }
         }

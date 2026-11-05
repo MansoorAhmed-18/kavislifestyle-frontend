@@ -1,5 +1,77 @@
 [
   {
+    "id": "ord-103024",
+    "orderNumber": "KV-103024",
+    "createdAt": "2026-11-05T14:16:00.000Z",
+    "userId": "usr-mansoor-01",
+    "userEmail": "simplysarath01@gmail.com",
+    "customer": {
+      "name": "Mansoor",
+      "email": "simplysarath01@gmail.com",
+      "phone": "+91 98400 12345",
+      "address": "Near Railway Station, Tiruvallur Road",
+      "city": "Chennai",
+      "state": "Tamil Nadu",
+      "pincode": "600075"
+    },
+    "items": [
+      {
+        "id": "item-sms-01",
+        "name": "Semi Silk Saree",
+        "image": "/images/products/sarees/saree-2.jpg",
+        "variant": "Mustard Yellow with Teal Border",
+        "quantity": 1,
+        "unitPrice": 599,
+        "totalPrice": 599
+      }
+    ],
+    "subtotal": 599,
+    "discount": 0,
+    "shipping": 99,
+    "total": 698,
+    "paymentMethod": "Prepaid Online (Razorpay 256-Bit SSL)",
+    "paymentStatus": "paid",
+    "status": "placed",
+    "carrier": "BlueDart Express",
+    "trackingNumber": "BD-88103024IN"
+  },
+  {
+    "id": "ord-102988",
+    "orderNumber": "KV-102988",
+    "createdAt": "2026-11-05T12:30:00.000Z",
+    "userId": "usr-mansoor-01",
+    "userEmail": "simplysarath01@gmail.com",
+    "customer": {
+      "name": "Mansoor",
+      "email": "simplysarath01@gmail.com",
+      "phone": "+91 98400 12345",
+      "address": "12, Trunk Road, Poonamallee",
+      "city": "Chennai",
+      "state": "Tamil Nadu",
+      "pincode": "600075"
+    },
+    "items": [
+      {
+        "id": "item-cot-01",
+        "name": "Cotton Saree",
+        "image": "/images/products/sarees/saree-1.jpg",
+        "variant": "Peach Pink Handloom with Silver Zari",
+        "quantity": 1,
+        "unitPrice": 830,
+        "totalPrice": 830
+      }
+    ],
+    "subtotal": 830,
+    "discount": 0,
+    "shipping": 99,
+    "total": 929,
+    "paymentMethod": "Prepaid Online (Razorpay 256-Bit SSL)",
+    "paymentStatus": "paid",
+    "status": "placed",
+    "carrier": "BlueDart Express",
+    "trackingNumber": "BD-88102988IN"
+  },
+  {
     "id": "ord-406008",
     "orderNumber": "KV-406008",
     "createdAt": "2026-11-04T14:30:00.000Z",
@@ -110,9 +182,8 @@
     "total": 3199,
     "paymentMethod": "Cash on Delivery",
     "paymentStatus": "pending",
-    "status": "delivered",
+    "status": "placed",
     "carrier": "Delivery Surface",
     "trackingNumber": "DEL-449120391"
   }
 ]
-
