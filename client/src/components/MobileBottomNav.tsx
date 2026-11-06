@@ -23,14 +23,14 @@ export const MobileBottomNav: React.FC = () => {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-t border-[#E5DCD3] shadow-[0_-4px_16px_rgba(0,0,0,0.06)] px-2 py-1.5 flex items-center justify-around select-none transition-all pb-[max(0.375rem,env(safe-area-inset-bottom))]"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#F4EDE0]/98 backdrop-blur-md border-t border-[#E5D8C5] stripe-cream shadow-[0_-4px_16px_rgba(20,33,61,0.08)] px-2 py-1.5 flex items-center justify-around select-none transition-all pb-[max(0.375rem,env(safe-area-inset-bottom))]"
       aria-label="Mobile Navigation"
     >
       {/* 1. Home Tab */}
       <Link
         to="/"
         className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all relative ${
-          isHomeActive ? 'text-[#E44A2D]' : 'text-[#786F66] hover:text-black'
+          isHomeActive ? 'text-[#FF6B5B]' : 'text-[#14213D]/70 hover:text-[#14213D]'
         }`}
       >
         <Home
@@ -40,7 +40,7 @@ export const MobileBottomNav: React.FC = () => {
         />
         <span
           className={`text-[10px] mt-0.5 tracking-tight transition-all ${
-            isHomeActive ? 'font-black text-[#E44A2D]' : 'font-semibold text-[#5C554E]'
+            isHomeActive ? 'font-black text-[#FF6B5B]' : 'font-semibold text-[#14213D]/70'
           }`}
         >
           Home
@@ -51,7 +51,7 @@ export const MobileBottomNav: React.FC = () => {
       <Link
         to="/categories"
         className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all relative ${
-          isCategoriesActive ? 'text-[#E44A2D]' : 'text-[#786F66] hover:text-black'
+          isCategoriesActive ? 'text-[#FF6B5B]' : 'text-[#14213D]/70 hover:text-[#14213D]'
         }`}
       >
         <LayoutGrid
@@ -61,7 +61,7 @@ export const MobileBottomNav: React.FC = () => {
         />
         <span
           className={`text-[10px] mt-0.5 tracking-tight transition-all ${
-            isCategoriesActive ? 'font-black text-[#E44A2D]' : 'font-semibold text-[#5C554E]'
+            isCategoriesActive ? 'font-black text-[#FF6B5B]' : 'font-semibold text-[#14213D]/70'
           }`}
         >
           Categories
@@ -72,7 +72,7 @@ export const MobileBottomNav: React.FC = () => {
       <Link
         to="/account"
         className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all relative ${
-          isAccountActive ? 'text-[#E44A2D]' : 'text-[#786F66] hover:text-black'
+          isAccountActive ? 'text-[#FF6B5B]' : 'text-[#14213D]/70 hover:text-[#14213D]'
         }`}
       >
         <User
@@ -82,7 +82,7 @@ export const MobileBottomNav: React.FC = () => {
         />
         <span
           className={`text-[10px] mt-0.5 tracking-tight transition-all ${
-            isAccountActive ? 'font-black text-[#E44A2D]' : 'font-semibold text-[#5C554E]'
+            isAccountActive ? 'font-black text-[#FF6B5B]' : 'font-semibold text-[#14213D]/70'
           }`}
         >
           Account
@@ -94,7 +94,7 @@ export const MobileBottomNav: React.FC = () => {
         type="button"
         onClick={() => setIsCartDrawerOpen(true)}
         className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all relative ${
-          isCartActive ? 'text-[#E44A2D]' : 'text-[#786F66] hover:text-black'
+          isCartActive ? 'text-[#FF6B5B]' : 'text-[#14213D]/70 hover:text-[#14213D]'
         }`}
         aria-label="Open Cart"
       >
@@ -105,14 +105,14 @@ export const MobileBottomNav: React.FC = () => {
             }`}
           />
           {cartCount > 0 && (
-            <span className="absolute -top-1.5 -right-2 bg-[#E44A2D] text-white text-[9px] font-black rounded-full min-w-4 h-4 px-1 flex items-center justify-center shadow-xs animate-in zoom-in-75">
+            <span className="absolute -top-1.5 -right-2 bg-[#FF6B5B] text-white text-[9px] font-black rounded-full min-w-4 h-4 px-1 flex items-center justify-center shadow-xs animate-in zoom-in-75">
               {cartCount}
             </span>
           )}
         </div>
         <span
           className={`text-[10px] mt-0.5 tracking-tight transition-all ${
-            isCartActive ? 'font-black text-[#E44A2D]' : 'font-semibold text-[#5C554E]'
+            isCartActive ? 'font-black text-[#FF6B5B]' : 'font-semibold text-[#14213D]/70'
           }`}
         >
           Cart

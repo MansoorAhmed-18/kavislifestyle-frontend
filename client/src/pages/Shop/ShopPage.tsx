@@ -110,37 +110,37 @@ export default function ShopPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F5EFEB] text-black pb-16 md:pb-0">
+    <div className="min-h-screen flex flex-col bg-[#F4EDE0] stripe-cream text-[#14213D] pb-16 md:pb-0">
       <AnnouncementBar />
       <Navbar />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 text-left">
         {/* Breadcrumb & Header */}
         <div className="mb-6">
-          <div className="text-xs text-[#5C554E] mb-1">
-            <span>Home</span> / <span className="font-bold text-black">Catalog</span>
+          <div className="text-xs text-[#14213D]/60 mb-1">
+            <span>Home</span> / <span className="font-bold text-[#14213D]">Catalog</span>
             {selectedDept !== 'all' ? (
-              <> / <span className="text-black font-bold capitalize">{selectedDept.replace('-', ' ')}</span></>
+              <> / <span className="text-[#14213D] font-bold capitalize">{selectedDept.replace('-', ' ')}</span></>
             ) : null}
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h1 className="text-2xl sm:text-3xl font-black text-black flex items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-black text-[#14213D] flex items-center gap-2">
               {selectedDept === 'all'
                 ? 'All Lifestyle Collections'
                 : DEPARTMENTS.find((d) => d.id === selectedDept)?.title}
             </h1>
-            <span className="text-xs text-[#5C554E] font-medium">
+            <span className="text-xs text-[#14213D]/70 font-medium">
               Showing <strong>{products.length}</strong> products
             </span>
           </div>
         </div>
 
         {/* Top Controls Bar */}
-        <div className="bg-white rounded-2xl p-3.5 border border-[#E5DCD3] shadow-xs mb-8 flex flex-wrap items-center justify-between gap-3">
+        <div className="bg-[#FAF6EE] stripe-card rounded-2xl p-3.5 border border-[#E5D8C5] shadow-xs mb-8 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowMobileFilters(!showMobileFilters)}
-              className="lg:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black text-white text-xs font-bold"
+              className="lg:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FF6B5B] text-white text-xs font-bold cursor-pointer"
             >
               <Filter className="w-3.5 h-3.5" />
               <span>Filters</span>
@@ -155,10 +155,10 @@ export default function ShopPage() {
                   setSelectedDept('all');
                   setSelectedCategory('all');
                 }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                   selectedDept === 'all'
-                    ? 'bg-black text-white shadow-xs'
-                    : 'bg-[#FAF6F2] text-black border border-[#E5DCD3] hover:border-black'
+                    ? 'bg-[#FF6B5B] text-white shadow-xs'
+                    : 'bg-[#F4EDE0] text-[#14213D] border border-[#E5D8C5] hover:border-[#FF6B5B]'
                 }`}
               >
                 All
@@ -172,10 +172,10 @@ export default function ShopPage() {
                     setSelectedDept(dept.id);
                     setSelectedCategory('all');
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                     selectedDept === dept.id
-                      ? 'bg-black text-white shadow-xs'
-                      : 'bg-[#FAF6F2] text-black border border-[#E5DCD3] hover:border-black'
+                      ? 'bg-[#FF6B5B] text-white shadow-xs'
+                      : 'bg-[#F4EDE0] text-[#14213D] border border-[#E5D8C5] hover:border-[#FF6B5B]'
                   }`}
                 >
                   {dept.title}
@@ -204,18 +204,18 @@ export default function ShopPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Sidebar Filter (3 cols) */}
           <aside
-            className={`lg:col-span-3 bg-white p-5 rounded-2xl border border-[#E5DCD3] shadow-xs space-y-6 ${
+            className={`lg:col-span-3 bg-[#FAF6EE] stripe-card p-5 rounded-2xl border border-[#E5D8C5] shadow-xs space-y-6 ${
               showMobileFilters ? 'block' : 'hidden lg:block'
             }`}
           >
-            <div className="flex items-center justify-between pb-3 border-b border-[#E5DCD3]">
-              <div className="flex items-center gap-2 font-bold text-xs text-black uppercase tracking-wider">
-                <SlidersHorizontal className="w-4 h-4 text-black" />
+            <div className="flex items-center justify-between pb-3 border-b border-[#E5D8C5]">
+              <div className="flex items-center gap-2 font-bold text-xs text-[#14213D] uppercase tracking-wider">
+                <SlidersHorizontal className="w-4 h-4 text-[#FF6B5B]" />
                 <span>Filter Catalog</span>
               </div>
               <button
                 onClick={handleResetFilters}
-                className="text-xs text-[#5C554E] hover:text-black font-bold"
+                className="text-xs text-[#FF6B5B] hover:underline font-bold cursor-pointer"
               >
                 Reset
               </button>

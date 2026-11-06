@@ -16,7 +16,7 @@ export const StoreLocatorAndAboutUs: React.FC = () => {
   return (
     <section
       id="about-and-store-locator"
-      className="bg-[#FAF6F2] py-14 sm:py-20 border-b border-[#E5DCD3] text-left"
+      className="bg-[#F4EDE0] stripe-cream py-14 sm:py-20 border-b border-[#E5D8C5] text-left"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14 sm:space-y-16">
         
@@ -26,61 +26,61 @@ export const StoreLocatorAndAboutUs: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12 items-center">
           {/* Left Text Column */}
           <div className="lg:col-span-7 space-y-4 sm:space-y-5">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black text-white text-xs font-bold shadow-2xs">
-              <Sparkles className="w-3.5 h-3.5 text-[#FFE169]" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#14213D] text-[#F4EDE0] text-xs font-bold shadow-sm">
+              <Sparkles className="w-3.5 h-3.5 text-[#FF6B5B]" />
               <span>Our Heritage & Philosophy</span>
             </div>
 
-            <h2 className="text-2xl sm:text-4xl font-black text-black tracking-tight leading-tight">
+            <h2 className="text-2xl sm:text-4xl font-black text-[#14213D] tracking-tight leading-tight">
               From Beloved Kavi Boutique to a Modern Indian Lifestyle Destination
             </h2>
 
-            <p className="text-xs sm:text-sm text-[#5C554E] leading-relaxed">
-              Founded on Usman Road in Chennai’s legendary T. Nagar district, Kavi began with a deep reverence for South India’s master weavers. What started as an intimate boutique celebrated for pure Kanchipuram silk sarees and Chettinad handlooms has grown into <strong className="text-black">Kavi’s Lifestyle</strong>—a unified sanctuary of everyday luxury.
+            <p className="text-xs sm:text-sm text-[#14213D]/80 leading-relaxed">
+              Founded on Usman Road in Chennai’s legendary T. Nagar district, Kavi began with a deep reverence for South India’s master weavers. What started as an intimate boutique celebrated for pure Kanchipuram silk sarees and Chettinad handlooms has grown into <strong className="text-[#14213D]">Kavi’s Lifestyle</strong>—a unified sanctuary of everyday luxury.
             </p>
 
-            <p className="text-xs sm:text-sm text-[#5C554E] leading-relaxed">
-              Today, alongside our heirloom sarees, we curate nature’s finest harvests: gourmet Kashmiri walnuts, jumbo California almonds, traditional Kannauj rose & sandalwood attars, and clean Ayurvedic botanical self-care. Every item is guided by a singular principle: <strong className="text-black">uncompromising authenticity, zero middle-tier dilution, and direct artisan partnerships.</strong>
+            <p className="text-xs sm:text-sm text-[#14213D]/80 leading-relaxed">
+              Today, alongside our heirloom sarees, we curate nature’s finest harvests: gourmet Kashmiri walnuts, jumbo California almonds, traditional Kannauj rose & sandalwood attars, and clean Ayurvedic botanical self-care. Every item is guided by a singular principle: <strong className="text-[#14213D]">uncompromising authenticity, zero middle-tier dilution, and direct artisan partnerships.</strong>
             </p>
 
             {/* 4 Brand Pillars */}
             <div className="grid grid-cols-2 sm:grid-cols-2 gap-3 sm:gap-4 pt-2">
-              <div className="p-3.5 bg-white rounded-2xl border border-[#E5DCD3] shadow-2xs">
-                <div className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center mb-2">
+              <div className="p-3.5 bg-[#FAF6EE] stripe-card rounded-2xl border border-[#E5D8C5] shadow-2xs">
+                <div className="w-7 h-7 rounded-lg bg-[#FF6B5B] text-white flex items-center justify-center mb-2">
                   <Heart className="w-4 h-4 text-white" />
                 </div>
-                <h4 className="text-xs sm:text-sm font-black text-black">40+ Weaver Clusters</h4>
-                <p className="text-[11px] text-[#5C554E] mt-0.5">
+                <h4 className="text-xs sm:text-sm font-black text-[#14213D]">40+ Weaver Clusters</h4>
+                <p className="text-[11px] text-[#14213D]/70 mt-0.5">
                   Direct alliances with master artisans in Tamil Nadu, Mysore & Varanasi.
                 </p>
               </div>
 
-              <div className="p-3.5 bg-white rounded-2xl border border-[#E5DCD3] shadow-2xs">
-                <div className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center mb-2">
+              <div className="p-3.5 bg-[#FAF6EE] stripe-card rounded-2xl border border-[#E5D8C5] shadow-2xs">
+                <div className="w-7 h-7 rounded-lg bg-[#FF6B5B] text-white flex items-center justify-center mb-2">
                   <ShieldCheck className="w-4 h-4 text-white" />
                 </div>
-                <h4 className="text-xs sm:text-sm font-black text-black">100% Certified Purity</h4>
-                <p className="text-[11px] text-[#5C554E] mt-0.5">
+                <h4 className="text-xs sm:text-sm font-black text-[#14213D]">100% Certified Purity</h4>
+                <p className="text-[11px] text-[#14213D]/70 mt-0.5">
                   Silk Mark certified weaves, FSSAI-tested dry fruits, and alcohol-free attars.
                 </p>
               </div>
 
-              <div className="p-3.5 bg-white rounded-2xl border border-[#E5DCD3] shadow-2xs">
-                <div className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center mb-2">
+              <div className="p-3.5 bg-[#FAF6EE] stripe-card rounded-2xl border border-[#E5D8C5] shadow-2xs">
+                <div className="w-7 h-7 rounded-lg bg-[#FF6B5B] text-white flex items-center justify-center mb-2">
                   <Award className="w-4 h-4 text-white" />
                 </div>
-                <h4 className="text-xs sm:text-sm font-black text-black">Zero Middlemen</h4>
-                <p className="text-[11px] text-[#5C554E] mt-0.5">
+                <h4 className="text-xs sm:text-sm font-black text-[#14213D]">Zero Middlemen</h4>
+                <p className="text-[11px] text-[#14213D]/70 mt-0.5">
                   Artisan-to-doorstep pricing ensuring genuine value for every patron.
                 </p>
               </div>
 
-              <div className="p-3.5 bg-white rounded-2xl border border-[#E5DCD3] shadow-2xs">
-                <div className="w-7 h-7 rounded-lg bg-black text-white flex items-center justify-center mb-2">
+              <div className="p-3.5 bg-[#FAF6EE] stripe-card rounded-2xl border border-[#E5D8C5] shadow-2xs">
+                <div className="w-7 h-7 rounded-lg bg-[#FF6B5B] text-white flex items-center justify-center mb-2">
                   <Navigation className="w-4 h-4 text-white" />
                 </div>
-                <h4 className="text-xs sm:text-sm font-black text-black">Pan-India Express</h4>
-                <p className="text-[11px] text-[#5C554E] mt-0.5">
+                <h4 className="text-xs sm:text-sm font-black text-[#14213D]">Pan-India Express</h4>
+                <p className="text-[11px] text-[#14213D]/70 mt-0.5">
                   Delivered with 256-bit secure checkout to 19,000+ Indian PIN codes.
                 </p>
               </div>
@@ -154,7 +154,7 @@ export const StoreLocatorAndAboutUs: React.FC = () => {
                   href="https://maps.google.com/?q=Usman+Road+T+Nagar+Chennai"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-2.5 bg-black hover:bg-[#2A2A2A] text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition shadow-xs active:scale-95 cursor-pointer"
+                  className="px-4 py-2.5 bg-[#FF6B5B] hover:bg-[#E85545] text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition shadow-xs active:scale-95 cursor-pointer"
                 >
                   <span>Get Directions on Google Maps</span>
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -162,9 +162,9 @@ export const StoreLocatorAndAboutUs: React.FC = () => {
 
                 <a
                   href="tel:+919840012345"
-                  className="px-4 py-2.5 bg-white hover:bg-neutral-100 text-black font-bold text-xs rounded-xl border border-[#E5DCD3] flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                  className="px-4 py-2.5 bg-[#FAF6EE] hover:bg-[#F4EDE0] text-[#14213D] font-bold text-xs rounded-xl border border-[#E5D8C5] flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
                 >
-                  <Phone className="w-3.5 h-3.5" />
+                  <Phone className="w-3.5 h-3.5 text-[#FF6B5B]" />
                   <span>Call Store</span>
                 </a>
 

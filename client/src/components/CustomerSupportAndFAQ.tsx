@@ -333,7 +333,7 @@ export const CustomerSupportAndFAQ: React.FC<CustomerSupportAndFAQProps> = ({ em
                 </div>
 
                 {/* Instant Problem Solving Action Buttons (Flipkart-style) */}
-                <div className="pt-2 border-t border-[#E5DCD3] grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="pt-2 border-t border-[#E5D8C5] grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <button
                     onClick={() => {
                       setActiveIssueAction('return');
@@ -341,8 +341,8 @@ export const CustomerSupportAndFAQ: React.FC<CustomerSupportAndFAQProps> = ({ em
                     }}
                     className={`p-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
                       activeIssueAction === 'return'
-                        ? 'bg-black text-white border-black'
-                        : 'bg-white hover:bg-neutral-50 text-black border-[#E5DCD3]'
+                        ? 'bg-[#FF6B5B] text-white border-[#FF6B5B] shadow-xs'
+                        : 'bg-[#FAF6EE] hover:bg-[#F4EDE0] text-[#14213D] border-[#E5D8C5]'
                     }`}
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
@@ -356,8 +356,8 @@ export const CustomerSupportAndFAQ: React.FC<CustomerSupportAndFAQProps> = ({ em
                     }}
                     className={`p-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
                       activeIssueAction === 'track'
-                        ? 'bg-black text-white border-black'
-                        : 'bg-white hover:bg-neutral-50 text-black border-[#E5DCD3]'
+                        ? 'bg-[#FF6B5B] text-white border-[#FF6B5B] shadow-xs'
+                        : 'bg-[#FAF6EE] hover:bg-[#F4EDE0] text-[#14213D] border-[#E5D8C5]'
                     }`}
                   >
                     <Truck className="w-3.5 h-3.5" />
@@ -371,8 +371,8 @@ export const CustomerSupportAndFAQ: React.FC<CustomerSupportAndFAQProps> = ({ em
                     }}
                     className={`p-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
                       activeIssueAction === 'refund'
-                        ? 'bg-black text-white border-black'
-                        : 'bg-white hover:bg-neutral-50 text-black border-[#E5DCD3]'
+                        ? 'bg-[#FF6B5B] text-white border-[#FF6B5B] shadow-xs'
+                        : 'bg-[#FAF6EE] hover:bg-[#F4EDE0] text-[#14213D] border-[#E5D8C5]'
                     }`}
                   >
                     <CreditCard className="w-3.5 h-3.5" />
@@ -386,8 +386,8 @@ export const CustomerSupportAndFAQ: React.FC<CustomerSupportAndFAQProps> = ({ em
                     }}
                     className={`p-2.5 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
                       activeIssueAction === 'cancel'
-                        ? 'bg-black text-white border-black'
-                        : 'bg-white hover:bg-neutral-50 text-black border-[#E5DCD3]'
+                        ? 'bg-[#FF6B5B] text-white border-[#FF6B5B] shadow-xs'
+                        : 'bg-[#FAF6EE] hover:bg-[#F4EDE0] text-[#14213D] border-[#E5D8C5]'
                     }`}
                   >
                     <XCircle className="w-3.5 h-3.5" />

@@ -54,6 +54,15 @@
         "isDefault": true
       }
     ]
+  },
+  {
+    "id": "usr-1793703920463-42fs63",
+    "fullName": "mob",
+    "email": "mansoornagoor2006@gmail.com",
+    "password": "mob134",
+    "phone": "",
+    "role": "customer",
+    "createdAt": "2026-11-03T11:05:20.463Z",
+    "addresses": []
   }
 ]
-

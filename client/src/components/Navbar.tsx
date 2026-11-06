@@ -74,9 +74,9 @@ const NavBagIcon: React.FC<{ active: boolean }> = ({ active }) => (
     <path d="M12 9V7C12 4.79086 13.7909 3 16 3C18.2091 3 20 4.79086 20 7V9" />
     <path
       d="M11 15C11 17.7614 13.2386 20 16 20C18.7614 20 21 17.7614 21 15"
-      fill={active ? '#E44A2D' : '#F59E0B'}
-      fillOpacity={active ? '0.3' : '0.85'}
-      stroke={active ? '#E44A2D' : '#D97706'}
+      fill={active ? '#FF6B5B' : '#FF6B5B'}
+      fillOpacity={active ? '0.35' : '0.85'}
+      stroke={active ? '#FF6B5B' : '#E85545'}
       strokeWidth="1.5"
     />
   </svg>
@@ -95,9 +95,9 @@ const NavTshirtIcon: React.FC<{ active: boolean }> = ({ active }) => (
     <path d="M10 5L6 9L9 12L10 11V26C10 26.5523 10.4477 27 11 27H21C21.5523 27 22 26.5523 22 26V11L23 12L26 9L22 5C20.5 6.2 18.5 7 16 7C13.5 7 11.5 6.2 10 5Z" />
     <path
       d="M10 23H22V26C22 26.5523 21.5523 27 21 27H11C10.4477 27 10 26.5523 10 26V23Z"
-      fill={active ? '#E44A2D' : '#F59E0B'}
+      fill={active ? '#FF6B5B' : '#FF6B5B'}
       fillOpacity={active ? '0.35' : '0.9'}
-      stroke={active ? '#E44A2D' : '#D97706'}
+      stroke={active ? '#FF6B5B' : '#E85545'}
       strokeWidth="1.4"
     />
   </svg>
@@ -117,9 +117,9 @@ const NavBeautyIcon: React.FC<{ active: boolean }> = ({ active }) => (
     <rect x="12.5" y="12" width="7" height="4" />
     <path
       d="M13 12L13 7.5L19 4V12H13Z"
-      fill={active ? '#E44A2D' : '#F59E0B'}
+      fill={active ? '#FF6B5B' : '#FF6B5B'}
       fillOpacity={active ? '0.35' : '0.9'}
-      stroke={active ? '#E44A2D' : '#D97706'}
+      stroke={active ? '#FF6B5B' : '#E85545'}
       strokeWidth="1.5"
     />
     <line x1="11" y1="20" x2="21" y2="20" strokeWidth="1.5" />
@@ -141,9 +141,9 @@ const NavPerfumeIcon: React.FC<{ active: boolean }> = ({ active }) => (
     <path d="M14 8V5C14 4.44772 14.4477 4 15 4H17C17.5523 4 18 4.44772 18 5V8" />
     <path
       d="M11 17C11 15.8954 11.8954 15 13 15H19C20.1046 15 21 15.8954 21 17V22C21 23.1046 20.1046 24 19 24H13C11.8954 24 11 23.1046 11 22V17Z"
-      fill={active ? '#E44A2D' : '#F59E0B'}
-      fillOpacity={active ? '0.3' : '0.85'}
-      stroke={active ? '#E44A2D' : '#D97706'}
+      fill={active ? '#FF6B5B' : '#FF6B5B'}
+      fillOpacity={active ? '0.35' : '0.85'}
+      stroke={active ? '#FF6B5B' : '#E85545'}
       strokeWidth="1.4"
     />
   </svg>
@@ -162,9 +162,9 @@ const NavDryFruitsIcon: React.FC<{ active: boolean }> = ({ active }) => (
     <path d="M16 4C10 9 6 15 7 21C8 26 12 28 16 28C20 28 24 26 25 21C26 15 22 9 16 4Z" />
     <path
       d="M16 9C13 13 10 17 11 21C11.8 24.5 14 25.5 16 25.5C18 25.5 20.2 24.5 21 21C22 17 19 13 16 9Z"
-      fill={active ? '#E44A2D' : '#F59E0B'}
-      fillOpacity={active ? '0.3' : '0.85'}
-      stroke={active ? '#E44A2D' : '#D97706'}
+      fill={active ? '#FF6B5B' : '#FF6B5B'}
+      fillOpacity={active ? '0.35' : '0.85'}
+      stroke={active ? '#FF6B5B' : '#E85545'}
       strokeWidth="1.4"
     />
   </svg>
@@ -585,10 +585,10 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      {/* Calm & Simple Unified Navigation Header */}
+      {/* Calm & Simple Unified Navigation Header (45% Navy + 45% Cream + 10% Coral) */}
       <header
         ref={navContainerRef}
-        className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E5DCD3] transition-all shadow-xs"
+        className="sticky top-0 z-40 bg-[#14213D] border-b border-[#1D2D50] transition-all shadow-md stripe-navy text-white"
       >
         {/* ========================================================= */}
         {/* ROW 1: LOGO + SEARCH (DESKTOP) + PROFILE & CART           */}
@@ -600,16 +600,16 @@ export const Navbar: React.FC = () => {
             <div className="flex items-center lg:hidden">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-1.5 -ml-1 rounded-xl text-neutral-800 hover:bg-[#FAF6F2] transition active:scale-95"
+                className="p-1.5 -ml-1 rounded-xl text-[#F4EDE0] hover:bg-white/10 transition active:scale-95"
                 aria-label="Toggle Navigation Menu"
               >
-                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                {isMobileMenuOpen ? <X className="w-5 h-5 text-[#F4EDE0]" /> : <Menu className="w-5 h-5 text-[#F4EDE0]" />}
               </button>
             </div>
 
             {/* Left: Brand Logo */}
             <Link to="/" className="flex items-center group shrink-0">
-              <BrandLogo variant="full" theme="dark" size="sm" />
+              <BrandLogo variant="full" theme="light" size="sm" />
             </Link>
 
             {/* Center: Prominent Search Bar (Desktop >= 768px) */}
@@ -619,8 +619,8 @@ export const Navbar: React.FC = () => {
             >
               <form onSubmit={handleSearchSubmit} className="relative w-full">
                 <div className="relative flex items-center">
-                  <div className="absolute left-3.5 pointer-events-none text-[#786F66]">
-                    <Search className="w-4 h-4 sm:w-5 sm:h-5 text-[#E44A2D]" />
+                  <div className="absolute left-3.5 pointer-events-none text-[#F4EDE0]/70">
+                    <Search className="w-4 h-4 sm:w-5 sm:h-5 text-[#FF6B5B]" />
                   </div>
                   <input
                     ref={desktopSearchInputRef}
@@ -632,14 +632,14 @@ export const Navbar: React.FC = () => {
                     }}
                     onFocus={() => setIsSearchFocused(true)}
                     placeholder="Search for Products, Sarees, Dry Fruits, Perfumes and More..."
-                    className="w-full pl-9 sm:pl-11 pr-20 sm:pr-24 py-2 sm:py-2.5 bg-[#FAF6F2] hover:bg-white focus:bg-white text-xs sm:text-sm font-medium text-black placeholder:text-[#8C827A] rounded-xl border border-[#D8CFC5] focus:border-[#E44A2D] focus:ring-2 focus:ring-[#E44A2D]/20 outline-none transition-all shadow-2xs"
+                    className="w-full pl-9 sm:pl-11 pr-20 sm:pr-24 py-2 sm:py-2.5 bg-[#0D1629]/90 hover:bg-[#0D1629] focus:bg-white text-xs sm:text-sm font-medium text-white focus:text-[#14213D] placeholder:text-[#F4EDE0]/60 rounded-xl border border-white/20 focus:border-[#FF6B5B] focus:ring-2 focus:ring-[#FF6B5B]/30 outline-none transition-all shadow-2xs"
                   />
                   <div className="absolute right-1.5 flex items-center gap-1">
                     {searchQuery && (
                       <button
                         type="button"
                         onClick={() => setSearchQuery('')}
-                        className="p-1 rounded-full text-[#786F66] hover:text-black hover:bg-neutral-100 transition cursor-pointer"
+                        className="p-1 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition cursor-pointer"
                         aria-label="Clear Search"
                       >
                         <X className="w-3.5 h-3.5" />
@@ -647,7 +647,7 @@ export const Navbar: React.FC = () => {
                     )}
                     <button
                       type="submit"
-                      className="px-2.5 sm:px-3.5 py-1.5 bg-[#E44A2D] hover:bg-[#cc3d22] text-white rounded-lg text-xs font-bold transition shadow-2xs flex items-center gap-1 cursor-pointer"
+                      className="px-2.5 sm:px-3.5 py-1.5 bg-[#FF6B5B] hover:bg-[#E85545] text-white rounded-lg text-xs font-bold transition shadow-2xs flex items-center gap-1 cursor-pointer"
                       aria-label="Submit Search"
                     >
                       <span className="hidden sm:inline">Search</span>
@@ -667,13 +667,13 @@ export const Navbar: React.FC = () => {
               {/* Quick Wishlist Icon */}
               <Link
                 to="/wishlist"
-                className="relative p-1.5 sm:p-2 text-neutral-800 hover:text-black hover:bg-[#FAF6F2] rounded-xl transition"
+                className="relative p-1.5 sm:p-2 text-[#F4EDE0] hover:text-white hover:bg-white/10 rounded-xl transition"
                 aria-label="Wishlist"
                 title="Wishlist"
               >
-                <Heart className="w-5 h-5 text-neutral-800" />
+                <Heart className="w-5 h-5 text-[#F4EDE0]" />
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#E44A2D] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                  <span className="absolute -top-1 -right-1 bg-[#FF6B5B] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
                     {wishlistCount}
                   </span>
                 )}
@@ -684,26 +684,26 @@ export const Navbar: React.FC = () => {
                 {user ? (
                   <button
                     onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
-                    className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-3 sm:py-1.5 text-neutral-800 hover:bg-[#FAF6F2] rounded-xl border border-[#E5DCD3] hover:border-[#E44A2D] transition"
+                    className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-3 sm:py-1.5 text-[#F4EDE0] hover:bg-white/10 rounded-xl border border-white/20 hover:border-[#FF6B5B] transition"
                     aria-label="Account Menu"
                   >
-                    <div className="w-7 h-7 rounded-full bg-[#E44A2D] text-white flex items-center justify-center font-bold text-xs uppercase shadow-2xs">
+                    <div className="w-7 h-7 rounded-full bg-[#FF6B5B] text-white flex items-center justify-center font-bold text-xs uppercase shadow-2xs">
                       {user.fullName?.charAt(0) || 'U'}
                     </div>
-                    <span className="text-xs font-bold text-black hidden sm:inline max-w-[90px] truncate">
+                    <span className="text-xs font-bold text-[#F4EDE0] hidden sm:inline max-w-[90px] truncate">
                       {user.fullName ? user.fullName.split(' ')[0] : 'Account'}
                     </span>
-                    <ChevronDown className="w-3 h-3 text-[#786F66]" />
+                    <ChevronDown className="w-3 h-3 text-[#F4EDE0]/80" />
                   </button>
                 ) : (
                   <button
                     onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-black hover:bg-[#FAF6F2] rounded-xl border border-[#E5DCD3] hover:border-[#E44A2D] shadow-2xs transition"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#F4EDE0] hover:bg-white/10 rounded-xl border border-white/20 hover:border-[#FF6B5B] shadow-2xs transition"
                     aria-label="Login Menu"
                   >
-                    <User className="w-4 h-4 text-[#E44A2D]" />
+                    <User className="w-4 h-4 text-[#FF6B5B]" />
                     <span>Login</span>
-                    <ChevronDown className="w-3 h-3 text-[#786F66]" />
+                    <ChevronDown className="w-3 h-3 text-[#F4EDE0]/80" />
                   </button>
                 )}
 
@@ -823,19 +823,19 @@ export const Navbar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsCartDrawerOpen(true)}
-                className="relative flex items-center gap-1.5 px-3 py-1.5 text-neutral-800 hover:text-black hover:bg-[#FAF6F2] rounded-xl border border-transparent hover:border-[#E5DCD3] transition"
+                className="relative flex items-center gap-1.5 px-3 py-1.5 text-[#F4EDE0] hover:text-white hover:bg-white/10 rounded-xl border border-white/15 transition"
                 aria-label="Open Cart"
                 title="Cart"
               >
                 <div className="relative">
-                  <ShoppingBag className="w-5 h-5 text-neutral-800" />
+                  <ShoppingBag className="w-5 h-5 text-[#F4EDE0]" />
                   {cartCount > 0 && (
-                    <span className="absolute -top-1.5 -right-2 bg-[#E44A2D] text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                    <span className="absolute -top-1.5 -right-2 bg-[#FF6B5B] text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
                       {cartCount}
                     </span>
                   )}
                 </div>
-                <span className="hidden md:inline text-xs font-bold text-neutral-800">
+                <span className="hidden md:inline text-xs font-bold text-[#F4EDE0]">
                   Cart
                 </span>
               </button>
@@ -849,8 +849,8 @@ export const Navbar: React.FC = () => {
           <div className="md:hidden pb-2.5 pt-0.5" ref={mobileSearchContainerRef}>
             <form onSubmit={handleSearchSubmit} className="relative w-full">
               <div className="relative flex items-center">
-                <div className="absolute left-3 pointer-events-none text-[#786F66]">
-                  <Search className="w-4 h-4 text-[#E44A2D]" />
+                <div className="absolute left-3 pointer-events-none text-[#FF6B5B]">
+                  <Search className="w-4 h-4 text-[#FF6B5B]" />
                 </div>
                 <input
                   ref={mobileSearchInputRef}
@@ -862,14 +862,14 @@ export const Navbar: React.FC = () => {
                   }}
                   onFocus={() => setIsSearchFocused(true)}
                   placeholder="Search Sarees, Dry Fruits, Perfumes..."
-                  className="w-full pl-9 pr-20 py-2 bg-[#FAF6F2] hover:bg-white focus:bg-white text-xs font-medium text-black placeholder:text-[#8C827A] rounded-xl border border-[#D8CFC5] focus:border-[#E44A2D] focus:ring-2 focus:ring-[#E44A2D]/20 outline-none transition-all shadow-2xs"
+                  className="w-full pl-9 pr-20 py-2 bg-[#0D1629]/90 focus:bg-[#0D1629] text-xs font-medium text-white placeholder:text-[#F4EDE0]/60 rounded-xl border border-white/15 focus:border-[#FF6B5B] focus:ring-2 focus:ring-[#FF6B5B]/30 outline-none transition-all shadow-2xs"
                 />
                 <div className="absolute right-1 flex items-center gap-1">
                   {searchQuery && (
                     <button
                       type="button"
                       onClick={() => setSearchQuery('')}
-                      className="p-1 rounded-full text-[#786F66] hover:text-black hover:bg-neutral-100 transition cursor-pointer"
+                      className="p-1 rounded-full text-[#F4EDE0]/70 hover:text-white hover:bg-white/10 transition cursor-pointer"
                       aria-label="Clear Search"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -877,7 +877,7 @@ export const Navbar: React.FC = () => {
                   )}
                   <button
                     type="submit"
-                    className="px-2.5 py-1 bg-[#E44A2D] hover:bg-[#cc3d22] text-white rounded-lg text-xs font-bold shadow-2xs transition cursor-pointer"
+                    className="px-2.5 py-1 bg-[#FF6B5B] hover:bg-[#E85545] text-white rounded-lg text-xs font-bold shadow-2xs transition cursor-pointer"
                     aria-label="Submit Search"
                   >
                     Search
@@ -892,9 +892,9 @@ export const Navbar: React.FC = () => {
         </div>
 
         {/* ========================================================= */}
-        {/* LINE 3: CATEGORY ROW MATCHING MINIMALIST 2ND SCREENSHOT   */}
+        {/* LINE 3: CATEGORY ROW (45% Cream #F4EDE0 + Stripes)        */}
         {/* ========================================================= */}
-        <div className="bg-white border-t border-[#E5DCD3]/80 pt-1.5 pb-2 sm:pt-2.5 sm:pb-3 px-2 sm:px-6 overflow-x-auto scrollbar-none">
+        <div className="bg-[#F4EDE0] stripe-cream border-t border-[#E5D8C5] shadow-xs pt-1.5 pb-2 sm:pt-2.5 sm:pb-3 px-2 sm:px-6 overflow-x-auto scrollbar-none">
           <div className="max-w-7xl mx-auto flex items-center justify-between sm:justify-center gap-3 sm:gap-8 md:gap-14 min-w-max sm:min-w-0 px-2 sm:px-0">
             {CATEGORY_NAV_ITEMS.map((item) => {
               const active = isCategoryActive(item);
@@ -904,12 +904,12 @@ export const Navbar: React.FC = () => {
                   to={item.path}
                   className="group flex flex-col items-center justify-center py-1 px-2 sm:px-3 rounded-xl transition-all relative shrink-0"
                 >
-                  {/* Line-Art Icon Container in Squircle (Active: Soft Red Tint) */}
+                  {/* Line-Art Icon Container in Squircle (Active: Soft Coral Tint) */}
                   <div
                     className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl p-1 mb-1 transition-all duration-200 relative flex items-center justify-center ${
                       active
-                        ? 'bg-[#FEEAE5] text-[#E44A2D] shadow-xs'
-                        : 'bg-transparent text-neutral-800 hover:bg-[#FAF6F2] hover:text-[#E44A2D]'
+                        ? 'bg-[#FF6B5B]/15 text-[#FF6B5B] shadow-xs'
+                        : 'bg-transparent text-[#14213D]/80 hover:bg-black/5 hover:text-[#FF6B5B]'
                     }`}
                   >
                     {item.renderIcon(active)}
@@ -919,16 +919,16 @@ export const Navbar: React.FC = () => {
                   <span
                     className={`text-[10px] sm:text-xs tracking-tight whitespace-nowrap transition-colors ${
                       active
-                        ? 'font-black text-[#E44A2D]'
-                        : 'font-bold text-neutral-700 group-hover:text-black'
+                        ? 'font-black text-[#FF6B5B]'
+                        : 'font-bold text-[#14213D]/80 group-hover:text-[#14213D]'
                     }`}
                   >
                     {item.title}
                   </span>
 
-                  {/* Solid Underline Bar Indicator directly underneath the active category */}
+                  {/* Solid Coral Underline Bar Indicator directly underneath the active category */}
                   {active && (
-                    <span className="absolute -bottom-1 sm:-bottom-2 left-1.5 right-1.5 h-[3px] sm:h-[3.5px] bg-[#E44A2D] rounded-full shadow-2xs" />
+                    <span className="absolute -bottom-1 sm:-bottom-2 left-1.5 right-1.5 h-[3px] sm:h-[3.5px] bg-[#FF6B5B] rounded-full shadow-2xs" />
                   )}
                 </Link>
               );

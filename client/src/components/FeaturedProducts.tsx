@@ -26,29 +26,29 @@ export const FeaturedProducts: React.FC = () => {
   ];
 
   return (
-    <section className="py-16 sm:py-20 bg-[#F5EFEB] border-b border-[#E5DCD3]">
+    <section className="py-14 sm:py-18 bg-[#F4EDE0] stripe-cream border-b border-[#E5D8C5]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4 text-left">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-black border border-[#E5DCD3] text-xs font-bold mb-2 shadow-xs">
-              <Sparkles className="w-3.5 h-3.5 text-black" />
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#14213D] text-[#F4EDE0] text-xs font-bold mb-2 shadow-sm">
+              <Sparkles className="w-3.5 h-3.5 text-[#FF6B5B]" />
               <span>Handpicked Highlights</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-black tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-black text-[#14213D] tracking-tight">
               Featured Products
             </h2>
-            <p className="mt-1 text-xs sm:text-sm text-[#5C554E]">
+            <p className="mt-1 text-xs sm:text-sm text-[#14213D]/70 font-medium">
               Top-rated selections across sarees, gourmet nuts, artisanal oud, and pure beauty.
             </p>
           </div>
 
           <button
             onClick={() => navigate('/shop')}
-            className="flex items-center gap-2 text-xs font-bold text-black hover:underline transition group self-start md:self-auto"
+            className="flex items-center gap-2 text-xs font-bold text-[#14213D] hover:text-[#FF6B5B] transition group self-start md:self-auto cursor-pointer"
           >
             <span>View Full Catalog</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform text-[#FF6B5B]" />
           </button>
         </div>
 
@@ -58,10 +58,10 @@ export const FeaturedProducts: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setSelectedDept(tab.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer ${
                 selectedDept === tab.id
-                  ? 'bg-black text-white shadow-xs'
-                  : 'bg-white text-black border border-[#E5DCD3] hover:border-black'
+                  ? 'bg-[#FF6B5B] text-white shadow-xs'
+                  : 'bg-[#FAF6EE] text-[#14213D] border border-[#E5D8C5] hover:border-[#FF6B5B]'
               }`}
             >
               {tab.label}

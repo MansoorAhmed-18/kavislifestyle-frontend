@@ -123,28 +123,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // 1. Try Supabase Auth if connected with valid credentials
       if (isSupabaseConfigured) {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: cleanEmail,
-          password,
-        });
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: cleanEmail,
+            password,
+          });
 
-        if (error) {
-          setIsLoading(false);
-          return { success: false, message: error.message };
-        }
-
-        if (data.user) {
-          const profile: UserProfile = {
-            id: data.user.id,
-            email: data.user.email || cleanEmail,
-            fullName: data.user.user_metadata?.full_name || cleanEmail.split('@')[0],
-            phone: data.user.phone || '',
-            role: cleanEmail.includes('admin') ? 'admin' : 'customer',
-            createdAt: data.user.created_at,
-          };
-          setUser(profile);
-          setIsLoading(false);
-          return { success: true };
+          if (!error && data?.user) {
+            const profile: UserProfile = {
+              id: data.user.id,
+              email: data.user.email || cleanEmail,
+              fullName: data.user.user_metadata?.full_name || cleanEmail.split('@')[0],
+              phone: data.user.phone || '',
+              role: cleanEmail.includes('admin') ? 'admin' : 'customer',
+              createdAt: data.user.created_at,
+            };
+            setUser(profile);
+            setIsLoading(false);
+            return { success: true };
+          }
+        } catch (sbErr) {
+          // Fall through to persistent database
         }
       }
 
@@ -246,18 +245,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       }
 
-      // 1. Try Supabase Auth if configured
+      // 1. Try Supabase Auth if configured (non-blocking fallback to guarantee instant sign-up)
       if (isSupabaseConfigured) {
-        const { data, error } = await supabase.auth.signUp({
-          email: cleanEmail,
-          password,
-          options: {
-            data: { full_name: cleanName, phone: cleanPhone },
-          },
-        });
-        if (error) {
-          setIsLoading(false);
-          return { success: false, message: error.message };
+        try {
+          await supabase.auth.signUp({
+            email: cleanEmail,
+            password,
+            options: {
+              data: { full_name: cleanName, phone: cleanPhone },
+            },
+          });
+        } catch (sbErr) {
+          console.warn('Supabase sign-up note:', sbErr);
         }
       }
 

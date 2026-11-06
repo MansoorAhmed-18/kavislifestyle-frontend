@@ -68,15 +68,13 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
         <div className="flex flex-col leading-tight">
           <span
             className={`font-black ${titleSizeMap[size]} tracking-tight uppercase ${
-              isLight ? 'text-white' : 'text-[#E44A2D]'
+              isLight ? 'text-[#F4EDE0]' : 'text-[#14213D]'
             }`}
           >
             Kavi’s
           </span>
           <span
-            className={`font-extrabold uppercase ${subtitleSizeMap[size]} ${
-              isLight ? 'text-white/90' : 'text-[#E44A2D]'
-            } -mt-0.5`}
+            className={`font-extrabold uppercase ${subtitleSizeMap[size]} text-[#FF6B5B] -mt-0.5`}
           >
             Lifestyle
           </span>

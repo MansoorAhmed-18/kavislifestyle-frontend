@@ -139,7 +139,7 @@ export default function AccountPage() {
 
   const activeTabParam = searchParams.get('tab') as 'orders' | 'profile' | 'addresses' | 'notifications' | 'help' | null;
   const [activeTab, setActiveTab] = useState<'orders' | 'profile' | 'addresses' | 'notifications' | 'help'>(
-    activeTabParam || (userOrders.length > 0 ? 'orders' : 'profile')
+    activeTabParam || 'orders'
   );
 
   // Edit Profile Form State
@@ -1212,21 +1212,21 @@ export default function AccountPage() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F5EFEB] text-black">
+    <div className="min-h-screen flex flex-col bg-[#F4EDE0] stripe-cream text-[#14213D]">
       <Navbar />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-10 pb-24 md:pb-10">
         {/* Page Top Heading */}
         <div className="mb-8 text-left">
-          <h1 className="text-2xl sm:text-3xl font-black text-black">
+          <h1 className="text-2xl sm:text-3xl font-black text-[#14213D]">
             My Account
           </h1>
-          <p className="text-xs sm:text-sm text-[#5C554E] mt-1 font-medium">
+          <p className="text-xs sm:text-sm text-[#14213D]/70 mt-1 font-medium">
             Welcome back, <strong>{user.fullName}</strong>! Manage your orders, personal details, and addresses.
           </p>
         </div>
 
-        {/* Mobile-First Header & Benefits matching Screenshot 1 */}
+        {/* Mobile-First Header & Benefits */}
         <div className="block lg:hidden space-y-4 mb-6 text-left">
           {/* Member Rewards Banner */}
           <div className="bg-gradient-to-r from-purple-50 via-indigo-50 to-pink-50 border border-purple-200/80 rounded-2xl p-3.5 flex items-center justify-between shadow-2xs">
@@ -1244,30 +1244,30 @@ export default function AccountPage() {
             <button
               type="button"
               onClick={() => handleTabChange('orders')}
-              className={`py-3 px-2 rounded-2xl border transition-all flex flex-col items-center justify-center text-center bg-white shadow-2xs active:scale-95 cursor-pointer ${
+              className={`py-3 px-2 rounded-2xl border transition-all flex flex-col items-center justify-center text-center bg-[#FAF6EE] shadow-2xs active:scale-95 cursor-pointer ${
                 activeTab === 'orders'
-                  ? 'border-[#E44A2D] ring-2 ring-[#E44A2D]/20 bg-orange-50/20'
-                  : 'border-[#E5DCD3] hover:border-black'
+                  ? 'border-[#FF6B5B] ring-2 ring-[#FF6B5B]/20 bg-[#FF6B5B]/10'
+                  : 'border-[#E5D8C5] hover:border-[#FF6B5B]'
               }`}
             >
               <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center mb-1.5 shadow-2xs">
                 <Box className="w-5 h-5 text-[#2563EB]" />
               </div>
-              <span className="text-xs font-black text-black leading-tight">Orders</span>
-              <span className="text-[10px] text-[#786F66] leading-tight mt-0.5 whitespace-nowrap">
+              <span className="text-xs font-black text-[#14213D] leading-tight">Orders</span>
+              <span className="text-[10px] text-[#14213D]/70 leading-tight mt-0.5 whitespace-nowrap">
                 {userOrders.length} placed
               </span>
             </button>
 
             <Link
               to="/wishlist"
-              className="py-3 px-2 rounded-2xl border border-[#E5DCD3] hover:border-black bg-white transition-all flex flex-col items-center justify-center text-center shadow-2xs active:scale-95 cursor-pointer"
+              className="py-3 px-2 rounded-2xl border border-[#E5D8C5] hover:border-[#FF6B5B] bg-[#FAF6EE] transition-all flex flex-col items-center justify-center text-center shadow-2xs active:scale-95 cursor-pointer"
             >
-              <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center mb-1.5 shadow-2xs">
-                <Heart className="w-5 h-5 text-rose-600" />
+              <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#FF6B5B] border border-rose-100 flex items-center justify-center mb-1.5 shadow-2xs">
+                <Heart className="w-5 h-5 text-[#FF6B5B]" />
               </div>
-              <span className="text-xs font-black text-black leading-tight">Wishlist</span>
-              <span className="text-[10px] text-[#786F66] leading-tight mt-0.5 whitespace-nowrap">
+              <span className="text-xs font-black text-[#14213D] leading-tight">Wishlist</span>
+              <span className="text-[10px] text-[#14213D]/70 leading-tight mt-0.5 whitespace-nowrap">
                 {wishlistCount} items
               </span>
             </Link>
@@ -1275,17 +1275,17 @@ export default function AccountPage() {
             <button
               type="button"
               onClick={() => handleTabChange('help')}
-              className={`py-3 px-2 rounded-2xl border transition-all flex flex-col items-center justify-center text-center bg-white shadow-2xs active:scale-95 cursor-pointer ${
+              className={`py-3 px-2 rounded-2xl border transition-all flex flex-col items-center justify-center text-center bg-[#FAF6EE] shadow-2xs active:scale-95 cursor-pointer ${
                 activeTab === 'help'
-                  ? 'border-[#E44A2D] ring-2 ring-[#E44A2D]/20 bg-orange-50/20'
-                  : 'border-[#E5DCD3] hover:border-black'
+                  ? 'border-[#FF6B5B] ring-2 ring-[#FF6B5B]/20 bg-[#FF6B5B]/10'
+                  : 'border-[#E5D8C5] hover:border-[#FF6B5B]'
               }`}
             >
               <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center mb-1.5 shadow-2xs">
                 <HelpCircle className="w-5 h-5 text-amber-700" />
               </div>
-              <span className="text-xs font-black text-black leading-tight">Help</span>
-              <span className="text-[10px] text-[#786F66] leading-tight mt-0.5 whitespace-nowrap">
+              <span className="text-xs font-black text-[#14213D] leading-tight">Help</span>
+              <span className="text-[10px] text-[#14213D]/70 leading-tight mt-0.5 whitespace-nowrap">
                 Self-Help
               </span>
             </button>
@@ -1500,84 +1500,84 @@ export default function AccountPage() {
           {/* Orders Button */}
           <button
             onClick={() => handleTabChange('orders')}
-            className={`p-4 sm:p-5 rounded-2xl border transition-all text-left flex items-center justify-between group shadow-2xs ${
+            className={`p-4 sm:p-5 rounded-2xl border transition-all text-left flex items-center justify-between group shadow-2xs cursor-pointer ${
               activeTab === 'orders'
-                ? 'bg-[#E44A2D] text-white border-[#E44A2D] ring-2 ring-[#E44A2D]/10'
-                : 'bg-white text-black border-[#E5DCD3] hover:border-black'
+                ? 'bg-[#FF6B5B] text-white border-[#FF6B5B] ring-2 ring-[#FF6B5B]/20'
+                : 'bg-[#FAF6EE] stripe-card text-[#14213D] border-[#E5D8C5] hover:border-[#FF6B5B]'
             }`}
           >
             <div className="flex items-center gap-3.5">
               <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition ${
-                activeTab === 'orders' ? 'bg-white/20 text-white' : 'bg-[#FAF6F2] text-[#E44A2D] border border-[#E5DCD3]'
+                activeTab === 'orders' ? 'bg-white/20 text-white' : 'bg-[#F4EDE0] text-[#FF6B5B] border border-[#E5D8C5]'
               }`}>
                 <Package className="w-5 h-5" />
               </div>
               <div>
                 <span className="text-sm font-extrabold block">Orders</span>
                 <span className={`text-[11px] font-semibold ${
-                  activeTab === 'orders' ? 'text-white/80' : 'text-[#786F66]'
+                  activeTab === 'orders' ? 'text-white/80' : 'text-[#14213D]/60'
                 }`}>
                   {userOrders.length} placed
                 </span>
               </div>
             </div>
             <ChevronRight className={`w-4 h-4 transition ${
-              activeTab === 'orders' ? 'text-white' : 'text-[#786F66] group-hover:translate-x-0.5'
+              activeTab === 'orders' ? 'text-white' : 'text-[#14213D]/60 group-hover:translate-x-0.5'
             }`} />
           </button>
 
           {/* Wishlist Button */}
           <Link
             to="/wishlist"
-            className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E5DCD3] hover:border-black transition-all text-left flex items-center justify-between group shadow-2xs"
+            className="p-4 sm:p-5 rounded-2xl bg-[#FAF6EE] stripe-card border border-[#E5D8C5] hover:border-[#FF6B5B] transition-all text-left flex items-center justify-between group shadow-2xs"
           >
             <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 rounded-xl bg-[#FAF6F2] text-rose-500 border border-[#E5DCD3] flex items-center justify-center">
-                <Heart className="w-5 h-5 fill-rose-50" />
+              <div className="w-11 h-11 rounded-xl bg-[#F4EDE0] text-[#FF6B5B] border border-[#E5D8C5] flex items-center justify-center">
+                <Heart className="w-5 h-5 fill-[#FF6B5B]" />
               </div>
               <div>
-                <span className="text-sm font-extrabold text-black block">Wishlist</span>
-                <span className="text-[11px] font-semibold text-[#786F66]">
+                <span className="text-sm font-extrabold text-[#14213D] block">Wishlist</span>
+                <span className="text-[11px] font-semibold text-[#14213D]/60">
                   {wishlistCount} saved items
                 </span>
               </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-[#786F66] group-hover:translate-x-0.5 transition" />
+            <ChevronRight className="w-4 h-4 text-[#14213D]/60 group-hover:translate-x-0.5 transition" />
           </Link>
 
           {/* Cart Button */}
           <button
             onClick={() => setIsCartDrawerOpen(true)}
-            className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E5DCD3] hover:border-black transition-all text-left flex items-center justify-between group shadow-2xs"
+            className="p-4 sm:p-5 rounded-2xl bg-[#FAF6EE] stripe-card border border-[#E5D8C5] hover:border-[#FF6B5B] transition-all text-left flex items-center justify-between group shadow-2xs cursor-pointer"
           >
             <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 rounded-xl bg-[#FAF6F2] text-amber-600 border border-[#E5DCD3] flex items-center justify-center">
+              <div className="w-11 h-11 rounded-xl bg-[#F4EDE0] text-[#FF6B5B] border border-[#E5D8C5] flex items-center justify-center">
                 <ShoppingBag className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-sm font-extrabold text-black block">Cart</span>
-                <span className="text-[11px] font-semibold text-[#786F66]">
+                <span className="text-sm font-extrabold text-[#14213D] block">Cart</span>
+                <span className="text-[11px] font-semibold text-[#14213D]/60">
                   {cartCount} in bag
                 </span>
               </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-[#786F66] group-hover:translate-x-0.5 transition" />
+            <ChevronRight className="w-4 h-4 text-[#14213D]/60 group-hover:translate-x-0.5 transition" />
           </button>
         </div>
 
         <div className="hidden lg:grid lg:grid-cols-12 gap-8 items-start">
           
           {/* Left Sidebar Menu (4 cols) */}
-          <div className="lg:col-span-4 bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-1">
+          <div className="lg:col-span-4 bg-[#FAF6EE] stripe-card rounded-2xl p-5 border border-[#E5D8C5] shadow-sm space-y-1">
             
             {/* User Info Header */}
-            <div className="p-3 mb-3 bg-[#FAF6F2] rounded-xl flex items-center gap-3 border border-[#E5DCD3]">
-              <div className="w-12 h-12 rounded-full bg-black text-white font-bold text-lg flex items-center justify-center uppercase">
+            <div className="p-3 mb-3 bg-[#F4EDE0] rounded-xl flex items-center gap-3 border border-[#E5D8C5]">
+              <div className="w-12 h-12 rounded-full bg-[#14213D] text-[#F4EDE0] font-bold text-lg flex items-center justify-center uppercase">
                 {user.fullName.charAt(0)}
               </div>
               <div className="min-w-0">
-                <h3 className="text-sm font-bold text-black truncate">{user.fullName}</h3>
-                <p className="text-xs text-[#786F66] truncate">{user.email}</p>
+                <h3 className="text-sm font-bold text-[#14213D] truncate">{user.fullName}</h3>
+                <p className="text-xs text-[#14213D]/70 truncate">{user.email}</p>
                 <span className="inline-block px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 mt-1">
                   Active Member
                 </span>
@@ -1587,10 +1587,10 @@ export default function AccountPage() {
             {/* Menu Item 1: Edit Profile */}
             <button
               onClick={() => handleTabChange('profile')}
-              className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-bold transition ${
+              className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-bold transition cursor-pointer ${
                 activeTab === 'profile'
-                  ? 'bg-black text-white shadow-sm'
-                  : 'text-black hover:bg-[#FAF6F2]'
+                  ? 'bg-[#14213D] text-[#F4EDE0] shadow-sm'
+                  : 'text-[#14213D] hover:bg-[#F4EDE0]'
               }`}
             >
               <div className="flex items-center gap-2.5">

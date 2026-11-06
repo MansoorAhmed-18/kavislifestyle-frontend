@@ -298,115 +298,82 @@ export const TopStoreUpdateBanner: React.FC = () => {
 
   if (totalCards === 0) return null;
 
-  // Reusable card renderer
+  // Reusable card renderer matching Tidewell luxury architectural 45-45-10 aesthetic
   const renderCardBody = (card: BannerCard, isDesktop: boolean) => (
     <>
-      {/* Decorative Top Scalloped Golden Garland Arch */}
-      <div className="absolute top-0 left-0 right-0 h-2.5 sm:h-3 z-20 pointer-events-none flex justify-around opacity-95 overflow-hidden">
-        {Array.from({ length: isDesktop ? 20 : 16 }).map((_, i) => (
-          <div
-            key={i}
-            className="w-6 sm:w-7 h-2.5 sm:h-3 rounded-b-full bg-gradient-to-b from-[#FFF59D] to-[#FFD000] shadow-2xs border-b border-[#F48C06]"
-          />
-        ))}
-      </div>
+      {/* Signature Architectural Top Accent Stripe */}
+      <div className="absolute top-0 left-0 right-0 h-1 z-20 pointer-events-none bg-gradient-to-r from-[#FF6B5B] via-[#F4EDE0] to-[#FF6B5B]/40" />
 
-      {/* Card Canvas */}
+      {/* Card Canvas: 45% Deep Navy #14213D with Tidewell Radial Coral Glow & Vertical Stripes */}
       <div
-        className={`relative bg-gradient-to-r ${card.bgGradient} text-white ${
-          isDesktop ? 'min-h-[195px] lg:min-h-[210px] p-4 lg:p-5' : 'min-h-[175px] sm:min-h-[195px] p-3 sm:p-4.5'
-        } flex items-center justify-between overflow-hidden`}
+        className={`relative bg-[#14213D] stripe-hero-glow text-white ${
+          isDesktop ? 'min-h-[195px] lg:min-h-[210px] p-5 lg:p-6' : 'min-h-[175px] sm:min-h-[195px] p-3.5 sm:p-4.5'
+        } flex items-center justify-between overflow-hidden border border-white/10`}
       >
-        {/* Subtle Festive Sparkle Dot Pattern */}
-        <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#FFF_1px,transparent_1px)] [background-size:14px_14px]" />
-
-        {/* Left Side: Festive Badge, Headline, Subtitle, Bank Offer */}
-        <div className="relative z-10 flex-1 max-w-[62%] text-left space-y-1 sm:space-y-1.5">
+        {/* Left Side: Coral Badge, Headline, Subtitle, CTA Button */}
+        <div className="relative z-10 flex-1 max-w-[62%] text-left space-y-1.5 sm:space-y-2">
           {/* Top Badge Row */}
           <div className="flex flex-wrap items-center gap-1.5">
-            {/* 3D Festive Explosion Emblem */}
-            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FFE169] text-[#780000] font-black text-[9.5px] sm:text-[10px] uppercase tracking-wider shadow-sm border border-white transform -rotate-1">
-              <Sparkles className="w-2.5 h-2.5 fill-[#780000] text-[#780000]" />
+            {/* 10% Coral Highlight Badge */}
+            <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FF6B5B] text-white font-black text-[9.5px] sm:text-[10px] uppercase tracking-wider shadow-sm">
+              <Sparkles className="w-2.5 h-2.5 fill-white text-white" />
               <span>{card.badge}</span>
             </div>
 
             {/* 24-Hour Tag for Admin Store Updates */}
             {card.isStoreUpdate && card.hoursLeft !== undefined && (
-              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/50 backdrop-blur-xs text-[#FFE169] text-[8.5px] sm:text-[9px] font-extrabold border border-[#FFE169]/40">
-                <Clock className="w-2.5 h-2.5" />
+              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-xs text-[#F4EDE0] text-[8.5px] sm:text-[9px] font-bold border border-white/20">
+                <Clock className="w-2.5 h-2.5 text-[#FF6B5B]" />
                 <span>Live for {card.hoursLeft}h</span>
               </div>
             )}
           </div>
 
-          {/* Main Headline */}
+          {/* Main Headline (45% Cream #F4EDE0) */}
           <h3
             className={`${
-              isDesktop ? 'text-sm lg:text-base' : 'text-xs sm:text-base'
-            } font-black text-white tracking-tight leading-tight drop-shadow-sm line-clamp-2`}
+              isDesktop ? 'text-base lg:text-lg' : 'text-xs sm:text-base'
+            } font-black text-[#F4EDE0] tracking-tight leading-tight line-clamp-2`}
           >
             {card.title}
           </h3>
 
           {/* Subtitle / Category Description */}
-          <p className="text-[9.5px] sm:text-[11px] text-white/90 font-medium line-clamp-1">
+          <p className="text-[9.5px] sm:text-[11px] text-[#F4EDE0]/75 font-medium line-clamp-1">
             {card.subtitle}
           </p>
 
-          {/* Bank Instant Discount Bar */}
+          {/* Action CTA Pill Button in Coral */}
           <div className="pt-0.5">
-            <div className="inline-flex items-center gap-1 sm:gap-1.5 bg-white text-black px-2 py-0.5 sm:py-1 rounded-md text-[8px] sm:text-[9.5px] font-bold shadow-xs">
-              <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-[#00529C] text-white flex items-center justify-center text-[7px] font-black shrink-0">
-                ₹
-              </div>
-              <span className="truncate">SBI Card 10% Instant Discount*</span>
-              {isDesktop && (
-                <>
-                  <span className="text-neutral-300">|</span>
-                  <span className="text-[#00529C] font-extrabold">10% Savings*</span>
-                </>
-              )}
+            <div className="inline-flex items-center gap-1.5 bg-[#FF6B5B] hover:bg-[#E85545] text-white px-2.5 py-1 rounded-full text-[8.5px] sm:text-[10px] font-bold shadow-xs transition-colors">
+              <span>Shop Exclusive Deals</span>
+              <ChevronRight className="w-3 h-3" />
             </div>
           </div>
         </div>
 
-        {/* Right Side: Spotlight Photo with Floating Lantern & Gift Boxes */}
+        {/* Right Side: Spotlight Photo with Luxury Frame */}
         <div
           className={`relative shrink-0 flex items-center justify-center ${
             isDesktop ? 'w-28 lg:w-36 h-28 lg:h-36 ml-2' : 'w-24 sm:w-32 h-24 sm:h-32 ml-1'
           }`}
         >
-          {/* Floating Sky Lantern */}
-          <div className="absolute -top-1.5 -left-1 sm:-top-2 sm:-left-2 w-6 h-8 sm:w-8 sm:h-10 bg-gradient-to-t from-[#FF7B00] to-[#FFD000] rounded-t-full rounded-b-md shadow-md flex items-center justify-center border border-amber-300">
-            <Flame className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white fill-white animate-pulse" />
-          </div>
-
-          {/* Spotlight Framed Photo with Golden Border */}
+          {/* Spotlight Framed Photo with Architectural Border */}
           <div
             className={`relative ${
               isDesktop ? 'w-24 h-24 lg:w-32 lg:h-32' : 'w-20 h-20 sm:w-28 sm:h-28'
-            } rounded-xl sm:rounded-2xl overflow-hidden p-0.5 sm:p-1 bg-gradient-to-tr from-[#FFE169] via-white to-[#FFB703] shadow-xl group-hover:scale-104 transition-transform duration-300`}
+            } rounded-2xl overflow-hidden p-0.5 sm:p-1 bg-gradient-to-tr from-[#FF6B5B] via-white/20 to-[#F4EDE0] shadow-2xl group-hover:scale-105 transition-transform duration-300`}
           >
             <img
               src={card.image}
               alt={card.title}
-              className="w-full h-full object-cover rounded-lg sm:rounded-xl bg-white"
+              className="w-full h-full object-cover rounded-xl bg-[#0D1629]"
               loading="lazy"
             />
 
-            {/* Price / Offer Tag */}
-            <div className="absolute bottom-1 right-1 sm:bottom-1.5 sm:right-1.5 bg-black/85 text-[#FFE169] px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-black shadow-xs">
+            {/* Price Tag Pill */}
+            <div className="absolute bottom-1 right-1 sm:bottom-1.5 sm:right-1.5 bg-[#14213D]/95 text-[#F4EDE0] border border-[#FF6B5B]/50 px-1.5 py-0.5 rounded text-[8px] sm:text-[9.5px] font-black shadow-xs">
               {card.priceTag}
-            </div>
-          </div>
-
-          {/* Festive Gift Boxes & Diya at bottom right */}
-          <div className="absolute -bottom-1 -left-1 sm:bottom-0 sm:-left-1.5 flex items-center gap-1 z-10 pointer-events-none">
-            <div className="w-5 h-5 sm:w-6 sm:h-6 bg-[#B7094C] rounded-md shadow-md border border-[#FFD000] flex items-center justify-center rotate-6">
-              <Gift className="w-2.5 h-2.5 text-[#FFE169]" />
-            </div>
-            <div className="w-4 h-4 sm:w-5 sm:h-5 bg-[#780000] rounded-md shadow-xs border border-white flex items-center justify-center -rotate-12">
-              <Gift className="w-2 h-2 text-white" />
             </div>
           </div>
         </div>
@@ -434,10 +401,10 @@ export const TopStoreUpdateBanner: React.FC = () => {
             e.stopPropagation();
             prevSlide();
           }}
-          className="hidden md:flex absolute -left-3 lg:-left-4 top-1/2 -translate-y-1/2 w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-white/95 hover:bg-white text-black shadow-lg border border-[#E5DCD3] items-center justify-center transition-all z-30 cursor-pointer active:scale-95"
+          className="hidden md:flex absolute -left-3 lg:-left-4 top-1/2 -translate-y-1/2 w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-[#14213D] hover:bg-[#FF6B5B] text-[#F4EDE0] hover:text-white shadow-xl border border-white/20 items-center justify-center transition-all z-30 cursor-pointer active:scale-95"
           aria-label="Previous Slide"
         >
-          <ChevronLeft className="w-5 h-5 text-black" />
+          <ChevronLeft className="w-5 h-5" />
         </button>
 
         {/* Navigation Arrow: Next (Desktop / Tablet) */}
@@ -447,10 +414,10 @@ export const TopStoreUpdateBanner: React.FC = () => {
             e.stopPropagation();
             nextSlide();
           }}
-          className="hidden md:flex absolute -right-3 lg:-right-4 top-1/2 -translate-y-1/2 w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-white/95 hover:bg-white text-black shadow-lg border border-[#E5DCD3] items-center justify-center transition-all z-30 cursor-pointer active:scale-95"
+          className="hidden md:flex absolute -right-3 lg:-right-4 top-1/2 -translate-y-1/2 w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-[#14213D] hover:bg-[#FF6B5B] text-[#F4EDE0] hover:text-white shadow-xl border border-white/20 items-center justify-center transition-all z-30 cursor-pointer active:scale-95"
           aria-label="Next Slide"
         >
-          <ChevronRight className="w-5 h-5 text-black" />
+          <ChevronRight className="w-5 h-5" />
         </button>
 
         {/* Overflow Hidden Slider Window */}
@@ -520,8 +487,8 @@ export const TopStoreUpdateBanner: React.FC = () => {
             onClick={() => goToSlide(idx)}
             className={`transition-all rounded-full cursor-pointer ${
               idx === activeIndex
-                ? 'w-5 h-1.5 bg-[#FF6A00] shadow-xs'
-                : 'w-1.5 h-1.5 bg-neutral-300 hover:bg-neutral-500'
+                ? 'w-6 h-1.5 bg-[#FF6B5B] shadow-xs'
+                : 'w-1.5 h-1.5 bg-[#14213D]/25 hover:bg-[#14213D]/50'
             }`}
             aria-label={`Go to slide ${idx + 1}`}
           />

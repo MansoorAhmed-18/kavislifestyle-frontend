@@ -298,64 +298,7 @@ export default function CheckoutPage() {
               </p>
             </div>
 
-            {/* Delivery Turnaround Highlight Card */}
-            <div className="bg-emerald-50/70 border-2 border-emerald-300 rounded-2xl p-5 text-left space-y-3 shadow-2xs">
-              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-emerald-200">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <Truck className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 block">
-                      Guaranteed Delivery Timeline
-                    </span>
-                    <h3 className="text-base sm:text-lg font-black text-emerald-950">
-                      Delivering in {deliveryInfo.daysRange}
-                    </h3>
-                  </div>
-                </div>
-
-                <div className="text-right">
-                  <span className="text-[10px] font-bold text-[#5C554E] block">Expected Arrival:</span>
-                  <span className="text-xs sm:text-sm font-black text-emerald-900 block">
-                    {expectedDate}
-                  </span>
-                </div>
-              </div>
-
-              {/* 4-Step Milestone Progress Bar */}
-              <div className="pt-1">
-                <div className="grid grid-cols-4 gap-2 text-center">
-                  <div className="space-y-1">
-                    <div className="h-2 w-full bg-emerald-600 rounded-full shadow-2xs" />
-                    <span className="text-[10px] font-bold text-black block">Day 1</span>
-                    <span className="text-[9px] text-[#5C554E] block leading-tight">Order Placed</span>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="h-2 w-full bg-emerald-600 rounded-full shadow-2xs" />
-                    <span className="text-[10px] font-bold text-black block">Day 1–2</span>
-                    <span className="text-[9px] text-[#5C554E] block leading-tight">Boutique Packed</span>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="h-2 w-full bg-emerald-500 rounded-full" />
-                    <span className="text-[10px] font-bold text-black block">Day 2–3</span>
-                    <span className="text-[9px] text-[#5C554E] block leading-tight">Air Dispatch</span>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="h-2 w-full bg-emerald-300 rounded-full" />
-                    <span className="text-[10px] font-bold text-black block">{deliveryInfo.daysRange}</span>
-                    <span className="text-[9px] text-emerald-900 font-bold block leading-tight">Doorstep Delivery</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-2 text-[11px] text-emerald-900 font-medium flex items-center justify-between flex-wrap gap-2">
-                <span>Courier: <strong>{deliveryInfo.courier}</strong> (Airway Bill Generated)</span>
-                <span>Dispatch Hub: <strong>Chennai Flagship Studio</strong></span>
-              </div>
-            </div>
-
-            {/* Ordered Products Itemized List (Addresses "what product does i ordered there is no details") */}
+            {/* Ordered Products Itemized List */}
             {placedOrder && placedOrder.items && placedOrder.items.length > 0 && (
               <div className="bg-[#FAF6F2] rounded-2xl p-5 border border-[#E5DCD3] text-left space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-[#E5DCD3]">
@@ -458,14 +401,14 @@ export default function CheckoutPage() {
             <div className="pt-2 flex flex-col sm:flex-row gap-3">
               <button
                 onClick={() => navigate('/account?tab=orders')}
-                className="flex-1 py-3.5 bg-black text-white font-bold text-xs rounded-xl hover:bg-[#2A2A2A] transition shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-1 py-3.5 bg-[#FF6B5B] hover:bg-[#E85545] text-white font-bold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Truck className="w-4 h-4" />
                 <span>Track in Order Status</span>
               </button>
               <button
                 onClick={() => navigate('/shop')}
-                className="flex-1 py-3.5 border border-[#E5DCD3] text-black font-bold text-xs rounded-xl hover:bg-[#FAF6F2] transition cursor-pointer"
+                className="flex-1 py-3.5 border border-[#E5D8C5] bg-[#FAF6EE] text-[#14213D] font-bold text-xs rounded-xl hover:bg-[#F4EDE0] transition cursor-pointer"
               >
                 Continue Shopping
               </button>
@@ -479,7 +422,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F5EFEB] text-black">
+    <div className="min-h-screen flex flex-col bg-[#F4EDE0] stripe-cream text-[#14213D]">
       <AnnouncementBar />
       <Navbar />
 
@@ -487,15 +430,15 @@ export default function CheckoutPage() {
         <div className="mb-8 text-left">
           <button
             onClick={() => navigate('/cart')}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#5C554E] hover:text-black mb-2"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#14213D]/70 hover:text-[#14213D] mb-2 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Return to Cart</span>
           </button>
-          <h1 className="text-2xl sm:text-3xl font-black text-black">
+          <h1 className="text-2xl sm:text-3xl font-black text-[#14213D]">
             Secure Checkout
           </h1>
-          <p className="text-xs sm:text-sm text-[#5C554E] mt-1 font-medium">
+          <p className="text-xs sm:text-sm text-[#14213D]/70 mt-1 font-medium">
             Complete your contact, shipping, and payment details.
           </p>
         </div>
@@ -846,11 +789,11 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* Submit CTA */}
+              {/* Submit CTA (10% Coral Hero Button) */}
               <button
                 type="submit"
                 disabled={isProcessing}
-                className="w-full py-3.5 px-4 bg-black hover:bg-[#2A2A2A] disabled:bg-gray-400 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-xs active:scale-98 transition"
+                className="w-full py-3.5 px-4 bg-[#FF6B5B] hover:bg-[#E85545] disabled:bg-neutral-400 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-xs hover:shadow-md active:scale-98 transition cursor-pointer"
               >
                 {isProcessing ? (
                   <span>Securing Order & Verifying...</span>

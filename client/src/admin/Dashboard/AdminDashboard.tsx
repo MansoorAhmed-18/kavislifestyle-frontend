@@ -330,31 +330,34 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F5EFEB] flex flex-col font-sans text-black">
-      {/* Top Admin Navbar */}
-      <header className="bg-black text-white px-3 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between border-b border-black shadow-md gap-2">
-        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+    <div className="min-h-screen bg-[#F4EDE0] stripe-cream flex flex-col font-sans text-[#14213D]">
+      {/* Top Admin Navbar (45% Deep Navy #14213D + Stripes) */}
+      <header className="bg-[#14213D] stripe-navy text-[#F4EDE0] px-2.5 sm:px-6 py-2 sm:py-3 flex items-center justify-between border-b border-[#1D2D50] shadow-md gap-1.5 sm:gap-4 overflow-hidden">
+        <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1">
           <Link
             to="/"
-            className="flex items-center gap-1 sm:gap-1.5 text-xs text-[#E5DCD3] hover:text-white transition font-medium shrink-0"
+            title="Back to Storefront"
+            className="flex items-center gap-1 text-xs text-[#F4EDE0]/90 hover:text-white transition font-medium shrink-0 p-1 rounded-lg hover:bg-white/10 cursor-pointer"
           >
-            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="hidden xs:inline">Storefront</span>
+            <ArrowLeft className="w-4 h-4 text-[#FF6B5B] shrink-0" />
+            <span className="hidden sm:inline font-bold">Storefront</span>
           </Link>
           <div className="h-4 w-px bg-white/20 shrink-0" />
-          <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
-            <BrandLogo variant="icon" size="sm" className="shrink-0" />
-            <h1 className="font-extrabold text-xs sm:text-base tracking-wide flex items-center gap-1.5 sm:gap-2 min-w-0">
-              <span className="truncate">KAVI'S LIFESTYLE</span>
-              <span className="text-[9px] sm:text-[10px] uppercase font-bold px-1.5 sm:px-2 py-0.5 rounded bg-white text-black shrink-0 whitespace-nowrap">
-                Admin
+          <div className="flex items-center gap-1.5 min-w-0">
+            <BrandLogo variant="icon" size="sm" className="shrink-0 scale-90 sm:scale-100" />
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="font-extrabold text-xs sm:text-sm tracking-wide truncate text-[#F4EDE0] max-w-[110px] xs:max-w-[150px] sm:max-w-none">
+                KAVI'S LIFESTYLE
               </span>
-            </h1>
+              <span className="text-[9px] uppercase font-black px-1.5 py-0.5 rounded bg-[#FF6B5B] text-white shrink-0 tracking-wider">
+                ADMIN
+              </span>
+            </div>
           </div>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4 text-xs shrink-0">
-          <span className="hidden md:inline text-[#E5DCD3]">
+          <span className="hidden md:inline text-[#F4EDE0]/80">
             Logged in as: <strong className="text-white">Admin (Kavi)</strong>
           </span>
           <button
@@ -362,10 +365,10 @@ export default function AdminDashboard() {
               logout();
               navigate('/');
             }}
-            className="shrink-0 flex items-center gap-1 sm:gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white font-semibold transition text-xs whitespace-nowrap min-w-max"
+            className="shrink-0 flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-lg bg-white/10 hover:bg-[#FF6B5B] hover:text-white text-white font-bold transition text-xs whitespace-nowrap cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5 shrink-0" />
-            <span className="whitespace-nowrap font-bold">Sign Out</span>
+            <span className="font-bold">Sign Out</span>
           </button>
         </div>
       </header>
@@ -373,13 +376,13 @@ export default function AdminDashboard() {
       {/* Main Container */}
       <div className="flex-1 flex flex-col md:flex-row">
         {/* Sidebar / Mobile Tabs */}
-        <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-[#E5DCD3] p-2.5 sm:p-4 flex md:flex-col gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+        <aside className="w-full md:w-64 bg-[#FAF6EE] stripe-card border-b md:border-b-0 md:border-r border-[#E5D8C5] p-2.5 sm:p-4 flex md:flex-col gap-1.5 overflow-x-auto no-scrollbar shrink-0">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`shrink-0 md:w-full flex items-center gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+            className={`shrink-0 md:w-full flex items-center gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
               activeTab === 'overview'
-                ? 'bg-[#E44A2D] text-white shadow-xs'
-                : 'text-[#5C554E] hover:bg-[#F5EFEB] hover:text-[#E44A2D]'
+                ? 'bg-[#FF6B5B] text-white shadow-xs'
+                : 'text-[#14213D]/70 hover:bg-[#F4EDE0] hover:text-[#14213D]'
             }`}
           >
             <BarChart3 className="w-4 h-4 shrink-0" />
@@ -388,10 +391,10 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('orders')}
-            className={`shrink-0 md:w-full flex items-center justify-between gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+            className={`shrink-0 md:w-full flex items-center justify-between gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
               activeTab === 'orders'
-                ? 'bg-[#E44A2D] text-white shadow-xs'
-                : 'text-[#5C554E] hover:bg-[#F5EFEB] hover:text-[#E44A2D]'
+                ? 'bg-[#FF6B5B] text-white shadow-xs'
+                : 'text-[#14213D]/70 hover:bg-[#F4EDE0] hover:text-[#14213D]'
             }`}
           >
             <div className="flex items-center gap-2">
@@ -400,7 +403,7 @@ export default function AdminDashboard() {
             </div>
             <span
               className={`text-[10px] px-2 py-0.5 rounded-full font-bold ml-1 ${
-                activeTab === 'orders' ? 'bg-white/20 text-white' : 'bg-[#E44A2D] text-white'
+                activeTab === 'orders' ? 'bg-white/20 text-white' : 'bg-[#FF6B5B] text-white'
               }`}
             >
               {orders.length}
@@ -409,10 +412,10 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('products')}
-            className={`shrink-0 md:w-full flex items-center justify-between gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+            className={`shrink-0 md:w-full flex items-center justify-between gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
               activeTab === 'products'
-                ? 'bg-[#E44A2D] text-white shadow-xs'
-                : 'text-[#5C554E] hover:bg-[#F5EFEB] hover:text-[#E44A2D]'
+                ? 'bg-[#FF6B5B] text-white shadow-xs'
+                : 'text-[#14213D]/70 hover:bg-[#F4EDE0] hover:text-[#14213D]'
             }`}
           >
             <div className="flex items-center gap-2">
@@ -421,7 +424,7 @@ export default function AdminDashboard() {
             </div>
             <span
               className={`text-[10px] px-2 py-0.5 rounded-full font-bold ml-1 ${
-                activeTab === 'products' ? 'bg-white/20 text-white' : 'bg-[#E5DCD3] text-black'
+                activeTab === 'products' ? 'bg-white/20 text-white' : 'bg-[#E5D8C5] text-[#14213D]'
               }`}
             >
               {products.length}

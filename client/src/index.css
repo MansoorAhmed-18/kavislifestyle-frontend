@@ -1,40 +1,62 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #121212;
-  --color-primary-dark: #000000;
-  --color-primary-light: #2A2A2A;
-  --color-coral: #121212;
-  --color-coral-dark: #000000;
-  --color-coral-light: #2A2A2A;
-  --color-surface: #F5EFEB;
+  --color-navy: #14213D;
+  --color-navy-dark: #0D1629;
+  --color-navy-light: #1D2D50;
+  
+  --color-cream: #F4EDE0;
+  --color-cream-light: #FAF6EE;
+  --color-cream-dark: #E8DCC9;
+  
+  --color-coral: #FF6B5B;
+  --color-coral-dark: #E85545;
+  --color-coral-light: #FF8577;
+  
+  --color-primary: #14213D;
+  --color-primary-dark: #0D1629;
+  --color-primary-light: #1D2D50;
+  
+  --color-surface: #F4EDE0;
   --color-surface-card: #FFFFFF;
-  --color-border: #E5DCD3;
-  --color-slate-text: #121212;
-  --color-slate-muted: #5C554E;
+  --color-border: #E5D8C5;
+  --color-slate-text: #14213D;
+  --color-slate-muted: #6B6255;
   
   --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 :root {
-  --primary: #121212;
-  --secondary: #2A2A2A;
-  --background: #F5EFEB;
-  --surface: #F5EFEB;
+  --navy: #14213D;
+  --cream: #F4EDE0;
+  --coral: #FF6B5B;
+  --primary: #14213D;
+  --secondary: #1D2D50;
+  --background: #F4EDE0;
+  --surface: #F4EDE0;
   --card: #FFFFFF;
-  --border: #E5DCD3;
-  --text: #121212;
+  --border: #E5D8C5;
+  --text: #14213D;
   --font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 body {
   font-family: var(--font-family);
-  background-color: #F5EFEB;
-  color: #121212;
+  background-color: #F4EDE0;
+  color: #14213D;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
   letter-spacing: -0.01em;
+  /* Signature subtle pinstripe texture throughout the website */
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(20, 33, 61, 0.025) 0px,
+    rgba(20, 33, 61, 0.025) 1px,
+    transparent 1px,
+    transparent 8px
+  );
+  background-attachment: fixed;
 }
 
 /* Crisp Clean Scrollbar */
@@ -43,34 +65,120 @@ body {
   height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #EFE7DE;
+  background: #E8DCC9;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D8CCC0;
+  background: #C4B59F;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #9E9285;
+  background: #14213D;
+}
+
+/* ============================================================ */
+/* SIGNATURE STRIPE TEXTURES (Navy, Cream, Glow)                */
+/* ============================================================ */
+
+/* Navy Stripe Texture (45% Navy with vertical ribbed pinstripes) */
+.stripe-navy, .bg-navy-stripes {
+  background-color: #14213D;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.035) 0px,
+    rgba(255, 255, 255, 0.035) 1px,
+    transparent 1px,
+    transparent 8px
+  );
+}
+
+/* Tidewell Hero Signature Style from screenshot:
+   Navy #14213D + Coral #FF6B5B radial glow + fine vertical pinstripes */
+.stripe-hero-glow, .bg-tidewell-hero {
+  background-color: #14213D;
+  background-image:
+    radial-gradient(circle at 65% 40%, rgba(255, 107, 91, 0.38) 0%, transparent 60%),
+    radial-gradient(circle at 15% 85%, rgba(29, 45, 80, 0.9) 0%, transparent 60%),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.045) 0px,
+      rgba(255, 255, 255, 0.045) 1px,
+      transparent 1px,
+      transparent 8px
+    );
+}
+
+/* Cream Stripe Texture (45% Cream with warm vertical pinstripes) */
+.stripe-cream, .bg-cream-stripes {
+  background-color: #F4EDE0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(20, 33, 61, 0.035) 0px,
+    rgba(20, 33, 61, 0.035) 1px,
+    transparent 1px,
+    transparent 8px
+  );
+}
+
+/* Frosted Striped Card */
+.stripe-card {
+  background-color: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid #E5D8C5;
+  border-radius: 1.25rem;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(20, 33, 61, 0.02) 0px,
+    rgba(20, 33, 61, 0.02) 1px,
+    transparent 1px,
+    transparent 8px
+  );
+  box-shadow: 0 2px 10px rgba(20, 33, 61, 0.05);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.stripe-card:hover {
+  border-color: #FF6B5B;
+  box-shadow: 0 8px 24px rgba(20, 33, 61, 0.08);
 }
 
 /* Clean Card & Interactive Elements */
 .clean-card {
   background: #FFFFFF;
-  border: 1px solid #E5DCD3;
+  border: 1px solid #E5D8C5;
   border-radius: 1.25rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 1px 3px rgba(20, 33, 61, 0.04), 0 1px 2px rgba(20, 33, 61, 0.02);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .clean-card:hover {
-  border-color: #121212;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  border-color: #FF6B5B;
+  box-shadow: 0 10px 25px -5px rgba(20, 33, 61, 0.09), 0 8px 10px -6px rgba(20, 33, 61, 0.04);
 }
 
-/* High-Contrast Luxury Black Button Styles */
-.btn-primary {
-  background-color: #121212;
+/* High-Impact Coral Action Buttons (10% Coral) */
+.btn-primary, .btn-coral {
+  background-color: #FF6B5B;
   color: #FFFFFF;
+  font-weight: 700;
+  border-radius: 0.85rem;
+  padding: 0.75rem 1.4rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  letter-spacing: -0.01em;
+  box-shadow: 0 4px 14px rgba(255, 107, 91, 0.28);
+}
+.btn-primary:hover, .btn-coral:hover {
+  background-color: #E85545;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(255, 107, 91, 0.38);
+}
+
+/* Luxury Navy Button */
+.btn-navy {
+  background-color: #14213D;
+  color: #F4EDE0;
   font-weight: 700;
   border-radius: 0.85rem;
   padding: 0.75rem 1.4rem;
@@ -79,19 +187,20 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  letter-spacing: -0.01em;
 }
-.btn-primary:hover {
-  background-color: #2A2A2A;
+.btn-navy:hover {
+  background-color: #1D2D50;
+  color: #FFFFFF;
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 6px 18px rgba(20, 33, 61, 0.25);
 }
 
+/* Secondary Button on Cream */
 .btn-secondary {
   background-color: #FFFFFF;
-  color: #121212;
+  color: #14213D;
   font-weight: 700;
-  border: 1.5px solid #121212;
+  border: 1.5px solid #14213D;
   border-radius: 0.85rem;
   padding: 0.75rem 1.4rem;
   transition: all 0.2s ease;
@@ -101,9 +210,30 @@ body {
   gap: 0.5rem;
 }
 .btn-secondary:hover {
-  border-color: #121212;
-  background-color: #121212;
+  border-color: #FF6B5B;
+  background-color: #FF6B5B;
   color: #FFFFFF;
+}
+
+/* Coral Badge */
+.badge-coral {
+  background-color: #FF6B5B;
+  color: #FFFFFF;
+  font-weight: 800;
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.5rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+}
+
+/* Navy Badge */
+.badge-navy {
+  background-color: #14213D;
+  color: #F4EDE0;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.5rem;
+  font-size: 0.7rem;
 }
 
 /* ============================================================ */

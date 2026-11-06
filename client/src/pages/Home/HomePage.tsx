@@ -10,7 +10,7 @@ import { Footer } from '../../components/Footer';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#F5EFEB] pb-16 md:pb-0">
+    <div className="min-h-screen flex flex-col bg-[#F4EDE0] stripe-cream pb-16 md:pb-0">
       {/* Announcement Bar */}
       <AnnouncementBar />
 

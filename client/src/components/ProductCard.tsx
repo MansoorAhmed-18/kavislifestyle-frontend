@@ -47,10 +47,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div
       onClick={handleCardClick}
-      className="group flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden border border-[#E5DCD3] hover:border-black shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer text-left h-full"
+      className="group flex flex-col bg-[#F4EDE0] stripe-card rounded-xl sm:rounded-2xl overflow-hidden border border-[#E5D8C5] hover:border-[#FF6B5B] shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer text-left h-full"
     >
       {/* Product Image Stage */}
-      <div className="relative w-full aspect-[4/5] bg-[#FAF6F2] overflow-hidden">
+      <div className="relative w-full aspect-[4/5] bg-[#FAF6EE] overflow-hidden">
         <img
           src={product.images[0]}
           alt={product.name}
@@ -61,18 +61,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Badges */}
         <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col items-start gap-1 z-10 max-w-[85%]">
           {recommendationReason && (
-            <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded text-[9px] sm:text-[10px] font-extrabold tracking-wide bg-[#E44A2D] text-white shadow-xs flex items-center gap-1 line-clamp-1">
+            <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded text-[9px] sm:text-[10px] font-extrabold tracking-wide bg-[#FF6B5B] text-white shadow-xs flex items-center gap-1 line-clamp-1">
               <Sparkles className="w-2.5 h-2.5 shrink-0" />
               <span className="truncate">{recommendationReason}</span>
             </span>
           )}
           {hasDiscount && (
-            <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded text-[9px] sm:text-[11px] font-black tracking-wide uppercase bg-black text-white shadow-xs">
+            <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded text-[9px] sm:text-[11px] font-black tracking-wide uppercase bg-[#14213D] text-[#F4EDE0] shadow-xs">
               {product.discountPercentage ? `${product.discountPercentage}% OFF` : 'SALE'}
             </span>
           )}
           {product.isBestSeller && !recommendationReason && (
-            <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded text-[9px] sm:text-[10px] font-bold tracking-wide bg-white text-black border border-[#E5DCD3] shadow-xs">
+            <span className="px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded text-[9px] sm:text-[10px] font-bold tracking-wide bg-[#FAF6EE] text-[#14213D] border border-[#E5D8C5] shadow-xs">
               Popular
             </span>
           )}
@@ -87,8 +87,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           }}
           className={`absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2.5 rounded-full backdrop-blur-md transition-all duration-150 z-10 active:scale-90 ${
             isFavorited
-              ? 'bg-black text-white shadow-sm'
-              : 'bg-white/90 text-black hover:bg-black hover:text-white shadow-xs'
+              ? 'bg-[#FF6B5B] text-white shadow-sm'
+              : 'bg-[#14213D]/80 text-[#F4EDE0] hover:bg-[#FF6B5B] hover:text-white shadow-xs'
           }`}
           aria-label={isFavorited ? 'Remove from Wishlist' : 'Add to Wishlist'}
         >
@@ -97,27 +97,27 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </div>
 
       {/* Content Area */}
-      <div className="p-2.5 sm:p-4 flex flex-col flex-grow justify-between gap-2 sm:gap-3">
+      <div className="p-2.5 sm:p-4 flex flex-col flex-grow justify-between gap-2 sm:gap-3 bg-[#FAF6EE]/80">
         <div>
           {/* Department Tag & Rating */}
           <div className="flex items-center justify-between text-xs mb-1 sm:mb-1.5">
-            <span className="text-[9.5px] sm:text-[11px] uppercase font-bold text-[#5C554E] tracking-wider truncate max-w-[60%]">
+            <span className="text-[9.5px] sm:text-[11px] uppercase font-bold text-[#14213D]/70 tracking-wider truncate max-w-[60%]">
               {product.category}
             </span>
-            <div className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs font-bold text-black bg-[#FAF6F2] px-1.5 py-0.5 rounded border border-[#E5DCD3]">
-              <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-black text-black" />
+            <div className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs font-bold text-[#14213D] bg-[#F4EDE0] px-1.5 py-0.5 rounded border border-[#E5D8C5]">
+              <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-[#FF6B5B] text-[#FF6B5B]" />
               <span>{product.rating.toFixed(1)}</span>
-              <span className="text-[#5C554E] font-normal hidden sm:inline">({product.reviewsCount})</span>
+              <span className="text-[#14213D]/60 font-normal hidden sm:inline">({product.reviewsCount})</span>
             </div>
           </div>
 
           {/* Product Title */}
-          <h3 className="font-bold text-xs sm:text-sm text-black line-clamp-2 sm:line-clamp-1 group-hover:underline transition-colors leading-snug">
+          <h3 className="font-bold text-xs sm:text-sm text-[#14213D] line-clamp-2 sm:line-clamp-1 group-hover:text-[#FF6B5B] transition-colors leading-snug">
             {product.name}
           </h3>
 
           {/* Short description (visible on larger screens to keep mobile neat) */}
-          <p className="text-xs text-[#5C554E] line-clamp-1 mt-1 leading-normal hidden sm:block">
+          <p className="text-xs text-[#14213D]/70 line-clamp-1 mt-1 leading-normal hidden sm:block">
             {product.shortDescription}
           </p>
         </div>
@@ -132,15 +132,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 onClick={() => setSelectedVariant(variant)}
                 className={`text-[9.5px] sm:text-[11px] px-2 py-0.5 sm:px-2.5 sm:py-1 rounded font-bold transition ${
                   selectedVariant?.id === variant.id
-                    ? 'bg-black text-white'
-                    : 'bg-[#FAF6F2] text-black border border-[#E5DCD3] hover:border-black'
+                    ? 'bg-[#14213D] text-[#F4EDE0]'
+                    : 'bg-[#F4EDE0] text-[#14213D] border border-[#E5D8C5] hover:border-[#FF6B5B]'
                 }`}
               >
                 {variant.value}
               </button>
             ))}
             {product.variants.length > 2 && (
-              <span className="text-[10px] text-[#5C554E] self-center">
+              <span className="text-[10px] text-[#14213D]/70 self-center">
                 +{product.variants.length - 2}
               </span>
             )}
@@ -148,31 +148,31 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         )}
 
         {/* Price & Action Row */}
-        <div className="pt-2 sm:pt-2.5 border-t border-[#E5DCD3] flex items-center justify-between gap-1.5 sm:gap-2">
+        <div className="pt-2 sm:pt-2.5 border-t border-[#E5D8C5] flex items-center justify-between gap-1.5 sm:gap-2">
           <div className="min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-baseline gap-0.5 sm:gap-2">
-              <span className="text-xs sm:text-base font-black text-black truncate">
+              <span className="text-xs sm:text-base font-black text-[#14213D] truncate">
                 {formatPrice(displayPrice)}
               </span>
               {hasDiscount && (
-                <span className="text-[10px] sm:text-xs text-[#5C554E] line-through truncate">
+                <span className="text-[10px] sm:text-xs text-[#14213D]/50 line-through truncate">
                   {formatPrice(originalPrice)}
                 </span>
               )}
             </div>
           </div>
 
-          {/* Quick Add Button */}
+          {/* Quick Add Button (Coral Hero CTA) */}
           <button
             type="button"
             onClick={handleQuickAdd}
             disabled={product.stock === 0}
-            className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition shadow-xs shrink-0 ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition shadow-xs hover:shadow-md shrink-0 cursor-pointer ${
               product.stock === 0
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
                 : isAddedRecently
-                ? 'bg-emerald-700 text-white'
-                : 'bg-black hover:bg-[#2A2A2A] text-white active:scale-95'
+                ? 'bg-emerald-600 text-white'
+                : 'bg-[#FF6B5B] hover:bg-[#E85545] text-white active:scale-95'
             }`}
           >
             {isAddedRecently ? (

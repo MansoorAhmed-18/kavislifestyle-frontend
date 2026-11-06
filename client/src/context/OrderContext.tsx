@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase, isSupabaseConfigured } from '../services/supabase';
 
 export type OrderStatus = 'placed' | 'confirmed' | 'packed' | 'shipped' | 'delivered' | 'cancelled';
 
@@ -293,64 +294,144 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [orders]);
 
-  // Synchronize orders in real-time across devices (Laptop Admin <-> Mobile Client)
+  // Map Supabase row format to client Order
+  const mapSupabaseToOrder = (row: any): Order => {
+    if (row.raw_data && typeof row.raw_data === 'object') {
+      return {
+        ...row.raw_data,
+        id: row.id || row.raw_data.id,
+        orderNumber: row.order_number || row.raw_data.orderNumber,
+        status: (row.status || row.raw_data.status || 'placed') as OrderStatus,
+        carrier: row.carrier || row.raw_data.carrier || 'BlueDart Express',
+        trackingNumber: row.tracking_number || row.raw_data.trackingNumber || 'BD-88103024IN',
+        updatedAt: row.updated_at || row.raw_data.updatedAt
+      };
+    }
+    return {
+      id: row.id,
+      orderNumber: row.order_number || `KV-${String(row.id).slice(-6)}`,
+      createdAt: row.created_at || new Date().toISOString(),
+      userId: row.user_id,
+      userEmail: row.user_email || row.guest_email,
+      customer: typeof row.customer === 'string' ? JSON.parse(row.customer) : row.customer || row.shipping_address || {},
+      items: typeof row.items === 'string' ? JSON.parse(row.items) : row.items || [],
+      subtotal: Number(row.subtotal) || 0,
+      discount: Number(row.discount || row.discount_amount) || 0,
+      shipping: Number(row.shipping || row.shipping_charge) || 0,
+      total: Number(row.total || row.total_amount) || 0,
+      paymentMethod: row.payment_method || 'Prepaid Online',
+      paymentStatus: row.payment_status || 'paid',
+      status: (row.status || 'placed') as OrderStatus,
+      carrier: row.carrier || 'BlueDart Express',
+      trackingNumber: row.tracking_number || 'BD-88103024IN'
+    };
+  };
+
+  const mapOrderToSupabase = (order: Order) => ({
+    id: order.id,
+    order_number: order.orderNumber,
+    created_at: order.createdAt,
+    user_id: order.userId || null,
+    user_email: order.userEmail || order.customer?.email || null,
+    guest_email: order.customer?.email || null,
+    guest_phone: order.customer?.phone || null,
+    status: order.status,
+    subtotal: order.subtotal,
+    discount_amount: order.discount,
+    shipping_charge: order.shipping,
+    total_amount: order.total,
+    shipping_address: order.customer,
+    payment_method: order.paymentMethod,
+    payment_status: order.paymentStatus,
+    carrier: order.carrier,
+    tracking_number: order.trackingNumber,
+    raw_data: order
+  });
+
+  // Synchronize orders in real-time across devices (Supabase Cloud + Shared Server API)
   const syncOrdersFromServer = async () => {
     try {
-      const res = await fetch('/api/orders');
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && Array.isArray(data.orders)) {
-          const serverOrders: Order[] = data.orders;
+      let cloudOrders: Order[] = [];
 
-          // Check if local orders have any order missing on server
-          const localList = ordersRef.current || [];
-          const missingOnServer = localList.filter((lo) => {
-            const key = lo.id || lo.orderNumber;
-            return !serverOrders.some((so) => (so.id || so.orderNumber) === key);
-          });
-
-          if (missingOnServer.length > 0) {
-            // Push local orders to server bulk sync outside setOrders updater
-            try {
-              fetch('/api/orders/sync', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orders: localList })
-              }).catch(() => {});
-            } catch {}
+      // 1. Fetch from Supabase Cloud Database if configured
+      if (isSupabaseConfigured) {
+        try {
+          const { data, error } = await supabase.from('orders').select('*');
+          if (!error && Array.isArray(data) && data.length > 0) {
+            cloudOrders = data.map(mapSupabaseToOrder);
           }
-
-          // Build merged map: server orders are base, missing local orders appended
-          const map = new Map<string, Order>();
-          serverOrders.forEach((so) => {
-            const key = so.id || so.orderNumber;
-            if (key) map.set(key, so);
-          });
-          localList.forEach((lo) => {
-            const key = lo.id || lo.orderNumber;
-            if (key && !map.has(key)) {
-              map.set(key, lo);
-            }
-          });
-
-          const merged = Array.from(map.values()).sort(
-            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-
-          setOrders((prev) => {
-            if (
-              merged.length !== prev.length ||
-              merged.some((m, idx) => {
-                const p = prev[idx];
-                return !p || p.id !== m.id || p.status !== m.status || p.carrier !== m.carrier;
-              })
-            ) {
-              return merged;
-            }
-            return prev;
-          });
+        } catch (sbErr) {
+          // Supabase table may not exist yet; gracefully fallback
         }
       }
+
+      // 2. Fetch from shared /api/orders
+      let serverOrders: Order[] = [];
+      try {
+        const res = await fetch('/api/orders');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.orders)) {
+            serverOrders = data.orders;
+          }
+        }
+      } catch {}
+
+      const localList = ordersRef.current || [];
+
+      // Build merged map prioritizing the most up-to-date order status across cloud, server and local
+      const map = new Map<string, Order>();
+
+      // A. Populate from server orders
+      serverOrders.forEach((so) => {
+        const key = so.id || so.orderNumber;
+        if (key) map.set(key, so);
+      });
+
+      // B. Populate from cloud orders (overrides with cloud if present)
+      cloudOrders.forEach((co) => {
+        const key = co.id || co.orderNumber;
+        if (key) map.set(key, co);
+      });
+
+      // C. Populate missing local orders
+      localList.forEach((lo) => {
+        const key = lo.id || lo.orderNumber;
+        if (key && !map.has(key)) {
+          map.set(key, lo);
+        }
+      });
+
+      const merged = Array.from(map.values()).sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      // Check if local orders need to be pushed to server/cloud
+      const missingOnServer = localList.filter((lo) => {
+        const key = lo.id || lo.orderNumber;
+        return !serverOrders.some((so) => (so.id || so.orderNumber) === key);
+      });
+
+      if (missingOnServer.length > 0) {
+        fetch('/api/orders/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orders: localList })
+        }).catch(() => {});
+      }
+
+      setOrders((prev) => {
+        if (
+          merged.length !== prev.length ||
+          merged.some((m, idx) => {
+            const p = prev[idx];
+            return !p || p.id !== m.id || p.status !== m.status || p.carrier !== m.carrier;
+          })
+        ) {
+          return merged;
+        }
+        return prev;
+      });
     } catch {
       // Offline fallback: seamlessly retains local orders
     }
@@ -373,11 +454,46 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     window.addEventListener('online', syncOrdersFromServer);
     document.addEventListener('visibilitychange', handleVisibility);
 
+    // 4. Supabase Realtime Channel for instant push updates across mobile & laptop
+    let realtimeChannel: any = null;
+    if (isSupabaseConfigured) {
+      try {
+        realtimeChannel = supabase
+          .channel('kavis-orders-sync')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'orders' },
+            (payload) => {
+              if (payload.new) {
+                const updated = mapSupabaseToOrder(payload.new);
+                setOrders((prev) => {
+                  const key = updated.id || updated.orderNumber;
+                  const idx = prev.findIndex((o) => o.id === key || o.orderNumber === key);
+                  if (idx >= 0) {
+                    const next = [...prev];
+                    next[idx] = { ...next[idx], ...updated };
+                    return next;
+                  }
+                  return [updated, ...prev];
+                });
+              }
+              syncOrdersFromServer();
+            }
+          )
+          .subscribe();
+      } catch (err) {
+        console.warn('Realtime channel error:', err);
+      }
+    }
+
     return () => {
       clearInterval(pollTimer);
       window.removeEventListener('focus', syncOrdersFromServer);
       window.removeEventListener('online', syncOrdersFromServer);
       document.removeEventListener('visibilitychange', handleVisibility);
+      if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+      }
     };
   }, []);
 
@@ -415,7 +531,17 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     setOrders((prev) => [newOrder, ...prev]);
 
-    // Push new order to shared cross-device server immediately
+    // 1. Push new order to Supabase Cloud Database immediately
+    if (isSupabaseConfigured) {
+      (async () => {
+        try {
+          const { error } = await supabase.from('orders').upsert(mapOrderToSupabase(newOrder));
+          if (error) console.warn('Supabase order insert note:', error.message);
+        } catch {}
+      })();
+    }
+
+    // 2. Push new order to shared cross-device server immediately
     (async () => {
       try {
         await fetch('/api/orders', {
@@ -463,7 +589,25 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       })
     );
 
-    // Push updated status to shared cross-device server so mobile updates in real-time
+    // 1. Push updated status to Supabase Cloud Database immediately
+    if (isSupabaseConfigured) {
+      (async () => {
+        try {
+          const { error } = await supabase
+            .from('orders')
+            .update({
+              status,
+              ...(carrier ? { carrier } : {}),
+              ...(trackingNumber ? { tracking_number: trackingNumber } : {}),
+              updated_at: new Date().toISOString()
+            })
+            .or(`id.eq.${orderId},order_number.eq.${orderId}`);
+          if (error) console.warn('Supabase status update note:', error.message);
+        } catch {}
+      })();
+    }
+
+    // 2. Push updated status to shared cross-device server so mobile updates in real-time
     (async () => {
       try {
         await fetch('/api/orders/status', {
@@ -482,6 +626,13 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const getUserOrders = (email?: string, userId?: string) => {
+    const cleanEmail = (email || '').toLowerCase().trim();
+
+    // Store Administrator: sees ALL customer orders across all devices and accounts
+    if (cleanEmail.includes('admin') || cleanEmail === 'admin@kavislifestyle.com') {
+      return [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+
     const sessionOrderIds: string[] = (() => {
       try {
         return JSON.parse(localStorage.getItem('kavis_session_order_ids') || '[]');
@@ -490,7 +641,6 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     })();
 
-    const cleanEmail = (email || '').toLowerCase().trim();
     const emailPrefix = cleanEmail ? cleanEmail.split('@')[0].replace(/[^a-z0-9]/g, '') : '';
 
     return orders
