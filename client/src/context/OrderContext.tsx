@@ -43,8 +43,12 @@ export interface Order {
   trackingNumber: string;
 }
 
+export type SupabaseTableStatus = 'connected' | 'table_missing' | 'checking' | 'error';
+
 interface OrderContextType {
   orders: Order[];
+  supabaseTableStatus: SupabaseTableStatus;
+  refreshDatabaseStatus: () => Promise<void>;
   placeOrder: (orderData: {
     customer: CustomerDetails;
     items: OrderItem[];
@@ -281,6 +285,9 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return INITIAL_DEMO_ORDERS;
   });
 
+  const [supabaseTableStatus, setSupabaseTableStatus] = useState<SupabaseTableStatus>('checking');
+  const realtimeChannelRef = React.useRef<any>(null);
+
   const ordersRef = React.useRef<Order[]>(orders);
   useEffect(() => {
     ordersRef.current = orders;
@@ -357,11 +364,20 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (isSupabaseConfigured) {
         try {
           const { data, error } = await supabase.from('orders').select('*');
-          if (!error && Array.isArray(data) && data.length > 0) {
-            cloudOrders = data.map(mapSupabaseToOrder);
+          if (error) {
+            if (error.code === 'PGRST205' || error.message?.includes('schema cache')) {
+              setSupabaseTableStatus('table_missing');
+            } else {
+              setSupabaseTableStatus('error');
+            }
+          } else if (Array.isArray(data)) {
+            setSupabaseTableStatus('connected');
+            if (data.length > 0) {
+              cloudOrders = data.map(mapSupabaseToOrder);
+            }
           }
         } catch (sbErr) {
-          // Supabase table may not exist yet; gracefully fallback
+          setSupabaseTableStatus('table_missing');
         }
       }
 
@@ -437,11 +453,16 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const refreshDatabaseStatus = async () => {
+    setSupabaseTableStatus('checking');
+    await syncOrdersFromServer();
+  };
+
   useEffect(() => {
     // 1. Initial sync
     syncOrdersFromServer();
 
-    // 2. Poll every 2 seconds so admin status changes immediately appear on mobile phone
+    // 2. Poll every 2 seconds as fallback
     const pollTimer = setInterval(syncOrdersFromServer, 2000);
 
     // 3. Fast sync whenever user returns to browser tab or comes online
@@ -454,16 +475,89 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     window.addEventListener('online', syncOrdersFromServer);
     document.addEventListener('visibilitychange', handleVisibility);
 
-    // 4. Supabase Realtime Channel for instant push updates across mobile & laptop
-    let realtimeChannel: any = null;
+    // 4. Supabase Realtime Broadcast & Database Sync across Mobile & Laptop
+    let channel: any = null;
     if (isSupabaseConfigured) {
       try {
-        realtimeChannel = supabase
-          .channel('kavis-orders-sync')
+        channel = supabase.channel('kavis-global-realtime', {
+          config: {
+            broadcast: { ack: false, self: false }
+          }
+        });
+
+        realtimeChannelRef.current = channel;
+
+        channel
+          // Live Order Placement broadcast (Zero Database Table Dependency)
+          .on('broadcast', { event: 'order_placed' }, ({ payload }: any) => {
+            if (payload?.order) {
+              const incOrder = payload.order as Order;
+              setOrders((prev) => {
+                const key = incOrder.id || incOrder.orderNumber;
+                const exists = prev.some((o) => o.id === key || o.orderNumber === key);
+                if (exists) return prev;
+                console.log('[Realtime Push] Received new order via Supabase:', incOrder.orderNumber);
+                return [incOrder, ...prev];
+              });
+            }
+          })
+          // Live Order Status Update broadcast (Zero Database Table Dependency)
+          .on('broadcast', { event: 'order_status_updated' }, ({ payload }: any) => {
+            if (payload?.orderId && payload?.status) {
+              setOrders((prev) =>
+                prev.map((order) => {
+                  if (order.id === payload.orderId || order.orderNumber === payload.orderId) {
+                    console.log(`[Realtime Push] Updated order ${payload.orderId} -> ${payload.status}`);
+                    return {
+                      ...order,
+                      status: payload.status,
+                      carrier: payload.carrier || order.carrier,
+                      trackingNumber: payload.trackingNumber || order.trackingNumber,
+                      updatedAt: new Date().toISOString()
+                    };
+                  }
+                  return order;
+                })
+              );
+            }
+          })
+          // Live Peer Sync Request (when phone or laptop opens, ask peers for latest orders)
+          .on('broadcast', { event: 'request_sync' }, () => {
+            const curOrders = ordersRef.current;
+            if (curOrders && curOrders.length > 0 && channel) {
+              channel.send({
+                type: 'broadcast',
+                event: 'respond_sync',
+                payload: { orders: curOrders }
+              });
+            }
+          })
+          // Live Peer Sync Response (receive orders from already open phone or laptop)
+          .on('broadcast', { event: 'respond_sync' }, ({ payload }: any) => {
+            if (Array.isArray(payload?.orders) && payload.orders.length > 0) {
+              setOrders((prev) => {
+                const map = new Map<string, Order>();
+                prev.forEach((o) => map.set(o.id || o.orderNumber, o));
+                let hasNew = false;
+                payload.orders.forEach((o: Order) => {
+                  const k = o.id || o.orderNumber;
+                  if (k && !map.has(k)) {
+                    map.set(k, o);
+                    hasNew = true;
+                  }
+                });
+                if (!hasNew) return prev;
+                return Array.from(map.values()).sort(
+                  (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                );
+              });
+            }
+          })
+          // Postgres Database Changes (fires when table is created)
           .on(
             'postgres_changes',
             { event: '*', schema: 'public', table: 'orders' },
-            (payload) => {
+            (payload: any) => {
               if (payload.new) {
                 const updated = mapSupabaseToOrder(payload.new);
                 setOrders((prev) => {
@@ -480,7 +574,16 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               syncOrdersFromServer();
             }
           )
-          .subscribe();
+          .subscribe((status: string) => {
+            if (status === 'SUBSCRIBED') {
+              // Ask any open peers on laptop/mobile to send recent orders
+              channel.send({
+                type: 'broadcast',
+                event: 'request_sync',
+                payload: {}
+              });
+            }
+          });
       } catch (err) {
         console.warn('Realtime channel error:', err);
       }
@@ -491,8 +594,9 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       window.removeEventListener('focus', syncOrdersFromServer);
       window.removeEventListener('online', syncOrdersFromServer);
       document.removeEventListener('visibilitychange', handleVisibility);
-      if (realtimeChannel) {
-        supabase.removeChannel(realtimeChannel);
+      if (channel) {
+        supabase.removeChannel(channel);
+        realtimeChannelRef.current = null;
       }
     };
   }, []);
@@ -531,7 +635,20 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     setOrders((prev) => [newOrder, ...prev]);
 
-    // 1. Push new order to Supabase Cloud Database immediately
+    // 1. Instant Realtime Push to any active device (Mobile <-> Laptop) via Supabase Broadcast
+    if (realtimeChannelRef.current) {
+      try {
+        realtimeChannelRef.current.send({
+          type: 'broadcast',
+          event: 'order_placed',
+          payload: { order: newOrder }
+        });
+      } catch (bcErr) {
+        console.warn('Realtime broadcast order_placed notice:', bcErr);
+      }
+    }
+
+    // 2. Push new order to Supabase Cloud Database immediately
     if (isSupabaseConfigured) {
       (async () => {
         try {
@@ -589,7 +706,20 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       })
     );
 
-    // 1. Push updated status to Supabase Cloud Database immediately
+    // 1. Instant Realtime Push to any active device (Mobile <-> Laptop) via Supabase Broadcast
+    if (realtimeChannelRef.current) {
+      try {
+        realtimeChannelRef.current.send({
+          type: 'broadcast',
+          event: 'order_status_updated',
+          payload: { orderId, status, carrier, trackingNumber }
+        });
+      } catch (bcErr) {
+        console.warn('Realtime broadcast order_status_updated notice:', bcErr);
+      }
+    }
+
+    // 2. Push updated status to Supabase Cloud Database immediately
     if (isSupabaseConfigured) {
       (async () => {
         try {
@@ -683,6 +813,8 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     <OrderContext.Provider
       value={{
         orders,
+        supabaseTableStatus,
+        refreshDatabaseStatus,
         placeOrder,
         updateOrderStatus,
         getOrderById,

@@ -121,3 +121,4 @@ ON CONFLICT (id) DO NOTHING;
 
 -- Verification query
 SELECT id, order_number, user_email, status, total_amount FROM public.orders;
+

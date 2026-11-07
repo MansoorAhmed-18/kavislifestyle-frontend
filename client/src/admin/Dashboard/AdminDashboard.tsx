@@ -21,7 +21,11 @@ import {
   DollarSign,
   Upload,
   Trash2,
-  Pencil
+  Pencil,
+  Copy,
+  ExternalLink,
+  Database,
+  RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useProducts } from '../../context/ProductContext';
@@ -35,7 +39,54 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const { user, loginAsAdmin, logout } = useAuth();
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
-  const { orders, updateOrderStatus } = useOrders();
+  const { orders, updateOrderStatus, supabaseTableStatus, refreshDatabaseStatus } = useOrders();
+  const [sqlCopied, setSqlCopied] = useState(false);
+  const [isRefreshingDb, setIsRefreshingDb] = useState(false);
+
+  const SUPABASE_SETUP_SQL = `-- 1. Create orders table for Kavi's Lifestyle
+CREATE TABLE IF NOT EXISTS public.orders (
+    id TEXT PRIMARY KEY,
+    order_number TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    user_id TEXT,
+    user_email TEXT,
+    guest_email TEXT,
+    guest_phone TEXT,
+    status TEXT NOT NULL DEFAULT 'placed',
+    subtotal NUMERIC DEFAULT 0,
+    discount_amount NUMERIC DEFAULT 0,
+    shipping_charge NUMERIC DEFAULT 0,
+    total_amount NUMERIC DEFAULT 0,
+    customer JSONB DEFAULT '{}'::jsonb,
+    items JSONB DEFAULT '[]'::jsonb,
+    payment_method TEXT DEFAULT 'Prepaid Online',
+    payment_status TEXT DEFAULT 'paid',
+    carrier TEXT DEFAULT 'BlueDart Express',
+    tracking_number TEXT DEFAULT '',
+    raw_data JSONB DEFAULT '{}'::jsonb
+);
+
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public read orders" ON public.orders;
+CREATE POLICY "Public read orders" ON public.orders FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS "Public insert orders" ON public.orders;
+CREATE POLICY "Public insert orders" ON public.orders FOR INSERT TO anon, authenticated WITH CHECK (true);
+DROP POLICY IF EXISTS "Public update orders" ON public.orders;
+CREATE POLICY "Public update orders" ON public.orders FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (true);
+`;
+
+  const handleCopySql = () => {
+    navigator.clipboard.writeText(SUPABASE_SETUP_SQL);
+    setSqlCopied(true);
+    setTimeout(() => setSqlCopied(false), 3000);
+  };
+
+  const handleCheckDb = async () => {
+    setIsRefreshingDb(true);
+    await refreshDatabaseStatus();
+    setTimeout(() => setIsRefreshingDb(false), 800);
+  };
 
   // Strictly format all prices and revenues in Indian Rupees (₹) for the admin dashboard
   const formatRupees = (amount: number | string | undefined | null) => {
@@ -434,6 +485,73 @@ export default function AdminDashboard() {
 
         {/* Tab Content */}
         <main className="flex-1 p-3.5 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-7xl min-w-0">
+          
+          {/* SUPABASE CLOUD STATUS BANNER */}
+          {supabaseTableStatus === 'table_missing' ? (
+            <div className="bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-rose-500/15 border-2 border-[#FF6B5B]/50 rounded-2xl p-4 sm:p-5 text-left shadow-sm">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#FF6B5B] text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                    <Database className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-white bg-[#FF6B5B] px-2 py-0.5 rounded-full">
+                        Action Required for Cross-Device Sync
+                      </span>
+                      <h2 className="text-sm sm:text-base font-extrabold text-[#14213D]">
+                        Supabase Database: Create "orders" Table (1-Click)
+                      </h2>
+                    </div>
+                    <p className="text-xs text-[#14213D]/80 mt-1.5 max-w-2xl leading-relaxed font-medium">
+                      Your Supabase credentials are valid, but the <strong>public.orders</strong> table has not been created in your Supabase project yet. Because the table is missing, mobile orders cannot persist to the cloud. Click <strong>Copy SQL</strong> and run it once in Supabase.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleCopySql}
+                    className="px-3.5 py-2 rounded-xl bg-[#14213D] hover:bg-[#1D2D50] text-white font-bold text-xs flex items-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
+                  >
+                    <Copy className="w-3.5 h-3.5 text-[#FF6B5B]" />
+                    <span>{sqlCopied ? '✓ Copied SQL!' : 'Copy SQL Migration'}</span>
+                  </button>
+                  <a
+                    href="https://supabase.com/dashboard/project/yxvsfaqqkfbfcjuymebo/sql/new"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3.5 py-2 rounded-xl bg-[#FF6B5B] hover:bg-[#e05a4b] text-white font-bold text-xs flex items-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
+                  >
+                    <span>Open Supabase SQL Editor</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                  <button
+                    type="button"
+                    onClick={handleCheckDb}
+                    disabled={isRefreshingDb}
+                    className="px-3 py-2 rounded-xl bg-white border border-[#E5D8C5] hover:border-[#14213D] text-[#14213D] font-bold text-xs flex items-center gap-1 transition cursor-pointer"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isRefreshingDb ? 'animate-spin' : ''}`} />
+                    <span>{isRefreshingDb ? 'Checking...' : 'Recheck'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : supabaseTableStatus === 'connected' ? (
+            <div className="bg-emerald-50 border border-emerald-300 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3 text-xs text-emerald-950 font-bold shadow-2xs">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span>Supabase Cloud Database: <strong>Connected & Active</strong></span>
+                <span className="hidden sm:inline text-emerald-700 font-medium">— Live Real-Time WebSockets Syncing Mobile & Laptop Orders</span>
+              </div>
+              <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-extrabold uppercase">
+                Real-Time Live
+              </span>
+            </div>
+          ) : null}
+
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
             <div className="space-y-8">
