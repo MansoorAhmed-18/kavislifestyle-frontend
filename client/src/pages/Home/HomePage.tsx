@@ -17,7 +17,7 @@ export default function HomePage() {
       {/* Main Navigation */}
       <Navbar />
 
-      {/* Top Store Update & Festive Promotional Banner Carousel */}
+      {/* Top Store Update & Curated Showcase Banner Carousel */}
       <TopStoreUpdateBanner />
 
       <main className="flex-1">

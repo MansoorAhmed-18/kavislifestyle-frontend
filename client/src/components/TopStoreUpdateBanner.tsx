@@ -131,7 +131,7 @@ export const TopStoreUpdateBanner: React.FC = () => {
       list.push({
         id: `admin-update-${update.id}-${idx}`,
         isStoreUpdate: true,
-        badge: 'BIG BANG UPDATE',
+        badge: 'STORE UPDATE',
         partnerText: 'STORE UPDATE • JUST ADDED TODAY',
         title: `${update.name.slice(0, 22)}... Min. 40% Off`,
         subtitle: `${update.category} • Fresh Launch by Admin`,
@@ -143,11 +143,11 @@ export const TopStoreUpdateBanner: React.FC = () => {
       });
     });
 
-    // 2. Festive Cards
+    // 2. Featured Store Collection Cards
     list.push({
-      id: 'festive-sarees',
+      id: 'store-sarees',
       isStoreUpdate: false,
-      badge: 'BIG BANG DIWALI',
+      badge: 'STORE UPDATE',
       partnerText: "Kavi's Boutique • Fashion Partner",
       title: 'Heritage Mysore & Silks Min. 70% Off',
       subtitle: 'Pure zari sarees, bridal silks & more',
@@ -158,9 +158,9 @@ export const TopStoreUpdateBanner: React.FC = () => {
     });
 
     list.push({
-      id: 'festive-dryfruits',
+      id: 'store-dryfruits',
       isStoreUpdate: false,
-      badge: 'BIG BANG DIWALI',
+      badge: 'STORE UPDATE',
       partnerText: "Nature's Harvest • Gourmet Packs",
       title: 'California Jumbo Almonds Min. 60% Off',
       subtitle: 'Jumbo cashews, walnuts & gift packs',
@@ -171,9 +171,9 @@ export const TopStoreUpdateBanner: React.FC = () => {
     });
 
     list.push({
-      id: 'festive-perfumes',
+      id: 'store-perfumes',
       isStoreUpdate: false,
-      badge: 'BIG BANG DIWALI',
+      badge: 'STORE UPDATE',
       partnerText: 'Luxury Fragrance • Artisanal Attars',
       title: 'Kannauj Rose & Sandalwood Min. 65% Off',
       subtitle: 'Pure attars, luxury EDPs & gift sets',
@@ -184,9 +184,9 @@ export const TopStoreUpdateBanner: React.FC = () => {
     });
 
     list.push({
-      id: 'festive-beauty',
+      id: 'store-beauty',
       isStoreUpdate: false,
-      badge: 'BIG BANG DIWALI',
+      badge: 'STORE UPDATE',
       partnerText: 'Clean Skincare • Ayurvedic Elixirs',
       title: 'Kumkumadi Radiance Oil Min. 50% Off',
       subtitle: 'Saffron face glow, ubtans & rituals',
@@ -197,13 +197,13 @@ export const TopStoreUpdateBanner: React.FC = () => {
     });
 
     list.push({
-      id: 'festive-sale',
+      id: 'store-collection',
       isStoreUpdate: false,
-      badge: 'BIG BANG DIWALI',
-      partnerText: 'SALE IS LIVE • 60-90% OFF',
-      title: 'Grand Festive Showcase Min. 70% Off',
+      badge: 'STORE UPDATE',
+      partnerText: 'STORE COLLECTION • UP TO 70% OFF',
+      title: 'Grand Store Collection Min. 70% Off',
       subtitle: 'Sarees, dry fruits, perfumes & beauty',
-      priceTag: 'Festive Deals',
+      priceTag: 'Featured Deals',
       image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=700&q=80',
       link: '/shop',
       bgGradient: 'from-[#B7094C] via-[#C72C41] to-[#EE9B00]',
@@ -390,7 +390,7 @@ export const TopStoreUpdateBanner: React.FC = () => {
       onMouseLeave={() => {
         isInteractingRef.current = false;
       }}
-      aria-label="Festive Offers and Store Updates"
+      aria-label="Store Updates and Curated Collections"
     >
       {/* Relative wrapper for cards & desktop arrows */}
       <div className="relative group/carousel">
