@@ -25,13 +25,18 @@ import {
   Search,
   X,
   ShieldCheck,
-  ExternalLink
+  ExternalLink,
+  RotateCcw,
+  Video,
+  AlertCircle,
+  UploadCloud,
+  Play
 } from 'lucide-react';
 import { CustomerSupportAndFAQ } from '../../components/CustomerSupportAndFAQ';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCurrency } from '../../context/CurrencyContext';
-import { useOrders } from '../../context/OrderContext';
+import { useOrders, Order } from '../../context/OrderContext';
 import { useCart } from '../../context/CartContext';
 import { Navbar } from '../../components/Navbar';
 import { Footer } from '../../components/Footer';
@@ -110,10 +115,118 @@ export default function AccountPage() {
   const { user, addresses, logout, updateProfile, addAddress, removeAddress, setDefaultAddress } = useAuth();
   const { wishlistCount } = useWishlist();
   const { formatPrice } = useCurrency();
-  const { orders, getUserOrders } = useOrders();
+  const { orders, getUserOrders, submitReturnRequest } = useOrders();
   const { cartCount, setIsCartDrawerOpen } = useCart();
   const userOrders = getUserOrders(user?.email, user?.id);
   const [orderSearchQuery, setOrderSearchQuery] = useState('');
+
+  // Return & Refund Request State
+  const [selectedOrderForReturn, setSelectedOrderForReturn] = useState<Order | null>(null);
+  const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+  const [returnReason, setReturnReason] = useState('Fabric Defect / Damaged Weave');
+  const [returnDescription, setReturnDescription] = useState('');
+  const [selectedReturnItemIds, setSelectedReturnItemIds] = useState<string[]>([]);
+  const [returnVideoUrl, setReturnVideoUrl] = useState('');
+  const [returnVideoName, setReturnVideoName] = useState('');
+  const [returnVideoSize, setReturnVideoSize] = useState('');
+  const [returnSubmitting, setReturnSubmitting] = useState(false);
+  const [returnSuccessMsg, setReturnSuccessMsg] = useState(false);
+  const [returnErrorMsg, setReturnErrorMsg] = useState('');
+  const returnVideoInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const handleReturnVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('video/')) {
+      setReturnErrorMsg('Please select a valid video file (MP4, WebM, MOV, 3GP, etc.).');
+      return;
+    }
+
+    if (file.size > 40 * 1024 * 1024) {
+      setReturnErrorMsg('Video file is too large. Please select a clip under 40MB (a 15-30 second clear defect recording is recommended).');
+      return;
+    }
+
+    setReturnErrorMsg('');
+    const sizeInMb = (file.size / (1024 * 1024)).toFixed(1);
+    setReturnVideoName(file.name);
+    setReturnVideoSize(`${sizeInMb} MB`);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        setReturnVideoUrl(dataUrl);
+      }
+    };
+    reader.onerror = () => {
+      const objUrl = URL.createObjectURL(file);
+      setReturnVideoUrl(objUrl);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleOpenReturnModal = (order: Order) => {
+    setSelectedOrderForReturn(order);
+    setSelectedReturnItemIds(order.items.map((it) => it.id));
+    setReturnReason('Fabric Defect / Damaged Weave');
+    setReturnDescription('');
+    setReturnVideoUrl('');
+    setReturnVideoName('');
+    setReturnVideoSize('');
+    setReturnErrorMsg('');
+    setReturnSuccessMsg(false);
+    setIsReturnModalOpen(true);
+  };
+
+  const handleSubmitReturn = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedOrderForReturn) return;
+
+    if (selectedReturnItemIds.length === 0) {
+      setReturnErrorMsg('Please select at least one item you wish to return.');
+      return;
+    }
+
+    if (!returnVideoUrl) {
+      setReturnErrorMsg('Mandatory product verification video is required. Please upload or record a defect/unboxing video.');
+      return;
+    }
+
+    if (!returnDescription.trim()) {
+      setReturnErrorMsg('Please provide a short description of the defect or issue.');
+      return;
+    }
+
+    setReturnSubmitting(true);
+    setReturnErrorMsg('');
+
+    const returnedItems = selectedOrderForReturn.items.filter((it) =>
+      selectedReturnItemIds.includes(it.id)
+    );
+    const itemsSummary = returnedItems.map((it) => `${it.name} (Qty: ${it.quantity})`).join(', ');
+
+    const success = submitReturnRequest(selectedOrderForReturn.id, {
+      reason: returnReason,
+      description: returnDescription.trim(),
+      itemIds: selectedReturnItemIds,
+      itemsSummary,
+      videoUrl: returnVideoUrl,
+      videoName: returnVideoName
+    });
+
+    if (success) {
+      setReturnSuccessMsg(true);
+      setTimeout(() => {
+        setIsReturnModalOpen(false);
+        setReturnSubmitting(false);
+      }, 1500);
+    } else {
+      setReturnErrorMsg('Failed to submit return request. Please try again.');
+      setReturnSubmitting(false);
+    }
+  };
 
   const displayedOrders = React.useMemo(() => {
     const q = orderSearchQuery.trim().toLowerCase();
@@ -254,6 +367,41 @@ export default function AccountPage() {
         orderNumber: order.orderNumber,
         isUnread: order.status === 'placed'
       });
+
+      // 6. Return Request Notifications
+      if (order.returnRequest) {
+        if (order.returnRequest.status === 'approved') {
+          list.unshift({
+            id: `${order.id}-return-approved`,
+            title: 'Return Approved & Refund Credited 💰',
+            message: `Return request for Order #${order.orderNumber} has been approved. Refund initiated. ${order.returnRequest.adminRemarks || ''}`,
+            time: 'Recent',
+            type: 'confirmed',
+            orderNumber: order.orderNumber,
+            isUnread: true
+          });
+        } else if (order.returnRequest.status === 'rejected') {
+          list.unshift({
+            id: `${order.id}-return-rejected`,
+            title: 'Return Request Update ⚠️',
+            message: `Return request for Order #${order.orderNumber} could not be approved upon video verification: ${order.returnRequest.adminRemarks || 'Product does not qualify.'}`,
+            time: 'Recent',
+            type: 'placed',
+            orderNumber: order.orderNumber,
+            isUnread: true
+          });
+        } else {
+          list.unshift({
+            id: `${order.id}-return-pending`,
+            title: 'Return Video Submitted 📹',
+            message: `Verification video for Order #${order.orderNumber} was uploaded. Our quality audit team is reviewing it now.`,
+            time: 'Recent',
+            type: 'packed',
+            orderNumber: order.orderNumber,
+            isUnread: true
+          });
+        }
+      }
     });
 
     return list;
@@ -778,6 +926,96 @@ export default function AccountPage() {
                             </div>
                           ))}
                         </div>
+
+                        {/* Return Request Status Banner or Request Return Action */}
+                        {order.returnRequest ? (
+                          <div
+                            className={`p-4 rounded-xl border text-xs text-left ${
+                              order.returnRequest.status === 'approved'
+                                ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950'
+                                : order.returnRequest.status === 'rejected'
+                                ? 'bg-rose-50/90 border-rose-300 text-rose-950'
+                                : 'bg-amber-50/90 border-amber-300 text-amber-950'
+                            }`}
+                          >
+                            <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-black/10">
+                              <div className="flex items-center gap-2">
+                                <RotateCcw className="w-4 h-4 shrink-0 text-[#FF6B5B]" />
+                                <span className="font-black uppercase tracking-wider text-[11px]">
+                                  {order.returnRequest.status === 'approved' && '✓ Return Approved & Refund Initiated'}
+                                  {order.returnRequest.status === 'rejected' && '✕ Return Request Declined'}
+                                  {order.returnRequest.status === 'pending' && '⏳ Return Under Video Verification'}
+                                </span>
+                              </div>
+                              <span className="text-[10px] font-semibold opacity-75">
+                                Submitted {new Date(order.returnRequest.requestedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              </span>
+                            </div>
+
+                            <div className="mt-3 space-y-2 text-xs">
+                              <div>
+                                <span className="text-slate-600 font-bold">Defect / Reason: </span>
+                                <span className="font-extrabold text-black">{order.returnRequest.reason}</span>
+                              </div>
+
+                              {order.returnRequest.description && (
+                                <div>
+                                  <span className="text-slate-600 font-bold">Your Explanation: </span>
+                                  <span className="text-slate-800">{order.returnRequest.description}</span>
+                                </div>
+                              )}
+
+                              {order.returnRequest.videoUrl && (
+                                <div className="pt-1 flex flex-wrap items-center gap-2">
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-black/10 font-bold text-[11px] text-emerald-800 shadow-2xs">
+                                    <Video className="w-3.5 h-3.5 text-emerald-700" />
+                                    <span>Verification Video: {order.returnRequest.videoName || 'Product Defect Video'}</span>
+                                  </span>
+                                </div>
+                              )}
+
+                              {order.returnRequest.adminRemarks && (
+                                <div
+                                  className={`p-3 rounded-lg mt-2 text-xs border ${
+                                    order.returnRequest.status === 'approved'
+                                      ? 'bg-emerald-100/70 border-emerald-300 text-emerald-950'
+                                      : 'bg-rose-100/70 border-rose-300 text-rose-950'
+                                  }`}
+                                >
+                                  <div className="font-bold text-[11px] uppercase tracking-wider text-black">
+                                    Store Administrator Response:
+                                  </div>
+                                  <div className="mt-1 font-medium">{order.returnRequest.adminRemarks}</div>
+                                  {order.returnRequest.status === 'approved' && (
+                                    <div className="mt-1.5 pt-1.5 border-t border-emerald-300/60 font-extrabold text-emerald-900 text-xs">
+                                      Refund Amount: {formatPrice(order.returnRequest.refundAmount || order.total)} credited to your account.
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {order.returnRequest.status === 'pending' && (
+                                <p className="text-[11px] text-amber-800 italic mt-1 bg-amber-100/60 p-2 rounded-lg border border-amber-200">
+                                  Our store administrator is reviewing your inspection video to verify the product defect. Once confirmed, your refund of <strong>{formatPrice(order.total)}</strong> will be approved immediately.
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+                            <div className="text-slate-500">
+                              Received a defective weave or incorrect product?
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenReturnModal(order)}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#FAF6F2] hover:bg-[#F0E6D8] text-black border border-slate-300 font-bold text-xs rounded-xl transition cursor-pointer shadow-2xs"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5 text-[#FF6B5B]" />
+                              <span>Request Return & Refund (Video Verification)</span>
+                            </button>
+                          </div>
+                        )}
                       </div>
                     );
                   })
@@ -1708,6 +1946,248 @@ export default function AccountPage() {
           </div>
 
         </div>
+
+        {/* RETURN & REFUND REQUEST MODAL */}
+        {isReturnModalOpen && selectedOrderForReturn && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
+            <div className="bg-white rounded-3xl max-w-xl w-full p-5 sm:p-7 border border-[#E5DCD3] shadow-2xl space-y-4 my-8 text-left animate-in fade-in zoom-in-95 duration-150">
+              {/* Modal Header */}
+              <div className="flex items-start justify-between pb-3 border-b border-[#E5DCD3]">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-[#FF6B5B] text-white flex items-center justify-center shadow-xs">
+                      <RotateCcw className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-extrabold text-[#14213D]">Request Return & Refund</h3>
+                      <p className="text-xs text-[#14213D]/60">
+                        Order #{selectedOrderForReturn.orderNumber} • Placed {selectedOrderForReturn.createdAt ? new Date(selectedOrderForReturn.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recently'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsReturnModalOpen(false)}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 hover:text-black transition cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {returnSuccessMsg ? (
+                <div className="p-6 bg-emerald-50 border border-emerald-200 rounded-2xl text-center space-y-2">
+                  <div className="w-12 h-12 bg-emerald-600 text-white rounded-full flex items-center justify-center mx-auto shadow-sm">
+                    <Check className="w-6 h-6" />
+                  </div>
+                  <h4 className="text-sm font-extrabold text-emerald-950">Return Request Submitted!</h4>
+                  <p className="text-xs text-emerald-800 max-w-md mx-auto">
+                    Your return request along with product verification video has been sent to the store administrator for review. Once verified, your refund will be processed.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmitReturn} className="space-y-4">
+                  {/* Mandatory Video Verification Notice */}
+                  <div className="p-3 bg-amber-50 border border-amber-300 rounded-2xl flex items-start gap-3">
+                    <div className="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 mt-0.5">
+                      <Video className="w-4 h-4" />
+                    </div>
+                    <div className="text-xs text-amber-950">
+                      <span className="font-extrabold block">Mandatory Video Verification Policy</span>
+                      <span className="text-[11px] text-amber-900 leading-relaxed block mt-0.5">
+                        To qualify for return and prompt refund, please attach an <strong>unboxing or defect verification video</strong> showing the product condition. This protects both you and the store, enabling immediate admin approval.
+                      </span>
+                    </div>
+                  </div>
+
+                  {returnErrorMsg && (
+                    <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs font-bold flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                      <span>{returnErrorMsg}</span>
+                    </div>
+                  )}
+
+                  {/* 1. Item Selection */}
+                  <div>
+                    <label className="text-xs font-extrabold text-[#14213D] block mb-1.5">
+                      1. Select Product(s) to Return *
+                    </label>
+                    <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                      {selectedOrderForReturn.items.map((item) => {
+                        const isChecked = selectedReturnItemIds.includes(item.id);
+                        return (
+                          <label
+                            key={item.id}
+                            className={`flex items-center gap-3 p-2.5 rounded-xl border cursor-pointer transition ${
+                              isChecked
+                                ? 'bg-emerald-50/60 border-emerald-300'
+                                : 'bg-white border-slate-200 hover:bg-slate-50'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {
+                                if (isChecked) {
+                                  setSelectedReturnItemIds(selectedReturnItemIds.filter((id) => id !== item.id));
+                                } else {
+                                  setSelectedReturnItemIds([...selectedReturnItemIds, item.id]);
+                                }
+                              }}
+                              className="rounded text-emerald-600 focus:ring-emerald-500"
+                            />
+                            <img
+                              src={item.image}
+                              alt=""
+                              className="w-10 h-10 rounded-lg object-cover bg-slate-100 shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <span className="text-xs font-bold text-slate-800 block truncate">
+                                {item.name}
+                              </span>
+                              <span className="text-[10px] text-slate-500">
+                                Qty: {item.quantity} • {formatPrice(item.unitPrice || item.price || 0)}
+                              </span>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 2. Return Reason */}
+                  <div>
+                    <label className="text-xs font-extrabold text-[#14213D] block mb-1">
+                      2. Primary Reason for Return *
+                    </label>
+                    <select
+                      value={returnReason}
+                      onChange={(e) => setReturnReason(e.target.value)}
+                      className="w-full px-3 py-2 text-xs font-bold bg-[#FAF6F2] border border-[#E5DCD3] rounded-xl outline-none focus:border-[#FF6B5B] transition cursor-pointer"
+                    >
+                      <option value="Fabric Defect / Damaged Weave">Fabric Defect / Damaged Weave or Zari</option>
+                      <option value="Wrong Product or Color Received">Wrong Product / Variant Received</option>
+                      <option value="Physical Damage During Delivery">Physical Damage During Delivery / Torn Package</option>
+                      <option value="Blouse Stitching / Customization Discrepancy">Blouse Stitching / Customization Discrepancy</option>
+                      <option value="Missing Fall, Pico, or Add-ons">Missing Fall, Pico, or Add-on Accessories</option>
+                      <option value="Item Quality Differs from Description">Item Quality Differs from Store Description</option>
+                      <option value="Other Defect">Other Product Issue</option>
+                    </select>
+                  </div>
+
+                  {/* 3. Detailed Explanation */}
+                  <div>
+                    <label className="text-xs font-extrabold text-[#14213D] block mb-1">
+                      3. Describe the Issue / Defect *
+                    </label>
+                    <textarea
+                      rows={2}
+                      required
+                      value={returnDescription}
+                      onChange={(e) => setReturnDescription(e.target.value)}
+                      placeholder="Provide specific details about where the defect is located (e.g. tear on saree pallu, missing blouse piece, wrong scent notes)..."
+                      className="w-full px-3.5 py-2 text-xs bg-[#FAF6F2] border border-[#E5DCD3] rounded-xl outline-none focus:border-[#FF6B5B] transition"
+                    />
+                  </div>
+
+                  {/* 4. Mandatory Video Upload */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-extrabold text-[#14213D]">
+                        4. Attach Verification Video * <span className="text-[#FF6B5B]">(Mandatory)</span>
+                      </label>
+                      {returnVideoSize && (
+                        <span className="text-[10px] font-bold text-slate-500">
+                          Size: {returnVideoSize}
+                        </span>
+                      )}
+                    </div>
+
+                    <input
+                      ref={returnVideoInputRef}
+                      type="file"
+                      accept="video/*"
+                      onChange={handleReturnVideoChange}
+                      className="hidden"
+                    />
+
+                    {returnVideoUrl ? (
+                      <div className="space-y-2">
+                        <div className="rounded-xl overflow-hidden border border-slate-300 bg-black shadow-inner">
+                          <video
+                            src={returnVideoUrl}
+                            controls
+                            playsInline
+                            preload="metadata"
+                            className="w-full max-h-48 rounded-xl object-contain"
+                          />
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-600 truncate max-w-xs font-medium">
+                            📹 {returnVideoName || 'Uploaded Video'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setReturnVideoUrl('');
+                              setReturnVideoName('');
+                              setReturnVideoSize('');
+                              if (returnVideoInputRef.current) returnVideoInputRef.current.value = '';
+                            }}
+                            className="text-xs font-bold text-rose-600 hover:underline cursor-pointer"
+                          >
+                            Change / Remove Video
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => returnVideoInputRef.current?.click()}
+                        className="border-2 border-dashed border-[#FF6B5B]/50 hover:border-[#FF6B5B] bg-[#FFF8F6] rounded-2xl p-4 text-center cursor-pointer transition hover:bg-[#FFF0ED]"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-[#FF6B5B]/15 text-[#FF6B5B] flex items-center justify-center mx-auto mb-2">
+                          <UploadCloud className="w-5 h-5" />
+                        </div>
+                        <span className="text-xs font-bold text-black block">
+                          Click to select or record product inspection video
+                        </span>
+                        <span className="text-[11px] text-slate-500 block mt-0.5">
+                          MP4, MOV, WebM or phone recording (Max 40MB)
+                        </span>
+                        <span className="inline-block mt-2 px-3 py-1 bg-[#FF6B5B] text-white rounded-lg text-[10px] font-extrabold uppercase tracking-wider">
+                          Upload Video (Required)
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Submit & Cancel Buttons */}
+                  <div className="pt-2 flex items-center justify-end gap-3 border-t border-[#E5DCD3]">
+                    <button
+                      type="button"
+                      onClick={() => setIsReturnModalOpen(false)}
+                      className="px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={returnSubmitting || !returnVideoUrl}
+                      className={`px-5 py-2.5 rounded-xl text-xs font-extrabold text-white transition shadow-sm flex items-center gap-2 ${
+                        !returnVideoUrl || returnSubmitting
+                          ? 'bg-slate-400 cursor-not-allowed'
+                          : 'bg-[#FF6B5B] hover:bg-[#e85a4a] cursor-pointer'
+                      }`}
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>{returnSubmitting ? 'Submitting Request...' : 'Submit Return Request'}</span>
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
       </main>
 
       <Footer />

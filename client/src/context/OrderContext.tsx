@@ -26,6 +26,27 @@ export interface CustomerDetails {
   pincode: string;
 }
 
+export interface ReturnRequest {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  requestedAt: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string;
+  reason: string;
+  description: string;
+  itemIds: string[];
+  itemsSummary: string;
+  videoUrl: string; // Video preview URL / Base64
+  videoName?: string;
+  imageUrl?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  adminRemarks?: string;
+  refundAmount?: number;
+  reviewedAt?: string;
+}
+
 export interface Order {
   id: string;
   orderNumber: string;
@@ -43,6 +64,7 @@ export interface Order {
   status: OrderStatus;
   carrier: string;
   trackingNumber: string;
+  returnRequest?: ReturnRequest;
 }
 
 export type SupabaseTableStatus = 'connected' | 'table_missing' | 'checking' | 'error';
@@ -63,6 +85,20 @@ interface OrderContextType {
     userEmail?: string;
   }) => Order;
   updateOrderStatus: (orderId: string, status: OrderStatus, carrier?: string, trackingNumber?: string) => void;
+  submitReturnRequest: (
+    orderId: string,
+    returnData: {
+      reason: string;
+      description: string;
+      itemIds: string[];
+      itemsSummary: string;
+      videoUrl: string;
+      videoName?: string;
+      imageUrl?: string;
+    }
+  ) => boolean;
+  approveReturnRequest: (orderId: string, refundAmount: number, remarks?: string) => void;
+  rejectReturnRequest: (orderId: string, remarks: string) => void;
   getOrderById: (orderId: string) => Order | undefined;
   getUserOrders: (email?: string, userId?: string) => Order[];
 }
@@ -443,7 +479,14 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           merged.length !== prev.length ||
           merged.some((m, idx) => {
             const p = prev[idx];
-            return !p || p.id !== m.id || p.status !== m.status || p.carrier !== m.carrier;
+            return (
+              !p ||
+              p.id !== m.id ||
+              p.status !== m.status ||
+              p.carrier !== m.carrier ||
+              p.returnRequest?.status !== m.returnRequest?.status ||
+              p.returnRequest?.refundAmount !== m.returnRequest?.refundAmount
+            );
           })
         ) {
           return merged;
@@ -521,6 +564,35 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                   return order;
                 })
               );
+            }
+          })
+          // Live Return Request Broadcast
+          .on('broadcast', { event: 'return_request_submitted' }, ({ payload }: any) => {
+            if (payload?.order) {
+              const incoming = payload.order as Order;
+              setOrders((prev) => {
+                const idx = prev.findIndex((o) => o.id === incoming.id || o.orderNumber === incoming.orderNumber);
+                if (idx >= 0) {
+                  const next = [...prev];
+                  next[idx] = { ...next[idx], ...incoming };
+                  return next;
+                }
+                return [incoming, ...prev];
+              });
+            }
+          })
+          .on('broadcast', { event: 'return_request_updated' }, ({ payload }: any) => {
+            if (payload?.order) {
+              const incoming = payload.order as Order;
+              setOrders((prev) => {
+                const idx = prev.findIndex((o) => o.id === incoming.id || o.orderNumber === incoming.orderNumber);
+                if (idx >= 0) {
+                  const next = [...prev];
+                  next[idx] = { ...next[idx], ...incoming };
+                  return next;
+                }
+                return [incoming, ...prev];
+              });
             }
           })
           // Live Peer Sync Request (when phone or laptop opens, ask peers for latest orders)
@@ -753,6 +825,195 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     })();
   };
 
+  const submitReturnRequest = (
+    orderId: string,
+    returnData: {
+      reason: string;
+      description: string;
+      itemIds: string[];
+      itemsSummary: string;
+      videoUrl: string;
+      videoName?: string;
+      imageUrl?: string;
+    }
+  ): boolean => {
+    let targetOrder: Order | null = null;
+    const nextOrders = orders.map((order) => {
+      if (order.id === orderId || order.orderNumber === orderId) {
+        const returnReq: ReturnRequest = {
+          id: `ret-${Date.now()}`,
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          requestedAt: new Date().toISOString(),
+          customerName: order.customer?.name || 'Valued Customer',
+          customerEmail: order.customer?.email || order.userEmail || '',
+          customerPhone: order.customer?.phone,
+          reason: returnData.reason,
+          description: returnData.description,
+          itemIds: returnData.itemIds,
+          itemsSummary: returnData.itemsSummary,
+          videoUrl: returnData.videoUrl,
+          videoName: returnData.videoName,
+          imageUrl: returnData.imageUrl,
+          status: 'pending',
+          refundAmount: order.total
+        };
+        targetOrder = {
+          ...order,
+          returnRequest: returnReq
+        };
+        return targetOrder;
+      }
+      return order;
+    });
+
+    if (targetOrder) {
+      setOrders(nextOrders);
+      const ord: Order = targetOrder;
+
+      // 1. Instant Realtime Push to Admin Dashboard & peers
+      if (realtimeChannelRef.current) {
+        try {
+          realtimeChannelRef.current.send({
+            type: 'broadcast',
+            event: 'return_request_submitted',
+            payload: { order: ord }
+          });
+        } catch (e) {
+          console.warn('Realtime return broadcast notice:', e);
+        }
+      }
+
+      // 2. Push to Supabase Cloud
+      if (isSupabaseConfigured) {
+        (async () => {
+          try {
+            await supabase.from('orders').upsert(mapOrderToSupabase(ord));
+          } catch {}
+        })();
+      }
+
+      // 3. Push to Server
+      (async () => {
+        try {
+          await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(ord)
+          });
+        } catch (err) {
+          console.error('Failed to post return request to server:', err);
+        }
+      })();
+
+      return true;
+    }
+    return false;
+  };
+
+  const approveReturnRequest = (orderId: string, refundAmount: number, remarks?: string) => {
+    let targetOrder: Order | null = null;
+    const nextOrders = orders.map((order) => {
+      if ((order.id === orderId || order.orderNumber === orderId) && order.returnRequest) {
+        const updatedReturn: ReturnRequest = {
+          ...order.returnRequest,
+          status: 'approved',
+          refundAmount: refundAmount,
+          adminRemarks: remarks || 'Return verified and refund approved by Store Administrator.',
+          reviewedAt: new Date().toISOString()
+        };
+        targetOrder = {
+          ...order,
+          returnRequest: updatedReturn
+        };
+        return targetOrder;
+      }
+      return order;
+    });
+
+    if (targetOrder) {
+      setOrders(nextOrders);
+      const ord: Order = targetOrder;
+
+      if (realtimeChannelRef.current) {
+        try {
+          realtimeChannelRef.current.send({
+            type: 'broadcast',
+            event: 'return_request_updated',
+            payload: { order: ord }
+          });
+        } catch {}
+      }
+      if (isSupabaseConfigured) {
+        (async () => {
+          try {
+            await supabase.from('orders').upsert(mapOrderToSupabase(ord));
+          } catch {}
+        })();
+      }
+      (async () => {
+        try {
+          await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(ord)
+          });
+        } catch {}
+      })();
+    }
+  };
+
+  const rejectReturnRequest = (orderId: string, remarks: string) => {
+    let targetOrder: Order | null = null;
+    const nextOrders = orders.map((order) => {
+      if ((order.id === orderId || order.orderNumber === orderId) && order.returnRequest) {
+        const updatedReturn: ReturnRequest = {
+          ...order.returnRequest,
+          status: 'rejected',
+          adminRemarks: remarks || 'Return declined after product inspection.',
+          reviewedAt: new Date().toISOString()
+        };
+        targetOrder = {
+          ...order,
+          returnRequest: updatedReturn
+        };
+        return targetOrder;
+      }
+      return order;
+    });
+
+    if (targetOrder) {
+      setOrders(nextOrders);
+      const ord: Order = targetOrder;
+
+      if (realtimeChannelRef.current) {
+        try {
+          realtimeChannelRef.current.send({
+            type: 'broadcast',
+            event: 'return_request_updated',
+            payload: { order: ord }
+          });
+        } catch {}
+      }
+      if (isSupabaseConfigured) {
+        (async () => {
+          try {
+            await supabase.from('orders').upsert(mapOrderToSupabase(ord));
+          } catch {}
+        })();
+      }
+      (async () => {
+        try {
+          await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(ord)
+          });
+        } catch {}
+      })();
+    }
+  };
+
   const getOrderById = (orderId: string) => {
     return orders.find((o) => o.id === orderId || o.orderNumber === orderId);
   };
@@ -816,6 +1077,9 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         refreshDatabaseStatus,
         placeOrder,
         updateOrderStatus,
+        submitReturnRequest,
+        approveReturnRequest,
+        rejectReturnRequest,
         getOrderById,
         getUserOrders
       }}

@@ -29,9 +29,9 @@ app.use(cors({
 // Request logger
 app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
-// Webhook raw body preservation & standard json parser
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Webhook raw body preservation & standard json parser (allow up to 50mb for video returns and product images)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Health Check
 app.get('/api/health', (req, res) => {

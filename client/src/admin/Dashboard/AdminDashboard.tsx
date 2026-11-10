@@ -25,7 +25,9 @@ import {
   Copy,
   ExternalLink,
   Database,
-  RefreshCw
+  RefreshCw,
+  RotateCcw,
+  Video
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useProducts } from '../../context/ProductContext';
@@ -39,7 +41,7 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const { user, loginAsAdmin, logout } = useAuth();
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
-  const { orders, updateOrderStatus, supabaseTableStatus, refreshDatabaseStatus } = useOrders();
+  const { orders, updateOrderStatus, approveReturnRequest, rejectReturnRequest, supabaseTableStatus, refreshDatabaseStatus } = useOrders();
   const [sqlCopied, setSqlCopied] = useState(false);
   const [isRefreshingDb, setIsRefreshingDb] = useState(false);
 
@@ -94,12 +96,27 @@ CREATE POLICY "Public update orders" ON public.orders FOR UPDATE TO anon, authen
     return `₹${Math.round(num).toLocaleString('en-IN')}`;
   };
 
-  // Navigation tab state (Clean 3-tab admin navigation)
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders'>('overview');
+  // Navigation tab state (Clean 4-tab admin navigation)
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'returns'>('overview');
 
   // Orders filter & selection state
   const [orderFilter, setOrderFilter] = useState<'all' | OrderStatus>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  // Returns & Verification state
+  const [returnFilter, setReturnFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [returnRemarksMap, setReturnRemarksMap] = useState<{ [orderId: string]: string }>({});
+  const [refundAmountMap, setRefundAmountMap] = useState<{ [orderId: string]: string }>({});
+  const [actionSuccessMsg, setActionSuccessMsg] = useState<{ [orderId: string]: string }>({});
+
+  const returnOrdersList = orders.filter((o) => !!o.returnRequest);
+  const pendingReturnsCount = returnOrdersList.filter((o) => o.returnRequest?.status === 'pending').length;
+  const approvedReturnsCount = returnOrdersList.filter((o) => o.returnRequest?.status === 'approved').length;
+  const rejectedReturnsCount = returnOrdersList.filter((o) => o.returnRequest?.status === 'rejected').length;
+  const filteredReturnOrders =
+    returnFilter === 'all'
+      ? returnOrdersList
+      : returnOrdersList.filter((o) => o.returnRequest?.status === returnFilter);
 
   // Add Product Modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -480,6 +497,33 @@ CREATE POLICY "Public update orders" ON public.orders FOR UPDATE TO anon, authen
             >
               {products.length}
             </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('returns')}
+            className={`shrink-0 md:w-full flex items-center justify-between gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+              activeTab === 'returns'
+                ? 'bg-[#FF6B5B] text-white shadow-xs'
+                : 'text-[#14213D]/70 hover:bg-[#F4EDE0] hover:text-[#14213D]'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <RotateCcw className="w-4 h-4 shrink-0" />
+              <span>Returns & Verification</span>
+            </div>
+            {pendingReturnsCount > 0 ? (
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-bold ml-1 bg-amber-500 text-white animate-pulse">
+                {pendingReturnsCount}
+              </span>
+            ) : (
+              <span
+                className={`text-[10px] px-2 py-0.5 rounded-full font-bold ml-1 ${
+                  activeTab === 'returns' ? 'bg-white/20 text-white' : 'bg-[#E5D8C5] text-[#14213D]'
+                }`}
+              >
+                {returnOrdersList.length}
+              </span>
+            )}
           </button>
         </aside>
 
@@ -1101,6 +1145,375 @@ CREATE POLICY "Public update orders" ON public.orders FOR UPDATE TO anon, authen
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* TAB 4: RETURNS & PRODUCT VERIFICATION VIDEOS */}
+          {activeTab === 'returns' && (
+            <div className="space-y-6 text-left">
+              {/* Header Box */}
+              <div className="bg-white rounded-2xl p-5 sm:p-6 border border-[#E5DCD3] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-xl bg-[#FF6B5B] text-white flex items-center justify-center shadow-xs">
+                      <RotateCcw className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base sm:text-lg font-black text-black">
+                        Returns & Defect Video Verification ({returnOrdersList.length})
+                      </h3>
+                      <p className="text-xs text-[#5C554E]">
+                        Mandatory unboxing and defect verification video inspection before issuing refunds.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Filter Pills */}
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                  <button
+                    onClick={() => setReturnFilter('all')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                      returnFilter === 'all'
+                        ? 'bg-[#14213D] text-white shadow-xs'
+                        : 'bg-[#FAF6F2] hover:bg-[#F0E6D8] text-black border border-[#E5DCD3]'
+                    }`}
+                  >
+                    All ({returnOrdersList.length})
+                  </button>
+                  <button
+                    onClick={() => setReturnFilter('pending')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+                      returnFilter === 'pending'
+                        ? 'bg-amber-600 text-white shadow-xs'
+                        : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200'
+                    }`}
+                  >
+                    <span>Pending Inspection</span>
+                    {pendingReturnsCount > 0 && (
+                      <span className="px-1.5 py-0.2 bg-white text-amber-700 rounded-full text-[10px] font-black">
+                        {pendingReturnsCount}
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setReturnFilter('approved')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                      returnFilter === 'approved'
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200'
+                    }`}
+                  >
+                    Approved & Refunded ({approvedReturnsCount})
+                  </button>
+                  <button
+                    onClick={() => setReturnFilter('rejected')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                      returnFilter === 'rejected'
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-200'
+                    }`}
+                  >
+                    Declined ({rejectedReturnsCount})
+                  </button>
+                </div>
+              </div>
+
+              {/* Protocol Notice Banner */}
+              <div className="p-4 bg-amber-50/80 border border-amber-300 rounded-2xl flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                  <Video className="w-4 h-4" />
+                </div>
+                <div className="text-xs text-amber-950">
+                  <span className="font-extrabold block">Store Video Inspection Protocol</span>
+                  <span className="text-[11px] text-amber-900 block mt-0.5 leading-relaxed">
+                    Every customer return requires a video inspection. Watch the uploaded video to confirm the defect, verify that the genuine Kavi's Lifestyle garment was returned with tags, and ensure no fraudulent claim before approving the refund.
+                  </span>
+                </div>
+              </div>
+
+              {/* Return Requests List */}
+              {filteredReturnOrders.length === 0 ? (
+                <div className="bg-white rounded-2xl p-12 text-center border border-[#E5DCD3] space-y-3">
+                  <div className="w-14 h-14 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                    <RotateCcw className="w-7 h-7" />
+                  </div>
+                  <h4 className="text-base font-extrabold text-black">No Return Requests Found</h4>
+                  <p className="text-xs text-[#5C554E] max-w-sm mx-auto">
+                    {returnFilter === 'pending'
+                      ? 'No return requests currently awaiting video verification.'
+                      : 'When customers request returns and attach defect videos, they will appear right here for your inspection.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {filteredReturnOrders.map((order) => {
+                    const ret = order.returnRequest!;
+                    const refundAmt = refundAmountMap[order.id] !== undefined ? refundAmountMap[order.id] : String(ret.refundAmount || order.total);
+                    const remarks = returnRemarksMap[order.id] !== undefined ? returnRemarksMap[order.id] : (ret.adminRemarks || 'Defect verified upon video inspection. Refund approved.');
+                    const successNote = actionSuccessMsg[order.id];
+
+                    return (
+                      <div
+                        key={order.id}
+                        className="bg-white rounded-2xl border border-[#E5DCD3] shadow-xs overflow-hidden"
+                      >
+                        {/* Top Ribbon */}
+                        <div className="p-4 sm:p-5 bg-[#FAF6EE] border-b border-[#E5DCD3] flex flex-wrap items-center justify-between gap-3">
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-sm font-extrabold text-[#14213D] font-mono">
+                              {order.orderNumber}
+                            </span>
+                            <span
+                              className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                                ret.status === 'approved'
+                                  ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                                  : ret.status === 'rejected'
+                                  ? 'bg-rose-100 text-rose-900 border-rose-300'
+                                  : 'bg-amber-100 text-amber-900 border-amber-300 animate-pulse'
+                              }`}
+                            >
+                              {ret.status === 'approved' && '✓ Approved & Refunded'}
+                              {ret.status === 'rejected' && '✕ Return Declined'}
+                              {ret.status === 'pending' && '⏳ Pending Video Verification'}
+                            </span>
+                          </div>
+
+                          <div className="text-xs text-[#5C554E]">
+                            Requested on {new Date(ret.requestedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+
+                        {/* Card Body */}
+                        <div className="p-5 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+                          
+                          {/* Left Column (6 cols): Customer Details & Item Info */}
+                          <div className="lg:col-span-6 space-y-4">
+                            {/* Customer Profile */}
+                            <div className="p-3.5 bg-[#FAF6F2] rounded-xl border border-[#E5DCD3] space-y-1 text-xs">
+                              <span className="text-[10px] uppercase font-black text-slate-500 block tracking-wider">
+                                Customer Details
+                              </span>
+                              <div className="font-extrabold text-black text-sm">{ret.customerName}</div>
+                              <div className="text-slate-600 font-medium">{ret.customerEmail} • {ret.customerPhone || order.customer?.phone}</div>
+                              <div className="text-slate-500 text-[11px] truncate">
+                                {order.customer?.address}, {order.customer?.city}, {order.customer?.state} - {order.customer?.pincode}
+                              </div>
+                            </div>
+
+                            {/* Return Reason Box */}
+                            <div className="p-3.5 bg-rose-50/60 border border-rose-200 rounded-xl space-y-1.5 text-xs">
+                              <span className="text-[10px] uppercase font-black text-rose-800 block tracking-wider">
+                                Customer Stated Defect Reason
+                              </span>
+                              <div className="font-extrabold text-rose-950 text-sm">
+                                {ret.reason}
+                              </div>
+                              <div className="text-rose-900 bg-white/80 p-2.5 rounded-lg border border-rose-200/60">
+                                <strong>Customer Explanation:</strong> "{ret.description}"
+                              </div>
+                            </div>
+
+                            {/* Items in Return */}
+                            <div className="space-y-2">
+                              <span className="text-[10px] uppercase font-black text-slate-500 block tracking-wider">
+                                Item(s) Requested for Return
+                              </span>
+                              <div className="space-y-2">
+                                {order.items
+                                  .filter((it) => !ret.itemIds || ret.itemIds.length === 0 || ret.itemIds.includes(it.id))
+                                  .map((it, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="p-2.5 rounded-xl border border-slate-200 flex items-center justify-between gap-3 bg-white"
+                                    >
+                                      <div className="flex items-center gap-2.5 min-w-0">
+                                        <img
+                                          src={it.image}
+                                          alt=""
+                                          className="w-12 h-14 rounded-lg object-cover bg-slate-100 shrink-0"
+                                        />
+                                        <div className="min-w-0">
+                                          <div className="font-bold text-xs text-black truncate">{it.name}</div>
+                                          <div className="text-[11px] text-slate-500">
+                                            Qty: {it.quantity} {it.variant ? `• ${it.variant}` : ''}
+                                          </div>
+                                          {it.customization && (
+                                            <span className="inline-block mt-0.5 text-[9px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                                              Customized Handloom
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <span className="text-xs font-black text-black shrink-0">
+                                        {formatRupees((it.unitPrice || it.price || 0) * it.quantity)}
+                                      </span>
+                                    </div>
+                                  ))}
+                              </div>
+                              <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100 font-bold">
+                                <span>Total Order Value:</span>
+                                <span className="font-extrabold text-base text-[#14213D]">{formatRupees(order.total)}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right Column (6 cols): Verification Video & Admin Decision */}
+                          <div className="lg:col-span-6 space-y-4">
+                            
+                            {/* Verification Video Player */}
+                            <div className="space-y-1.5">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-extrabold text-[#14213D] flex items-center gap-1.5">
+                                  <Video className="w-4 h-4 text-[#FF6B5B]" />
+                                  <span>Customer Defect Verification Video</span>
+                                </span>
+                                {ret.videoName && (
+                                  <span className="text-[10px] text-slate-500 truncate max-w-[150px]">
+                                    {ret.videoName}
+                                  </span>
+                                )}
+                              </div>
+
+                              {ret.videoUrl ? (
+                                <div className="rounded-2xl overflow-hidden border-2 border-slate-300 bg-black shadow-md">
+                                  <video
+                                    src={ret.videoUrl}
+                                    controls
+                                    playsInline
+                                    preload="metadata"
+                                    className="w-full max-h-72 rounded-2xl object-contain bg-black"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="p-8 bg-slate-100 rounded-2xl text-center text-xs text-slate-500 border border-dashed border-slate-300">
+                                  No video uploaded
+                                </div>
+                              )}
+                              <p className="text-[11px] text-[#5C554E] italic">
+                                💡 Tip: Watch the video to inspect the weave, defect area, and tags.
+                              </p>
+                            </div>
+
+                            {/* Decision & Action Area */}
+                            {successNote && (
+                              <div className="p-3 bg-emerald-100 border border-emerald-300 text-emerald-900 rounded-xl text-xs font-bold flex items-center gap-2">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
+                                <span>{successNote}</span>
+                              </div>
+                            )}
+
+                            {ret.status === 'pending' ? (
+                              <div className="space-y-3 p-4 bg-[#FAF6EE] rounded-2xl border border-[#E5D8C5]">
+                                <span className="text-xs font-black uppercase text-[#14213D] block tracking-wider">
+                                  Admin Verification & Refund Actions
+                                </span>
+
+                                {/* Refund Amount Input */}
+                                <div>
+                                  <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                                    Refund Amount (₹):
+                                  </label>
+                                  <input
+                                    type="number"
+                                    value={refundAmt}
+                                    onChange={(e) =>
+                                      setRefundAmountMap({ ...refundAmountMap, [order.id]: e.target.value })
+                                    }
+                                    className="w-full px-3 py-2 text-xs font-extrabold border border-[#E5DCD3] rounded-xl outline-none focus:border-emerald-600 bg-white"
+                                  />
+                                </div>
+
+                                {/* Admin Remarks */}
+                                <div>
+                                  <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                                    Admin Remarks (Sent to Customer):
+                                  </label>
+                                  <textarea
+                                    rows={2}
+                                    value={remarks}
+                                    onChange={(e) =>
+                                      setReturnRemarksMap({ ...returnRemarksMap, [order.id]: e.target.value })
+                                    }
+                                    placeholder="Explanation of decision..."
+                                    className="w-full px-3 py-2 text-xs border border-[#E5DCD3] rounded-xl outline-none focus:border-black bg-white"
+                                  />
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="grid grid-cols-2 gap-2.5 pt-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const amt = parseFloat(refundAmt) || order.total;
+                                      approveReturnRequest(order.id, amt, remarks);
+                                      setActionSuccessMsg({
+                                        ...actionSuccessMsg,
+                                        [order.id]: `Return approved! ₹${amt} refund credited.`
+                                      });
+                                    }}
+                                    className="py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
+                                  >
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    <span>Approve & Refund</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (!remarks || remarks.includes('Refund approved')) {
+                                        alert('Please enter a specific reason for declining the return in the Admin Remarks box.');
+                                        return;
+                                      }
+                                      rejectReturnRequest(order.id, remarks);
+                                      setActionSuccessMsg({
+                                        ...actionSuccessMsg,
+                                        [order.id]: 'Return request declined.'
+                                      });
+                                    }}
+                                    className="py-2.5 px-3 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
+                                  >
+                                    <X className="w-4 h-4" />
+                                    <span>Decline Return</span>
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div
+                                className={`p-4 rounded-2xl border text-xs space-y-1.5 ${
+                                  ret.status === 'approved'
+                                    ? 'bg-emerald-50 border-emerald-300 text-emerald-950'
+                                    : 'bg-rose-50 border-rose-300 text-rose-950'
+                                }`}
+                              >
+                                <span className="font-black uppercase tracking-wider block text-[11px]">
+                                  {ret.status === 'approved' ? '✓ Return Approved & Refund Initiated' : '✕ Return Request Declined'}
+                                </span>
+                                {ret.status === 'approved' && (
+                                  <div className="font-extrabold text-sm">
+                                    Refund Amount: {formatRupees(ret.refundAmount || order.total)}
+                                  </div>
+                                )}
+                                <div>
+                                  <strong>Admin Remarks:</strong> {ret.adminRemarks}
+                                </div>
+                                {ret.reviewedAt && (
+                                  <div className="text-[10px] opacity-75">
+                                    Reviewed on: {new Date(ret.reviewedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                          </div>
+
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
             </div>
           )}
         </main>
