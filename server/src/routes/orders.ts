@@ -77,6 +77,92 @@ router.post('/status', (req: Request, res: Response) => {
   }
 });
 
+// POST /api/orders/return - Customer submits return request with defect verification video
+router.post('/return', (req: Request, res: Response) => {
+  try {
+    const { orderId, returnRequest } = req.body;
+    const orders = readOrders();
+    let updatedOrder = null;
+    const nextOrders = orders.map((o: any) => {
+      if (o.id === orderId || o.orderNumber === orderId) {
+        updatedOrder = {
+          ...o,
+          returnRequest,
+          updatedAt: new Date().toISOString()
+        };
+        return updatedOrder;
+      }
+      return o;
+    });
+
+    writeOrders(nextOrders);
+    res.json({ success: true, order: updatedOrder, orders: nextOrders });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST /api/orders/return/approve - Admin approves return & refund
+router.post('/return/approve', (req: Request, res: Response) => {
+  try {
+    const { orderId, refundAmount, remarks } = req.body;
+    const orders = readOrders();
+    let updatedOrder = null;
+    const nextOrders = orders.map((o: any) => {
+      if ((o.id === orderId || o.orderNumber === orderId) && o.returnRequest) {
+        updatedOrder = {
+          ...o,
+          returnRequest: {
+            ...o.returnRequest,
+            status: 'approved',
+            refundAmount: refundAmount || o.returnRequest.refundAmount || o.total,
+            adminRemarks: remarks || 'Return verified and refund approved by Store Administrator.',
+            reviewedAt: new Date().toISOString()
+          },
+          updatedAt: new Date().toISOString()
+        };
+        return updatedOrder;
+      }
+      return o;
+    });
+
+    writeOrders(nextOrders);
+    res.json({ success: true, order: updatedOrder, orders: nextOrders });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST /api/orders/return/reject - Admin declines return
+router.post('/return/reject', (req: Request, res: Response) => {
+  try {
+    const { orderId, remarks } = req.body;
+    const orders = readOrders();
+    let updatedOrder = null;
+    const nextOrders = orders.map((o: any) => {
+      if ((o.id === orderId || o.orderNumber === orderId) && o.returnRequest) {
+        updatedOrder = {
+          ...o,
+          returnRequest: {
+            ...o.returnRequest,
+            status: 'rejected',
+            adminRemarks: remarks || 'Return declined after product inspection.',
+            reviewedAt: new Date().toISOString()
+          },
+          updatedAt: new Date().toISOString()
+        };
+        return updatedOrder;
+      }
+      return o;
+    });
+
+    writeOrders(nextOrders);
+    res.json({ success: true, order: updatedOrder, orders: nextOrders });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 router.put('/:id/status', (req: Request, res: Response) => {
   try {
     const orderId = req.params.id;

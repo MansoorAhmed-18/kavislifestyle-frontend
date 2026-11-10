@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
 import { CustomizationOption } from '../types';
+import { saveVideoToIDB, getVideoFromIDB } from '../utils/videoStorage';
 
 export type OrderStatus = 'placed' | 'confirmed' | 'packed' | 'shipped' | 'delivered' | 'cancelled';
 
@@ -331,11 +332,49 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     ordersRef.current = orders;
   }, [orders]);
 
+  // Hydrate videoUrls from IndexedDB on startup if saved as lightweight reference
+  useEffect(() => {
+    orders.forEach((order) => {
+      if (order.returnRequest?.videoUrl?.startsWith('idb:')) {
+        const idbKey = order.returnRequest.videoUrl.replace('idb:', '');
+        getVideoFromIDB(idbKey).then((fullVid) => {
+          if (fullVid) {
+            setOrders((prev) =>
+              prev.map((o) =>
+                o.id === order.id && o.returnRequest
+                  ? { ...o, returnRequest: { ...o.returnRequest, videoUrl: fullVid } }
+                  : o
+              )
+            );
+          }
+        });
+      }
+    });
+  }, []);
+
   useEffect(() => {
     try {
       localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(orders));
     } catch (e) {
-      console.error('Failed to save orders to localStorage', e);
+      // LocalStorage 5MB quota exceeded by video Base64 - save videos to IndexedDB and save lightweight references to localStorage
+      try {
+        const lightweight = orders.map((o) => {
+          if (o.returnRequest && o.returnRequest.videoUrl && o.returnRequest.videoUrl.length > 50000) {
+            saveVideoToIDB(`vid_${o.id}`, o.returnRequest.videoUrl);
+            return {
+              ...o,
+              returnRequest: {
+                ...o.returnRequest,
+                videoUrl: `idb:vid_${o.id}`
+              }
+            };
+          }
+          return o;
+        });
+        localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(lightweight));
+      } catch (innerErr) {
+        console.error('Failed to save orders to localStorage even with IDB fallback', innerErr);
+      }
     }
   }, [orders]);
 
@@ -448,11 +487,25 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (key) map.set(key, co);
       });
 
-      // C. Populate missing local orders
+      // C. Populate missing local orders and preserve returnRequest
       localList.forEach((lo) => {
         const key = lo.id || lo.orderNumber;
-        if (key && !map.has(key)) {
-          map.set(key, lo);
+        if (key) {
+          if (!map.has(key)) {
+            map.set(key, lo);
+          } else {
+            const existing = map.get(key)!;
+            // Preserve returnRequest if present locally (prevent older server snapshot from wiping return request)
+            const mergedReturn = lo.returnRequest || existing.returnRequest;
+            map.set(key, {
+              ...existing,
+              ...lo,
+              status: lo.status !== 'placed' && existing.status === 'placed' ? lo.status : existing.status,
+              carrier: existing.carrier || lo.carrier,
+              trackingNumber: existing.trackingNumber || lo.trackingNumber,
+              returnRequest: mergedReturn
+            });
+          }
         }
       });
 
@@ -871,6 +924,12 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setOrders(nextOrders);
       const ord: Order = targetOrder;
 
+      // Save video to IndexedDB for permanent local storage
+      if (returnData.videoUrl) {
+        saveVideoToIDB(`vid_${ord.id}`, returnData.videoUrl);
+        saveVideoToIDB(`vid_${ord.orderNumber}`, returnData.videoUrl);
+      }
+
       // 1. Instant Realtime Push to Admin Dashboard & peers
       if (realtimeChannelRef.current) {
         try {
@@ -896,6 +955,11 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // 3. Push to Server
       (async () => {
         try {
+          await fetch('/api/orders/return', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: ord.id, returnRequest: ord.returnRequest })
+          });
           await fetch('/api/orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -953,6 +1017,11 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
       (async () => {
         try {
+          await fetch('/api/orders/return/approve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: ord.id, refundAmount, remarks })
+          });
           await fetch('/api/orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1004,6 +1073,11 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
       (async () => {
         try {
+          await fetch('/api/orders/return/reject', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: ord.id, remarks })
+          });
           await fetch('/api/orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

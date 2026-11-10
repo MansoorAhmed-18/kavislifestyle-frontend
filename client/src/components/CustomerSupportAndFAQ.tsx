@@ -16,9 +16,12 @@ import {
   XCircle,
   FileText,
   ChevronRight,
-  Check
+  Check,
+  Video,
+  UploadCloud,
+  Play
 } from 'lucide-react';
-import { useOrders } from '../context/OrderContext';
+import { useOrders, Order } from '../context/OrderContext';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 
@@ -163,7 +166,7 @@ interface CustomerSupportAndFAQProps {
 
 export const CustomerSupportAndFAQ: React.FC<CustomerSupportAndFAQProps> = ({ embedded = false }) => {
   const { user } = useAuth();
-  const { orders, getUserOrders } = useOrders();
+  const { orders, getUserOrders, submitReturnRequest } = useOrders();
   const { formatPrice } = useCurrency();
   const userOrders = getUserOrders(user?.email, user?.id);
   const availableOrders = userOrders;
@@ -177,12 +180,93 @@ export const CustomerSupportAndFAQ: React.FC<CustomerSupportAndFAQProps> = ({ em
     availableOrders.length > 0 ? availableOrders[0].id : null
   );
   const [activeIssueAction, setActiveIssueAction] = useState<string | null>(null);
-  const [returnReason, setReturnReason] = useState<string>('Size or fit issue');
+  const [returnReason, setReturnReason] = useState<string>('Fabric Defect / Damaged Weave or Zari');
+  const [returnDescription, setReturnDescription] = useState<string>('');
+  const [returnVideoUrl, setReturnVideoUrl] = useState<string>('');
+  const [returnVideoName, setReturnVideoName] = useState<string>('');
+  const [returnVideoSize, setReturnVideoSize] = useState<string>('');
+  const [returnErrorMsg, setReturnErrorMsg] = useState<string>('');
+  const [isSubmittingReturn, setIsSubmittingReturn] = useState<boolean>(false);
   const [returnConfirmedMsg, setReturnConfirmedMsg] = useState<string | null>(null);
+  const faqVideoInputRef = React.useRef<HTMLInputElement | null>(null);
 
   const activeOrder = useMemo(() => {
-    return availableOrders.find((o) => o.id === selectedOrderForHelp) || availableOrders[0];
+    return availableOrders.find((o) => o.id === selectedOrderForHelp || o.orderNumber === selectedOrderForHelp) || availableOrders[0];
   }, [availableOrders, selectedOrderForHelp]);
+
+  const handleFaqVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('video/')) {
+      setReturnErrorMsg('Please select a valid video file (MP4, MOV, WebM, etc.).');
+      return;
+    }
+
+    if (file.size > 40 * 1024 * 1024) {
+      setReturnErrorMsg('Video file is too large. Please select a clip under 40MB (15-30 second defect recording).');
+      return;
+    }
+
+    setReturnErrorMsg('');
+    const sizeInMb = (file.size / (1024 * 1024)).toFixed(1);
+    setReturnVideoName(file.name);
+    setReturnVideoSize(`${sizeInMb} MB`);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        setReturnVideoUrl(dataUrl);
+      }
+    };
+    reader.onerror = () => {
+      const objUrl = URL.createObjectURL(file);
+      setReturnVideoUrl(objUrl);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleConfirmReturn = (order: Order) => {
+    if (!returnVideoUrl) {
+      setReturnErrorMsg('⚠️ Mandatory Verification Video Required: Please attach an unboxing or defect inspection video clip before submitting.');
+      return;
+    }
+
+    if (!returnDescription.trim()) {
+      setReturnErrorMsg('Please enter a short description of the defect or reason for return.');
+      return;
+    }
+
+    setIsSubmittingReturn(true);
+    setReturnErrorMsg('');
+
+    const itemIds = order.items.map((it) => it.id);
+    const itemsSummary = order.items.map((it) => `${it.name} (Qty: ${it.quantity})`).join(', ');
+
+    const success = submitReturnRequest(order.id, {
+      reason: returnReason,
+      description: returnDescription.trim(),
+      itemIds,
+      itemsSummary,
+      videoUrl: returnVideoUrl,
+      videoName: returnVideoName
+    });
+
+    if (success) {
+      setReturnConfirmedMsg(
+        `✓ Return request with verification video submitted successfully for Order #${order.orderNumber}! It is now under review in the Admin Panel. Refund of ${formatPrice(order.total)} will be issued upon admin approval.`
+      );
+      setIsSubmittingReturn(false);
+      setReturnDescription('');
+      setReturnVideoUrl('');
+      setReturnVideoName('');
+      setReturnVideoSize('');
+    } else {
+      setReturnErrorMsg('Failed to submit return request. Please try again.');
+      setIsSubmittingReturn(false);
+    }
+  };
 
   const filteredTopics = useMemo(() => {
     return HELP_TOPICS.filter((topic) => {
@@ -198,12 +282,6 @@ export const CustomerSupportAndFAQ: React.FC<CustomerSupportAndFAQProps> = ({ em
 
   const toggleTopic = (id: string) => {
     setOpenTopicId((prev) => (prev === id ? null : id));
-  };
-
-  const handleConfirmReturn = (orderNumber: string, total: number) => {
-    setReturnConfirmedMsg(
-      `Return Request #RET-${Math.floor(100000 + Math.random() * 900000)} Approved! Doorstep pickup scheduled via BlueDart within 48 hours. Refund of ${formatPrice(total)} will be credited within 24-48 hours after pickup.`
-    );
   };
 
   return (
@@ -392,49 +470,246 @@ export const CustomerSupportAndFAQ: React.FC<CustomerSupportAndFAQProps> = ({ em
 
                 {/* ACTION 1: RETURN OR EXCHANGE PROBLEM SOLVER */}
                 {activeIssueAction === 'return' && (
-                  <div className="bg-white p-4 rounded-xl border border-emerald-300 shadow-2xs space-y-3 animate-in fade-in">
-                    <div className="flex items-center gap-2 text-emerald-800 text-xs font-bold">
-                      <ShieldCheck className="w-4 h-4 text-emerald-700" />
-                      <span>Kavi's 7-Day Doorstep Return & Exchange Policy</span>
+                  <div className="bg-white p-4 rounded-xl border border-emerald-300 shadow-2xs space-y-4 animate-in fade-in">
+                    <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
+                      <div className="flex items-center gap-2 text-emerald-800 text-xs font-bold">
+                        <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                        <span>Kavi's 7-Day Doorstep Return & Video Verification</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                        Order #{activeOrder.orderNumber}
+                      </span>
                     </div>
 
-                    {returnConfirmedMsg ? (
-                      <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-lg text-xs font-bold text-emerald-900 space-y-1">
-                        <p>{returnConfirmedMsg}</p>
+                    {/* If Return Already Requested: Show Live Status */}
+                    {activeOrder.returnRequest ? (
+                      <div className={`p-4 rounded-xl border text-xs space-y-2.5 ${
+                        activeOrder.returnRequest.status === 'approved'
+                          ? 'bg-emerald-50 border-emerald-300 text-emerald-950'
+                          : activeOrder.returnRequest.status === 'rejected'
+                          ? 'bg-rose-50 border-rose-300 text-rose-950'
+                          : 'bg-amber-50 border-amber-300 text-amber-950'
+                      }`}>
+                        <div className="flex items-center justify-between font-extrabold uppercase tracking-wider text-[11px] pb-1 border-b border-black/10">
+                          <span className="flex items-center gap-1.5">
+                            <RotateCcw className="w-4 h-4 text-[#FF6B5B]" />
+                            {activeOrder.returnRequest.status === 'approved' && '✓ Return Approved & Refund Initiated'}
+                            {activeOrder.returnRequest.status === 'rejected' && '✕ Return Request Declined'}
+                            {activeOrder.returnRequest.status === 'pending' && '⏳ Video Verification Under Admin Review'}
+                          </span>
+                          <span className="text-[10px] opacity-75 font-normal">
+                            Requested {new Date(activeOrder.returnRequest.requestedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                        </div>
+
+                        <div>
+                          <strong>Defect Reason:</strong> {activeOrder.returnRequest.reason}
+                        </div>
+                        {activeOrder.returnRequest.description && (
+                          <div>
+                            <strong>Description:</strong> "{activeOrder.returnRequest.description}"
+                          </div>
+                        )}
+
+                        {activeOrder.returnRequest.videoUrl && (
+                          <div className="space-y-1.5 pt-1">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-black/10 rounded-lg font-bold text-[11px] text-emerald-800 shadow-2xs">
+                              <Video className="w-3.5 h-3.5 text-emerald-700" />
+                              <span>Defect Video Attached: {activeOrder.returnRequest.videoName || 'Inspection Clip'}</span>
+                            </span>
+                            <div className="rounded-xl overflow-hidden border border-slate-300 bg-black shadow-inner max-w-sm">
+                              <video
+                                src={activeOrder.returnRequest.videoUrl}
+                                controls
+                                playsInline
+                                preload="metadata"
+                                className="w-full max-h-48 object-contain"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {activeOrder.returnRequest.adminRemarks && (
+                          <div className={`p-3 rounded-lg mt-2 text-xs border ${
+                            activeOrder.returnRequest.status === 'approved'
+                              ? 'bg-emerald-100/70 border-emerald-300 text-emerald-950'
+                              : 'bg-rose-100/70 border-rose-300 text-rose-950'
+                          }`}>
+                            <div className="font-bold text-[11px] uppercase tracking-wider text-black">
+                              Store Administrator Response:
+                            </div>
+                            <div className="mt-0.5 font-medium">{activeOrder.returnRequest.adminRemarks}</div>
+                            {activeOrder.returnRequest.status === 'approved' && (
+                              <div className="mt-1 font-extrabold text-emerald-900">
+                                Refund Amount: {formatPrice(activeOrder.returnRequest.refundAmount || activeOrder.total)} credited to your account.
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {activeOrder.returnRequest.status === 'pending' && (
+                          <p className="text-[11px] text-amber-900 italic bg-amber-100/70 p-2.5 rounded-lg border border-amber-200">
+                            Our store administrator is reviewing your inspection video in the Admin Panel to confirm the defect. Once verified, refund of <strong>{formatPrice(activeOrder.total)}</strong> will be credited directly to your account.
+                          </p>
+                        )}
+                      </div>
+                    ) : returnConfirmedMsg ? (
+                      <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-xl text-xs font-bold text-emerald-900 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                          <p className="text-sm font-extrabold">{returnConfirmedMsg}</p>
+                        </div>
                         <p className="text-[11px] font-normal text-emerald-800">
                           Pickup Location: {activeOrder.customer?.address || 'Your saved address'}, {activeOrder.customer?.city || 'Chennai'} - {activeOrder.customer?.pincode || '600017'}.
                         </p>
                       </div>
                     ) : (
-                      <div className="space-y-3">
-                        <label className="text-xs font-bold text-black block">
-                          Please select the reason for return/exchange:
-                        </label>
-                        <select
-                          value={returnReason}
-                          onChange={(e) => setReturnReason(e.target.value)}
-                          className="w-full p-2.5 text-xs font-semibold bg-[#FAF6F2] border border-[#E5DCD3] rounded-xl outline-none focus:border-black text-black cursor-pointer"
-                        >
-                          <option value="Size or fit issue">Size or fit issue (Request exchange for different size)</option>
-                          <option value="Received defective or damaged piece">Received defective or damaged piece (Free replacement)</option>
-                          <option value="Color or zari pattern differs from photo">Color or zari pattern differs from photo</option>
-                          <option value="Delivery was delayed / No longer needed">Delivery was delayed / No longer needed</option>
-                          <option value="Quality did not match expectations">Quality did not match expectations</option>
-                        </select>
-
-                        <div className="p-2.5 bg-neutral-50 rounded-lg border border-neutral-200 text-[11px] text-[#5C554E] space-y-1">
-                          <p>• <strong>Free Doorstep Pickup:</strong> BlueDart agent will inspect & collect the item.</p>
-                          <p>• <strong>Refund Amount:</strong> {formatPrice(activeOrder.total)} transferred within 24–48 hours of pickup.</p>
+                      <div className="space-y-4">
+                        {/* Mandatory Video Warning Notice */}
+                        <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl flex items-start gap-2.5 text-xs text-amber-950">
+                          <Video className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                          <div>
+                            <strong className="block">Mandatory Product Defect Video Verification</strong>
+                            <span className="text-[11px] text-amber-900 block mt-0.5 leading-relaxed">
+                              To verify defect authenticity and enable instant admin refund approval, please attach an unboxing or defect inspection video clip (15–30 sec).
+                            </span>
+                          </div>
                         </div>
 
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleConfirmReturn(activeOrder.orderNumber, activeOrder.total)}
-                            className="flex-1 py-2.5 bg-black hover:bg-neutral-800 text-white font-bold text-xs rounded-xl transition cursor-pointer"
+                        {returnErrorMsg && (
+                          <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs font-bold flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                            <span>{returnErrorMsg}</span>
+                          </div>
+                        )}
+
+                        {/* Reason Dropdown */}
+                        <div>
+                          <label className="text-xs font-bold text-black block mb-1">
+                            1. Select Reason for Return *
+                          </label>
+                          <select
+                            value={returnReason}
+                            onChange={(e) => setReturnReason(e.target.value)}
+                            className="w-full p-2.5 text-xs font-semibold bg-[#FAF6F2] border border-[#E5DCD3] rounded-xl outline-none focus:border-black text-black cursor-pointer"
                           >
-                            Schedule Free Doorstep Return Pickup
+                            <option value="Fabric Defect / Damaged Weave or Zari">Fabric Defect / Damaged Weave or Zari</option>
+                            <option value="Wrong Product or Color Received">Wrong Product / Variant Received</option>
+                            <option value="Physical Damage During Delivery">Physical Damage During Delivery / Torn Package</option>
+                            <option value="Quality did not match expectations">Quality did not match expectations</option>
+                            <option value="Blouse Stitching / Customization Discrepancy">Blouse Stitching / Customization Discrepancy</option>
+                            <option value="Missing Fall, Pico, or Add-ons">Missing Fall, Pico, or Add-on Accessories</option>
+                            <option value="Other Defect">Other Product Issue</option>
+                          </select>
+                        </div>
+
+                        {/* Defect Description */}
+                        <div>
+                          <label className="text-xs font-bold text-black block mb-1">
+                            2. Describe the Issue / Defect *
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={returnDescription}
+                            onChange={(e) => setReturnDescription(e.target.value)}
+                            placeholder="Provide defect details (e.g. tear on saree pallu, color discolouration, wrong size delivered)..."
+                            className="w-full p-2.5 text-xs bg-[#FAF6F2] border border-[#E5DCD3] rounded-xl outline-none focus:border-black text-black"
+                          />
+                        </div>
+
+                        {/* Video Clip Section */}
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-xs font-bold text-black flex items-center gap-1.5">
+                              <Video className="w-4 h-4 text-[#FF6B5B]" />
+                              <span>3. Product Verification Video Clip * <span className="text-[#FF6B5B] font-extrabold">(Mandatory)</span></span>
+                            </label>
+                            {returnVideoSize && (
+                              <span className="text-[10px] font-bold text-slate-500">{returnVideoSize}</span>
+                            )}
+                          </div>
+
+                          <input
+                            ref={faqVideoInputRef}
+                            type="file"
+                            accept="video/*"
+                            onChange={handleFaqVideoChange}
+                            className="hidden"
+                          />
+
+                          {returnVideoUrl ? (
+                            <div className="space-y-2">
+                              <div className="rounded-xl overflow-hidden border border-slate-300 bg-black">
+                                <video
+                                  src={returnVideoUrl}
+                                  controls
+                                  playsInline
+                                  preload="metadata"
+                                  className="w-full max-h-52 object-contain"
+                                />
+                              </div>
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="text-slate-600 truncate max-w-xs font-medium">
+                                  📹 {returnVideoName || 'Uploaded Video Clip'}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setReturnVideoUrl('');
+                                    setReturnVideoName('');
+                                    setReturnVideoSize('');
+                                    if (faqVideoInputRef.current) faqVideoInputRef.current.value = '';
+                                  }}
+                                  className="text-xs font-bold text-rose-600 hover:underline cursor-pointer"
+                                >
+                                  Change / Remove Video
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div
+                              onClick={() => faqVideoInputRef.current?.click()}
+                              className="border-2 border-dashed border-[#FF6B5B]/50 hover:border-[#FF6B5B] bg-[#FFF8F6] hover:bg-[#FFF0ED] rounded-xl p-4 text-center cursor-pointer transition"
+                            >
+                              <div className="w-10 h-10 rounded-full bg-[#FF6B5B]/15 text-[#FF6B5B] flex items-center justify-center mx-auto mb-2">
+                                <UploadCloud className="w-5 h-5" />
+                              </div>
+                              <span className="text-xs font-bold text-black block">
+                                Click here to select or record product inspection video
+                              </span>
+                              <span className="text-[11px] text-slate-500 block mt-0.5">
+                                MP4, MOV, WebM or camera video (Max 40MB)
+                              </span>
+                              <span className="inline-block mt-2 px-3 py-1 bg-[#FF6B5B] text-white rounded-lg text-[10px] font-extrabold uppercase tracking-wider">
+                                Upload Video Clip (Required)
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Estimated Refund Notice */}
+                        <div className="p-2.5 bg-neutral-50 rounded-lg border border-neutral-200 text-[11px] text-[#5C554E] space-y-1">
+                          <p>• <strong>Free Doorstep Pickup:</strong> BlueDart agent will inspect & collect the item.</p>
+                          <p>• <strong>Refund Amount:</strong> {formatPrice(activeOrder.total)} transferred within 24–48 hours of admin approval.</p>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2 pt-1">
+                          <button
+                            type="button"
+                            disabled={isSubmittingReturn || !returnVideoUrl}
+                            onClick={() => handleConfirmReturn(activeOrder)}
+                            className={`flex-1 py-2.5 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 ${
+                              !returnVideoUrl || isSubmittingReturn
+                                ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                                : 'bg-black hover:bg-neutral-800 text-white cursor-pointer shadow-xs'
+                            }`}
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            <span>{isSubmittingReturn ? 'Submitting to Admin Panel...' : 'Schedule Free Doorstep Return Pickup (Video Verification)'}</span>
                           </button>
                           <button
+                            type="button"
                             onClick={() => setActiveIssueAction(null)}
                             className="px-4 py-2.5 border border-[#E5DCD3] text-black font-bold text-xs rounded-xl hover:bg-[#FAF6F2] transition cursor-pointer"
                           >

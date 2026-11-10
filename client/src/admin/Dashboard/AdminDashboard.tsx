@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
@@ -36,6 +36,42 @@ import { useCurrency } from '../../context/CurrencyContext';
 import { DEPARTMENTS } from '../../data/departments';
 import { BrandLogo } from '../../components/BrandLogo';
 import { Product } from '../../types';
+import { getVideoFromIDB } from '../../utils/videoStorage';
+
+const AdminReturnVideoPlayer: React.FC<{ videoUrl: string }> = ({ videoUrl }) => {
+  const [resolvedUrl, setResolvedUrl] = useState<string>(videoUrl);
+
+  useEffect(() => {
+    if (videoUrl?.startsWith('idb:')) {
+      const key = videoUrl.replace('idb:', '');
+      getVideoFromIDB(key).then((full) => {
+        if (full) setResolvedUrl(full);
+      });
+    } else {
+      setResolvedUrl(videoUrl);
+    }
+  }, [videoUrl]);
+
+  if (!resolvedUrl) {
+    return (
+      <div className="p-8 bg-slate-100 rounded-2xl text-center text-xs text-slate-500 border border-dashed border-slate-300">
+        No video uploaded
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl overflow-hidden border-2 border-slate-300 bg-black shadow-md">
+      <video
+        src={resolvedUrl}
+        controls
+        playsInline
+        preload="metadata"
+        className="w-full max-h-72 rounded-2xl object-contain bg-black"
+      />
+    </div>
+  );
+};
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -717,6 +753,16 @@ CREATE POLICY "Public update orders" ON public.orders FOR UPDATE TO anon, authen
                                 minute: '2-digit'
                               })}
                             </span>
+                            {order.returnRequest && (
+                              <button
+                                type="button"
+                                onClick={() => setActiveTab('returns')}
+                                className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-amber-500 hover:bg-amber-600 text-white transition shadow-2xs cursor-pointer"
+                              >
+                                <Video className="w-2.5 h-2.5" />
+                                <span>📹 Return Video ({order.returnRequest.status})</span>
+                              </button>
+                            )}
                           </div>
                           <div className="text-right">
                             <span className="font-black text-black block text-sm">{formatRupees(order.total)}</span>
@@ -927,6 +973,16 @@ CREATE POLICY "Public update orders" ON public.orders FOR UPDATE TO anon, authen
                                   minute: '2-digit'
                                 })}
                               </span>
+                              {order.returnRequest && (
+                                <button
+                                  type="button"
+                                  onClick={() => setActiveTab('returns')}
+                                  className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-amber-500 hover:bg-amber-600 text-white transition shadow-2xs cursor-pointer"
+                                >
+                                  <Video className="w-2.5 h-2.5" />
+                                  <span>📹 Return Video ({order.returnRequest.status})</span>
+                                </button>
+                              )}
                             </td>
 
                             <td className="py-3.5 px-4">
@@ -1375,21 +1431,7 @@ CREATE POLICY "Public update orders" ON public.orders FOR UPDATE TO anon, authen
                                 )}
                               </div>
 
-                              {ret.videoUrl ? (
-                                <div className="rounded-2xl overflow-hidden border-2 border-slate-300 bg-black shadow-md">
-                                  <video
-                                    src={ret.videoUrl}
-                                    controls
-                                    playsInline
-                                    preload="metadata"
-                                    className="w-full max-h-72 rounded-2xl object-contain bg-black"
-                                  />
-                                </div>
-                              ) : (
-                                <div className="p-8 bg-slate-100 rounded-2xl text-center text-xs text-slate-500 border border-dashed border-slate-300">
-                                  No video uploaded
-                                </div>
-                              )}
+                              <AdminReturnVideoPlayer videoUrl={ret.videoUrl} />
                               <p className="text-[11px] text-[#5C554E] italic">
                                 💡 Tip: Watch the video to inspect the weave, defect area, and tags.
                               </p>
