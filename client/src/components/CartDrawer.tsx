@@ -111,7 +111,34 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onCheckoutClick, onViewC
                             {item.selectedVariant.name}
                           </span>
                         )}
-                        <span className="text-xs font-black text-[#14213D]">
+                        {item.customization && item.customization.totalAddonPrice > 0 && (
+                          <div className="mt-1 space-y-0.5 text-[10px] text-emerald-800 font-medium bg-emerald-50/80 p-1.5 rounded-lg border border-emerald-200/60 text-left">
+                            {item.customization.fallAndPico && (
+                              <div className="flex items-center gap-1">
+                                <span className="font-bold">✨ Fall & Pico</span>
+                                <span className="opacity-75">(+{formatPrice(item.customization.fallAndPicoPrice || 199)})</span>
+                              </div>
+                            )}
+                            {item.customization.blouseCustomization && (
+                              <div className="leading-snug">
+                                <span className="font-bold">✂️ Blouse: </span>
+                                <span>{item.customization.blouseCustomization.stitchingType}</span>
+                                {item.customization.blouseCustomization.bustSize && (
+                                  <span className="text-[9.5px] text-[#5C554E] block">
+                                    Size: {item.customization.blouseCustomization.bustSize}" • {item.customization.blouseCustomization.sleeveStyle} • {item.customization.blouseCustomization.neckStyle}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            {item.customization.tassels && (
+                              <div>🧵 Handcrafted Pallu Tassels (+{formatPrice(item.customization.tasselsPrice || 249)})</div>
+                            )}
+                            {item.customization.petticoat && (
+                              <div>👗 {item.customization.petticoatType || 'Matching Saree Inskirt'} (+{formatPrice(item.customization.petticoatPrice || 299)})</div>
+                            )}
+                          </div>
+                        )}
+                        <span className="text-xs font-black text-[#14213D] block mt-1">
                           {formatPrice(item.unitPrice)}
                         </span>
                       </div>

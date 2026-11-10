@@ -725,6 +725,35 @@ CREATE POLICY "Public update orders" ON public.orders FOR UPDATE TO anon, authen
                                   <div className="text-[10px] text-[#5C554E]">
                                     Qty: {item.quantity} • {formatRupees(item.unitPrice || item.price || 0)}
                                   </div>
+                                  {item.customization && item.customization.totalAddonPrice > 0 && (
+                                    <div className="mt-1 text-[10px] bg-emerald-50 text-emerald-900 border border-emerald-200/70 p-1.5 rounded-md text-left leading-snug">
+                                      {item.customization.fallAndPico && (
+                                        <div className="font-bold text-emerald-800">✨ Fall & Pico Included (+₹{item.customization.fallAndPicoPrice || 199})</div>
+                                      )}
+                                      {item.customization.blouseCustomization && (
+                                        <div>
+                                          <span className="font-bold">✂️ Blouse: </span>
+                                          <span>{item.customization.blouseCustomization.stitchingType}</span>
+                                          {item.customization.blouseCustomization.bustSize && (
+                                            <span className="text-[9px] text-[#5C554E] block">
+                                              Size: {item.customization.blouseCustomization.bustSize}" • {item.customization.blouseCustomization.sleeveStyle} • {item.customization.blouseCustomization.neckStyle}
+                                            </span>
+                                          )}
+                                          {item.customization.blouseCustomization.notes && (
+                                            <span className="text-[9px] italic text-[#5C554E] block">
+                                              Notes: "{item.customization.blouseCustomization.notes}"
+                                            </span>
+                                          )}
+                                        </div>
+                                      )}
+                                      {item.customization.tassels && (
+                                        <div>🧵 Pallu Tassels (+₹{item.customization.tasselsPrice || 249})</div>
+                                      )}
+                                      {item.customization.petticoat && (
+                                        <div>👗 {item.customization.petticoatType || 'Matching Saree Inskirt'} (+₹{item.customization.petticoatPrice || 299})</div>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             ))}
@@ -1610,6 +1639,24 @@ CREATE POLICY "Public update orders" ON public.orders FOR UPDATE TO anon, authen
                       <div>
                         <span className="font-bold text-black block">{item.name}</span>
                         <span className="text-[10px] text-[#5C554E]">Qty: {item.quantity} {item.variant ? `• ${item.variant}` : ''}</span>
+                        {item.customization && item.customization.totalAddonPrice > 0 && (
+                          <div className="mt-1 text-[10px] bg-emerald-50 text-emerald-900 border border-emerald-200/70 p-1.5 rounded-md text-left leading-snug">
+                            {item.customization.fallAndPico && (
+                              <div className="font-bold text-emerald-800">✨ Fall & Pico Included (+₹{item.customization.fallAndPicoPrice || 199})</div>
+                            )}
+                            {item.customization.blouseCustomization && (
+                              <div>
+                                <span className="font-bold">✂️ Blouse Stitching: </span>
+                                <span>{item.customization.blouseCustomization.stitchingType}</span>
+                                {item.customization.blouseCustomization.bustSize && (
+                                  <span className="text-[9px] text-[#5C554E] block">
+                                    Size: {item.customization.blouseCustomization.bustSize}" • {item.customization.blouseCustomization.sleeveStyle} • {item.customization.blouseCustomization.neckStyle}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <span className="font-black text-black">{formatRupees(item.totalPrice)}</span>

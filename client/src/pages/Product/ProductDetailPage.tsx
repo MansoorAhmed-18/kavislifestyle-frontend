@@ -12,7 +12,7 @@ import {
   ChevronRight,
   ArrowRight
 } from 'lucide-react';
-import { Product, ProductVariant } from '../../types';
+import { Product, ProductVariant, CustomizationOption } from '../../types';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCurrency } from '../../context/CurrencyContext';
@@ -21,6 +21,7 @@ import { useLocation } from '../../context/LocationContext';
 import { Navbar } from '../../components/Navbar';
 import { Footer } from '../../components/Footer';
 import { ProductCard } from '../../components/ProductCard';
+import { ProductAddons } from '../../components/ProductAddons';
 
 export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -37,6 +38,7 @@ export default function ProductDetailPage() {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(undefined);
   const [selectedImage, setSelectedImage] = useState<string>('');
   const [quantity, setQuantity] = useState(1);
+  const [customization, setCustomization] = useState<CustomizationOption>({ totalAddonPrice: 0 });
   const [pincode, setPincode] = useState('');
   const [deliveryEstimate, setDeliveryEstimate] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'details' | 'specs' | 'reviews'>('details');
@@ -60,6 +62,7 @@ export default function ProductDetailPage() {
         setSelectedVariant(undefined);
       }
       setQuantity(1);
+      setCustomization({ totalAddonPrice: 0 });
       window.scrollTo(0, 0);
     }
   }, [product]);
@@ -85,8 +88,14 @@ export default function ProductDetailPage() {
     );
   }
 
-  const currentPrice = (product.discountPrice ?? product.price) + (selectedVariant?.priceModifier ?? 0);
-  const originalPrice = product.price + (selectedVariant?.priceModifier ?? 0);
+  const isSareeOrFashion =
+    product.departmentId === 'womens-fashion' ||
+    (product.category || '').toLowerCase().includes('saree') ||
+    (product.name || '').toLowerCase().includes('saree');
+
+  const basePrice = (product.discountPrice ?? product.price) + (selectedVariant?.priceModifier ?? 0);
+  const currentPrice = basePrice + (isSareeOrFashion ? customization.totalAddonPrice : 0);
+  const originalPrice = product.price + (selectedVariant?.priceModifier ?? 0) + (isSareeOrFashion ? customization.totalAddonPrice : 0);
   const hasDiscount = Boolean(product.discountPrice && product.discountPrice < product.price);
   const isFavorited = isInWishlist(product.id);
 
@@ -100,13 +109,23 @@ export default function ProductDetailPage() {
   };
 
   const handleAddToCart = () => {
-    addToCart(product, selectedVariant, quantity);
+    addToCart(
+      product,
+      selectedVariant,
+      quantity,
+      isSareeOrFashion && customization.totalAddonPrice > 0 ? customization : undefined
+    );
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 1600);
   };
 
   const handleBuyNow = () => {
-    addToCart(product, selectedVariant, quantity);
+    addToCart(
+      product,
+      selectedVariant,
+      quantity,
+      isSareeOrFashion && customization.totalAddonPrice > 0 ? customization : undefined
+    );
     navigate('/checkout');
   };
 
@@ -242,6 +261,17 @@ export default function ProductDetailPage() {
                       </button>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Add-ons & Related Customization Products (Fall & Pico, Blouse Customization) */}
+              {isSareeOrFashion && (
+                <div className="mt-6 pt-5 border-t border-[#E5DCD3]">
+                  <ProductAddons
+                    departmentId={product.departmentId}
+                    category={product.category}
+                    onChange={(cust) => setCustomization(cust)}
+                  />
                 </div>
               )}
 

@@ -169,7 +169,8 @@ export default function CheckoutPage() {
       variant: item.selectedVariant?.name,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
-      totalPrice: item.totalPrice
+      totalPrice: item.totalPrice,
+      customization: item.customization
     }));
 
     const createdOrder = placeOrder({
@@ -756,6 +757,16 @@ export default function CheckoutPage() {
                       <div className="min-w-0">
                         <p className="font-bold text-black truncate">{item.product.name}</p>
                         <p className="text-[11px] text-[#5C554E]">Qty: {item.quantity} {item.selectedVariant ? `• ${item.selectedVariant.name}` : ''}</p>
+                        {item.customization && item.customization.totalAddonPrice > 0 && (
+                          <div className="mt-1 text-[10px] text-emerald-800 font-medium">
+                            {item.customization.fallAndPico && <span className="mr-1.5 font-bold">✨ Fall & Pico</span>}
+                            {item.customization.blouseCustomization && (
+                              <span className="font-bold">
+                                ✂️ Blouse: {item.customization.blouseCustomization.stitchingType} ({item.customization.blouseCustomization.bustSize ? `${item.customization.blouseCustomization.bustSize}"` : ''})
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <span className="font-black text-black flex-shrink-0">

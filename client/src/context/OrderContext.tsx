@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
+import { CustomizationOption } from '../types';
 
 export type OrderStatus = 'placed' | 'confirmed' | 'packed' | 'shipped' | 'delivered' | 'cancelled';
 
@@ -8,6 +9,7 @@ export interface OrderItem {
   name: string;
   image: string;
   variant?: string;
+  customization?: CustomizationOption;
   quantity: number;
   unitPrice: number;
   totalPrice: number;

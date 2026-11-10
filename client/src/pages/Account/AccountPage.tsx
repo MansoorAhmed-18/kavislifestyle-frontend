@@ -760,6 +760,16 @@ export default function AccountPage() {
                                   <p className="text-xs text-slate-500 mt-0.5">
                                     Qty: {item.quantity} {item.variant ? `• ${item.variant}` : ''}
                                   </p>
+                                  {item.customization && item.customization.totalAddonPrice > 0 && (
+                                    <div className="mt-1 text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block font-medium">
+                                      {item.customization.fallAndPico && <span className="mr-1.5 font-bold">✨ Fall & Pico</span>}
+                                      {item.customization.blouseCustomization && (
+                                        <span className="font-bold">
+                                          ✂️ Blouse: {item.customization.blouseCustomization.stitchingType} ({item.customization.blouseCustomization.bustSize ? `${item.customization.blouseCustomization.bustSize}"` : ''})
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                               <span className="text-sm font-bold text-slate-800">

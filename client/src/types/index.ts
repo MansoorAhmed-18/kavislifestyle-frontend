@@ -10,6 +10,28 @@ export interface Category {
   subcategories?: string[];
 }
 
+export interface BlouseCustomization {
+  stitchingType: string;
+  bustSize?: string;
+  sleeveStyle?: string;
+  neckStyle?: string;
+  backOpening?: string;
+  price: number;
+  notes?: string;
+}
+
+export interface CustomizationOption {
+  fallAndPico?: boolean;
+  fallAndPicoPrice?: number;
+  blouseCustomization?: BlouseCustomization;
+  tassels?: boolean;
+  tasselsPrice?: number;
+  petticoat?: boolean;
+  petticoatType?: string;
+  petticoatPrice?: number;
+  totalAddonPrice: number;
+}
+
 export interface ProductVariant {
   id: string;
   name: string;

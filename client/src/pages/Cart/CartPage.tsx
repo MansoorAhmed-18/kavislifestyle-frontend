@@ -93,6 +93,38 @@ export default function CartPage() {
                           Variant: <strong className="text-black">{item.selectedVariant.name}</strong>
                         </span>
                       )}
+                      {item.customization && item.customization.totalAddonPrice > 0 && (
+                        <div className="mt-1.5 space-y-0.5 text-[10px] text-emerald-800 font-medium bg-emerald-50/80 p-2 rounded-lg border border-emerald-200/60 max-w-sm">
+                          {item.customization.fallAndPico && (
+                            <div className="flex items-center gap-1">
+                              <span className="font-bold">✨ Fall & Pico Included</span>
+                              <span className="opacity-75">(+{formatPrice(item.customization.fallAndPicoPrice || 199)})</span>
+                            </div>
+                          )}
+                          {item.customization.blouseCustomization && (
+                            <div className="leading-snug">
+                              <span className="font-bold">✂️ Blouse Customization: </span>
+                              <span>{item.customization.blouseCustomization.stitchingType}</span>
+                              {item.customization.blouseCustomization.bustSize && (
+                                <span className="text-[9.5px] text-[#5C554E] block">
+                                  Size: {item.customization.blouseCustomization.bustSize}" • {item.customization.blouseCustomization.sleeveStyle} • {item.customization.blouseCustomization.neckStyle} • {item.customization.blouseCustomization.backOpening}
+                                </span>
+                              )}
+                              {item.customization.blouseCustomization.notes && (
+                                <span className="text-[9.5px] italic text-[#5C554E] block">
+                                  Note: "{item.customization.blouseCustomization.notes}"
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {item.customization.tassels && (
+                            <div>🧵 Handcrafted Pallu Tassels (+{formatPrice(item.customization.tasselsPrice || 249)})</div>
+                          )}
+                          {item.customization.petticoat && (
+                            <div>👗 {item.customization.petticoatType || 'Matching Inskirt'} (+{formatPrice(item.customization.petticoatPrice || 299)})</div>
+                          )}
+                        </div>
+                      )}
                       <div className="text-xs font-black text-black mt-1">
                         {formatPrice(item.unitPrice)} each
                       </div>

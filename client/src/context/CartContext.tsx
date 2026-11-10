@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { Product, ProductVariant } from '../types';
+import { Product, ProductVariant, CustomizationOption } from '../types';
 import { useAuth } from './AuthContext';
 
 export interface CartItem {
@@ -7,6 +7,7 @@ export interface CartItem {
   product: Product;
   quantity: number;
   selectedVariant?: ProductVariant;
+  customization?: CustomizationOption;
   unitPrice: number;
   totalPrice: number;
 }
@@ -22,7 +23,7 @@ interface CartContextType {
   cartCount: number;
   isCartDrawerOpen: boolean;
   setIsCartDrawerOpen: (isOpen: boolean) => void;
-  addToCart: (product: Product, variant?: ProductVariant, quantity?: number) => void;
+  addToCart: (product: Product, variant?: ProductVariant, quantity?: number, customization?: CustomizationOption) => void;
   removeFromCart: (cartItemId: string) => void;
   updateQuantity: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
@@ -106,10 +107,21 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const addToCart = (product: Product, variant?: ProductVariant, quantity: number = 1) => {
-    const unitPrice = product.discountPrice ?? product.price;
+  const addToCart = (
+    product: Product,
+    variant?: ProductVariant,
+    quantity: number = 1,
+    customization?: CustomizationOption
+  ) => {
+    const basePrice = (product.discountPrice ?? product.price) + (variant?.priceModifier ?? 0);
+    const addonPrice = customization?.totalAddonPrice ?? 0;
+    const unitPrice = basePrice + addonPrice;
+
     const variantId = variant?.id || 'standard';
-    const cartItemId = `${product.id}-${variantId}`;
+    const customSig = customization && customization.totalAddonPrice > 0
+      ? `-custom-${customization.fallAndPico ? 'fp' : ''}-${customization.blouseCustomization ? customization.blouseCustomization.stitchingType.slice(0, 3) + (customization.blouseCustomization.bustSize || '') : ''}-${customization.tassels ? 'ts' : ''}-${customization.petticoat ? 'pt' : ''}`
+      : '';
+    const cartItemId = `${product.id}-${variantId}${customSig}`;
 
     setCart((prev) => {
       const existingIndex = prev.findIndex((item) => item.id === cartItemId);
@@ -129,6 +141,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           product,
           quantity,
           selectedVariant: variant,
+          customization,
           unitPrice,
           totalPrice: unitPrice * quantity
         };
