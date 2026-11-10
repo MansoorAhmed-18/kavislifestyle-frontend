@@ -21,6 +21,7 @@ interface StoreUpdateItem {
   timestamp: number;
   shortDescription?: string;
   slug?: string;
+  isEdited?: boolean;
 }
 
 interface BannerCard {
@@ -35,6 +36,8 @@ interface BannerCard {
   link: string;
   bgGradient: string;
   hoursLeft?: number;
+  daysLeft?: number;
+  timeTag?: string;
 }
 
 export const TopStoreUpdateBanner: React.FC = () => {
@@ -55,9 +58,9 @@ export const TopStoreUpdateBanner: React.FC = () => {
   const isInteractingRef = useRef(false);
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Read admin updates from localStorage and filter strictly for valid, active products within 24 hours
+  // Read admin updates (both newly added & edited products) active for 2 to 3 days (72 hours)
   const activeAdminUpdates: StoreUpdateItem[] = useMemo(() => {
-    const oneDayMs = 24 * 60 * 60 * 1000;
+    const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000; // 3 days (72 hours)
     const now = Date.now();
 
     try {
@@ -72,11 +75,12 @@ export const TopStoreUpdateBanner: React.FC = () => {
         if (p.name) liveProductNames.add(p.name.trim().toLowerCase());
       });
 
-      // Also include any catalog products created within the last 24 hours
+      // Also include any catalog products created OR updated within the last 3 days
       products.forEach((p) => {
-        if (p.createdAt) {
-          const createdTime = new Date(p.createdAt).getTime();
-          if (now - createdTime <= oneDayMs) {
+        const updateTimeStr = p.updatedAt || p.createdAt;
+        if (updateTimeStr) {
+          const updateTime = new Date(updateTimeStr).getTime();
+          if (now - updateTime <= THREE_DAYS_MS) {
             const alreadyInList = parsed.some((item) => item.id === p.id);
             if (!alreadyInList) {
               parsed.push({
@@ -87,9 +91,10 @@ export const TopStoreUpdateBanner: React.FC = () => {
                 image: p.images && p.images[0] ? p.images[0] : '',
                 price: p.discountPrice || p.price,
                 originalPrice: p.price,
-                timestamp: createdTime,
+                timestamp: updateTime,
                 shortDescription: p.shortDescription || p.name,
                 slug: p.slug || p.id,
+                isEdited: !!p.updatedAt && p.updatedAt !== p.createdAt,
               });
             }
           }
@@ -98,16 +103,19 @@ export const TopStoreUpdateBanner: React.FC = () => {
 
       // Filter only updates that:
       // 1. Still genuinely exist in the catalog (NOT deleted)
-      // 2. Were created within the last 24 hours (1 day)
+      // 2. Were created/updated within 3 days (72 hours)
       const validUpdates = parsed.filter((item) => {
         const isStillInCatalog =
           liveProductMap.has(item.id) ||
           liveProductNames.has(item.name.trim().toLowerCase());
-        const isWithin24Hours = now - item.timestamp <= oneDayMs;
-        return isStillInCatalog && isWithin24Hours;
+        const isWithin3Days = now - item.timestamp <= THREE_DAYS_MS;
+        return isStillInCatalog && isWithin3Days;
       });
 
-      // Purge any deleted items from localStorage immediately
+      // Sort with newest update first so newly added/edited item enters at position 0
+      validUpdates.sort((a, b) => b.timestamp - a.timestamp);
+
+      // Purge any deleted or expired items from localStorage immediately
       if (validUpdates.length !== parsed.length) {
         localStorage.setItem('kavis_admin_store_updates', JSON.stringify(validUpdates));
       }
@@ -121,95 +129,114 @@ export const TopStoreUpdateBanner: React.FC = () => {
 
   // Construct individual banner cards
   const cards: BannerCard[] = useMemo(() => {
-    const list: BannerCard[] = [];
+    const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
 
-    // 1. Admin Store Updates (Individual cards for products added within 24h / 1 day)
-    activeAdminUpdates.forEach((update, idx) => {
-      const elapsedMs = Date.now() - update.timestamp;
-      const hoursRemaining = Math.max(1, Math.round((24 * 60 * 60 * 1000 - elapsedMs) / (60 * 60 * 1000)));
+    // 1. Newly Added or Edited Store Updates (Active for 2 to 3 days)
+    const adminCards: BannerCard[] = activeAdminUpdates.map((update, idx) => {
+      const elapsedMs = Math.max(0, now - update.timestamp);
+      const remainingMs = Math.max(0, THREE_DAYS_MS - elapsedMs);
+      const remainingHours = Math.max(1, Math.round(remainingMs / (60 * 60 * 1000)));
+      const remainingDays = Math.ceil(remainingMs / (24 * 60 * 60 * 1000));
+      const timeTag = remainingDays > 1 ? `${remainingDays} days left` : `${remainingHours}h left`;
 
-      list.push({
+      let title = update.name;
+      if (update.originalPrice && update.price && update.originalPrice > update.price) {
+        const discountPct = Math.round(((update.originalPrice - update.price) / update.originalPrice) * 100);
+        title = `${update.name.slice(0, 24)} • Min. ${discountPct}% Off`;
+      } else {
+        title = `${update.name.slice(0, 26)} • Fresh Store Item`;
+      }
+
+      const partnerText = update.isEdited
+        ? 'STORE UPDATE • RECENTLY UPDATED'
+        : 'STORE UPDATE • JUST ADDED TO STORE';
+
+      const subtitle = `${update.category} • ${update.shortDescription || (update.isEdited ? 'Updated in catalog' : 'Fresh store launch')}`;
+
+      return {
         id: `admin-update-${update.id}-${idx}`,
         isStoreUpdate: true,
         badge: 'STORE UPDATE',
-        partnerText: 'STORE UPDATE • JUST ADDED TODAY',
-        title: `${update.name.slice(0, 22)}... Min. 40% Off`,
-        subtitle: `${update.category} • Fresh Launch by Admin`,
+        partnerText,
+        title,
+        subtitle,
         priceTag: `₹${Math.round(update.price).toLocaleString('en-IN')}`,
-        image: update.image,
+        image: update.image || '/images/products/sarees/saree-6.jpg',
         link: update.slug ? `/product/${update.slug}` : `/shop`,
         bgGradient: 'from-[#C1121F] via-[#D90429] to-[#F77F00]',
-        hoursLeft: hoursRemaining,
-      });
+        hoursLeft: remainingHours,
+        daysLeft: remainingDays,
+        timeTag,
+      };
     });
 
-    // 2. Featured Store Collection Cards
-    list.push({
-      id: 'store-sarees',
-      isStoreUpdate: false,
-      badge: 'STORE UPDATE',
-      partnerText: "Kavi's Boutique • Fashion Partner",
-      title: 'Heritage Mysore & Silks Min. 70% Off',
-      subtitle: 'Pure zari sarees, bridal silks & more',
-      priceTag: 'Under ₹1,999',
-      image: '/images/products/sarees/saree-6.jpg',
-      link: '/shop?dept=womens-fashion',
-      bgGradient: 'from-[#D71921] via-[#E85D04] to-[#F48C06]',
-    });
+    // 2. Featured Store Collection Cards ("The Old Items")
+    const defaultCards: BannerCard[] = [
+      {
+        id: 'store-sarees',
+        isStoreUpdate: false,
+        badge: 'STORE UPDATE',
+        partnerText: "Kavi's Boutique • Fashion Partner",
+        title: 'Heritage Mysore & Silks Min. 70% Off',
+        subtitle: 'Pure zari sarees, bridal silks & more',
+        priceTag: 'Under ₹1,999',
+        image: '/images/products/sarees/saree-6.jpg',
+        link: '/shop?dept=womens-fashion',
+        bgGradient: 'from-[#D71921] via-[#E85D04] to-[#F48C06]',
+      },
+      {
+        id: 'store-dryfruits',
+        isStoreUpdate: false,
+        badge: 'STORE UPDATE',
+        partnerText: "Nature's Harvest • Gourmet Packs",
+        title: 'California Jumbo Almonds Min. 60% Off',
+        subtitle: 'Jumbo cashews, walnuts & gift packs',
+        priceTag: 'Under ₹599',
+        image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=700&q=80',
+        link: '/shop?dept=dry-fruits-nuts',
+        bgGradient: 'from-[#9B2226] via-[#BA181B] to-[#E85D04]',
+      },
+      {
+        id: 'store-perfumes',
+        isStoreUpdate: false,
+        badge: 'STORE UPDATE',
+        partnerText: 'Luxury Fragrance • Artisanal Attars',
+        title: 'Kannauj Rose & Sandalwood Min. 65% Off',
+        subtitle: 'Pure attars, luxury EDPs & gift sets',
+        priceTag: 'Under ₹799',
+        image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=700&q=80',
+        link: '/shop?dept=perfumes-fragrances',
+        bgGradient: 'from-[#6B0F1A] via-[#941B0C] to-[#BC3908]',
+      },
+      {
+        id: 'store-beauty',
+        isStoreUpdate: false,
+        badge: 'STORE UPDATE',
+        partnerText: 'Clean Skincare • Ayurvedic Elixirs',
+        title: 'Kumkumadi Radiance Oil Min. 50% Off',
+        subtitle: 'Saffron face glow, ubtans & rituals',
+        priceTag: 'Under ₹499',
+        image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=700&q=80',
+        link: '/shop?dept=cosmetics-beauty',
+        bgGradient: 'from-[#540B0E] via-[#9E2A2B] to-[#E09F3E]',
+      },
+      {
+        id: 'store-collection',
+        isStoreUpdate: false,
+        badge: 'STORE UPDATE',
+        partnerText: 'STORE COLLECTION • UP TO 70% OFF',
+        title: 'Grand Store Collection Min. 70% Off',
+        subtitle: 'Sarees, dry fruits, perfumes & beauty',
+        priceTag: 'Featured Deals',
+        image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=700&q=80',
+        link: '/shop',
+        bgGradient: 'from-[#B7094C] via-[#C72C41] to-[#EE9B00]',
+      },
+    ];
 
-    list.push({
-      id: 'store-dryfruits',
-      isStoreUpdate: false,
-      badge: 'STORE UPDATE',
-      partnerText: "Nature's Harvest • Gourmet Packs",
-      title: 'California Jumbo Almonds Min. 60% Off',
-      subtitle: 'Jumbo cashews, walnuts & gift packs',
-      priceTag: 'Under ₹599',
-      image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=700&q=80',
-      link: '/shop?dept=dry-fruits-nuts',
-      bgGradient: 'from-[#9B2226] via-[#BA181B] to-[#E85D04]',
-    });
-
-    list.push({
-      id: 'store-perfumes',
-      isStoreUpdate: false,
-      badge: 'STORE UPDATE',
-      partnerText: 'Luxury Fragrance • Artisanal Attars',
-      title: 'Kannauj Rose & Sandalwood Min. 65% Off',
-      subtitle: 'Pure attars, luxury EDPs & gift sets',
-      priceTag: 'Under ₹799',
-      image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=700&q=80',
-      link: '/shop?dept=perfumes-fragrances',
-      bgGradient: 'from-[#6B0F1A] via-[#941B0C] to-[#BC3908]',
-    });
-
-    list.push({
-      id: 'store-beauty',
-      isStoreUpdate: false,
-      badge: 'STORE UPDATE',
-      partnerText: 'Clean Skincare • Ayurvedic Elixirs',
-      title: 'Kumkumadi Radiance Oil Min. 50% Off',
-      subtitle: 'Saffron face glow, ubtans & rituals',
-      priceTag: 'Under ₹499',
-      image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=700&q=80',
-      link: '/shop?dept=cosmetics-beauty',
-      bgGradient: 'from-[#540B0E] via-[#9E2A2B] to-[#E09F3E]',
-    });
-
-    list.push({
-      id: 'store-collection',
-      isStoreUpdate: false,
-      badge: 'STORE UPDATE',
-      partnerText: 'STORE COLLECTION • UP TO 70% OFF',
-      title: 'Grand Store Collection Min. 70% Off',
-      subtitle: 'Sarees, dry fruits, perfumes & beauty',
-      priceTag: 'Featured Deals',
-      image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=700&q=80',
-      link: '/shop',
-      bgGradient: 'from-[#B7094C] via-[#C72C41] to-[#EE9B00]',
-    });
-
-    return list;
+    // Priority: Updated/added items show first. If no updates or once 2-3 days expire, default items run!
+    return [...adminCards, ...defaultCards];
   }, [activeAdminUpdates]);
 
   const totalCards = cards.length;
@@ -320,11 +347,11 @@ export const TopStoreUpdateBanner: React.FC = () => {
               <span>{card.badge}</span>
             </div>
 
-            {/* 24-Hour Tag for Admin Store Updates */}
-            {card.isStoreUpdate && card.hoursLeft !== undefined && (
+            {/* 2 to 3 Days Countdown Tag for Store Updates */}
+            {card.isStoreUpdate && (card.timeTag || card.hoursLeft !== undefined) && (
               <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-xs text-[#F4EDE0] text-[8.5px] sm:text-[9px] font-bold border border-white/20">
                 <Clock className="w-2.5 h-2.5 text-[#FF6B5B]" />
-                <span>Live for {card.hoursLeft}h</span>
+                <span>Live for {card.timeTag || `${card.hoursLeft}h`}</span>
               </div>
             )}
           </div>

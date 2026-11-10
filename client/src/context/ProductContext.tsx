@@ -76,10 +76,11 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       price: Number(productData.price),
       discountPrice: productData.discountPrice ? Number(productData.discountPrice) : undefined,
       createdAt: productData.createdAt || nowIso,
+      updatedAt: nowIso,
       isNewArrival: true,
     };
 
-    // Track admin store updates for the 24-hour spotlight banner
+    // Track admin store updates for the 2 to 3 days spotlight banner
     try {
       const existing = JSON.parse(localStorage.getItem('kavis_admin_store_updates') || '[]');
       const newUpdate = {
@@ -91,8 +92,11 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         price: newProduct.discountPrice || newProduct.price,
         originalPrice: newProduct.price,
         shortDescription: newProduct.shortDescription || newProduct.name,
+        slug: newProduct.slug,
         timestamp: Date.now(),
         addedAt: nowIso,
+        updatedAt: nowIso,
+        isEdited: false,
       };
       const filtered = Array.isArray(existing) ? existing.filter((u: any) => u.id !== newProduct.id) : [];
       localStorage.setItem('kavis_admin_store_updates', JSON.stringify([newUpdate, ...filtered]));
@@ -105,9 +109,52 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateProduct = (id: string, updates: Partial<Product>) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
-    );
+    const nowIso = new Date().toISOString();
+    const nowMs = Date.now();
+
+    setProducts((prev) => {
+      const updatedList = prev.map((p) => {
+        if (p.id !== id) return p;
+        const mergedProduct: Product = {
+          ...p,
+          ...updates,
+          updatedAt: nowIso,
+        };
+
+        // Track admin store update for the top banner (persists for 2 to 3 days)
+        try {
+          const existing = JSON.parse(localStorage.getItem('kavis_admin_store_updates') || '[]');
+          const newUpdate = {
+            id: mergedProduct.id,
+            name: mergedProduct.name,
+            category: mergedProduct.category,
+            departmentId: mergedProduct.departmentId,
+            image: mergedProduct.images && mergedProduct.images[0] ? mergedProduct.images[0] : '',
+            price: mergedProduct.discountPrice || mergedProduct.price,
+            originalPrice: mergedProduct.price,
+            shortDescription: mergedProduct.shortDescription || mergedProduct.name,
+            slug: mergedProduct.slug || mergedProduct.id,
+            timestamp: nowMs,
+            updatedAt: nowIso,
+            isEdited: true,
+          };
+          const filtered = Array.isArray(existing) ? existing.filter((u: any) => u.id !== mergedProduct.id) : [];
+          localStorage.setItem('kavis_admin_store_updates', JSON.stringify([newUpdate, ...filtered]));
+        } catch (e) {
+          console.error('Failed to record update in admin store updates', e);
+        }
+
+        return mergedProduct;
+      });
+
+      try {
+        localStorage.setItem(PRODUCT_STORAGE_KEY, JSON.stringify(updatedList));
+      } catch (err) {
+        console.error('Failed to save updated catalog', err);
+      }
+
+      return updatedList;
+    });
   };
 
   const deleteProduct = (id: string) => {

@@ -44,6 +44,7 @@ export interface Product {
   brand?: string;
   description?: string;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ShippingAddress {
