@@ -348,56 +348,56 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 'prod-sar-russian-semi-silk',
     name: 'Russian Semi Silk Saree',
-    slug: 'russian-semi-silk-saree-fluid',
+    slug: 'russian-semi-silk-saree-purple-gold',
     departmentId: 'womens-fashion',
     category: 'Sarees',
     subcategory: 'Semi-Silk Sarees',
-    brand: "Kavi's Modern Silks",
-    description: 'Silky smooth Russian semi silk saree with ultra-fluid drape, vibrant contemporary digital floral prints, and shimmering satin-feel border. Effortless to drape and wrinkle-resistant.',
-    shortDescription: 'Smooth fluid Russian semi silk with digital florals and satin finish.',
+    brand: "Kavi's Royal Silks",
+    description: 'Opulent deep purple Russian semi silk saree embellished with metallic gold grid checks, circular medallion buttas, broad mustard-yellow contrast temple borders, and rich handcrafted tassels.',
+    shortDescription: 'Deep purple Russian semi silk saree with gold checks and mustard-yellow border.',
     price: 1650,
     discountPrice: 1125,
     discountPercentage: 32,
     rating: 4.8,
     reviewsCount: 26,
     images: [
-      'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1616949755610-8c9bbc08f138?auto=format&fit=crop&w=800&q=80'
+      '/images/products/sarees/saree-russian-semi-silk.jpg'
     ],
     stock: 22,
     sku: 'KV-SAR-RUS-1125',
     attributes: {
-      Fabric: 'Fluid Russian Semi Silk',
-      Finish: 'Satin Lustre Digital Print',
+      Fabric: 'Rich Russian Semi Silk Blend',
+      Border: 'Contrast Mustard-Yellow Traditional Zari with Tassels',
       Length: '6.2 Meters with Blouse Piece',
-      Care: 'Gentle Machine Wash'
+      Care: 'Dry Clean Recommended'
     }
   },
   {
     id: 'prod-sar-kadhi-georgette-silk',
-    name: 'Kadhi Georgette Silk Saree',
-    slug: 'kadhi-georgette-silk-saree-delicate',
+    name: 'Khadhi Georgette Silk Saree',
+    slug: 'khadhi-georgette-silk-saree-duo',
     departmentId: 'womens-fashion',
     category: 'Sarees',
     subcategory: 'Silk Sarees',
     brand: "Kavi's Haute Silks",
-    description: 'Luxurious textured khadi georgette silk saree combining the crinkled sheer drape of pure georgette with the artisanal texture of khadi. Adorned with delicate zari patti and rich pallu.',
-    shortDescription: 'Textured khadi georgette silk saree with crinkled sheer drape.',
+    description: 'Luxurious artisanal Khadhi Georgette Silk Saree woven with rich textured drape, intricate golden zari floral vine jaal work, contrast traditional borders, and festive tassel pallu. Available in 2 regal colorways: Vibrant Festive Mustard Yellow with Royal Purple Border & Pallu and Opulent Deep Plum Wine with Strawberry Pink Border.',
+    shortDescription: 'Artisanal Khadhi georgette silk saree in 2 regal colors with gold zari floral vine jaal.',
     price: 2899,
     discountPrice: 2075,
     discountPercentage: 28,
     rating: 5.0,
     reviewsCount: 44,
     images: [
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'
+      '/images/products/sarees/saree-khadhi-georgette-1.jpg',
+      '/images/products/sarees/saree-khadhi-georgette-2.jpg'
     ],
     stock: 14,
     sku: 'KV-SAR-KGS-2075',
     isFeatured: true,
     attributes: {
-      Fabric: 'Khadi Georgette Silk Blend',
-      Texture: 'Breezy Crinkle Drape',
+      Fabric: 'Pure Khadhi Georgette Silk Blend',
+      Colorways: 'Mustard Yellow & Deep Wine Purple',
+      Work: 'Intricate Gold Zari Floral Vine Jaal & Tassel Pallu',
       Length: '6.2 Meters with Blouse Piece',
       Care: 'Dry Clean Only'
     }
@@ -405,89 +405,86 @@ export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 'prod-sar-dupion-silk',
     name: 'Dupion Silk Saree',
-    slug: 'dupion-silk-saree-dual-tone',
+    slug: 'dupion-silk-saree-heritage',
     departmentId: 'womens-fashion',
     category: 'Sarees',
     subcategory: 'Silk Sarees',
-    brand: "Kavi's Royal Silks",
-    description: 'Crisp textured raw dupion silk woven with cross-dyed yarns that produce an iridescent two-tone shimmer. Offers a structured royal silhouette with ornate golden borders.',
-    shortDescription: 'Dual-tone raw dupion silk saree with iridescent two-tone shimmer.',
+    brand: "Kavi's Boutique & Fashion",
+    description: 'Boutique signature ivory-white pure dupion silk saree with contrasting royal maroon-crimson temple borders, fine golden zari buttas across the body, and rich celebratory pallu.',
+    shortDescription: 'Classic ivory-white dupion silk saree with royal maroon border and gold zari buttas.',
     price: 1999,
     discountPrice: 1375,
     discountPercentage: 31,
     rating: 4.9,
     reviewsCount: 39,
     images: [
-      'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80'
+      '/images/products/sarees/saree-dupion-silk.jpg'
     ],
     stock: 19,
     sku: 'KV-SAR-DUP-1375',
     isBestSeller: true,
     attributes: {
-      Fabric: 'Raw Dupion Silk',
-      Shimmer: 'Cross-Dyed Dual Tone',
+      Fabric: 'Artisanal Dupion Silk Blend',
+      Border: 'Deep Maroon-Crimson with Gold Zari',
       Length: '6.2 Meters with Blouse Piece',
-      Care: 'Dry Clean Recommended'
+      Care: 'Dry Clean Only'
     }
   },
   {
     id: 'prod-sar-soft-chanderi-silk',
-    name: 'Soft Chanderi Silk Saree',
-    slug: 'soft-chanderi-silk-saree-booti',
+    name: 'Soft Chanderi Cotton Saree',
+    slug: 'soft-chanderi-cotton-saree-peacock',
     departmentId: 'womens-fashion',
     category: 'Sarees',
-    subcategory: 'Silk Sarees',
+    subcategory: 'Cotton Sarees',
     brand: "Kavi's Chanderi Weaves",
-    description: 'Translucent, featherlight Chanderi silk saree with glistening gold zari booti work and heritage borders from Madhya Pradesh. Sheer, glossy, and comfortable for all occasions.',
-    shortDescription: 'Sheer soft Chanderi silk with glistening gold zari booti work.',
+    description: 'Breezy seafoam mint-green soft chanderi cotton saree featuring intricate peacock and floral motif artwork on the pallu, fine gold zari borders, and delicate booti work for effortless festive charm.',
+    shortDescription: 'Seafoam mint-green soft chanderi cotton saree with peacock artwork and gold zari border.',
     price: 1799,
     discountPrice: 1225,
     discountPercentage: 32,
     rating: 4.8,
     reviewsCount: 37,
     images: [
-      'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1609357605129-26f69add5d6e?auto=format&fit=crop&w=800&q=80'
+      '/images/products/sarees/saree-soft-chanderi-cotton.jpg'
     ],
     stock: 21,
     sku: 'KV-SAR-SCH-1225',
     isFeatured: true,
     attributes: {
       Origin: 'Chanderi, Madhya Pradesh',
-      Fabric: 'Soft Chanderi Silk',
-      Zari: 'Fine Gold Zari Booti',
+      Fabric: 'Pure Soft Chanderi Cotton Blend',
+      Motif: 'Handcrafted Peacock & Floral Pallu Artwork',
       Length: '6.2 Meters with Blouse Piece',
-      Care: 'Dry Clean Recommended'
+      Care: 'Dry Clean or Gentle Cold Wash'
     }
   },
   {
     id: 'prod-sar-soft-tissue-silk-cotton',
-    name: 'Soft Tissue Silk Cotton Saree',
-    slug: 'soft-tissue-silk-cotton-saree-metallic',
+    name: 'Tissue Silk Cotton Saree',
+    slug: 'tissue-silk-cotton-saree-floral',
     departmentId: 'womens-fashion',
     category: 'Sarees',
     subcategory: 'Silk Cotton Sarees',
-    brand: "Kavi's Tissue Silks",
-    description: 'Radiant glazed metallic tissue silk-cotton saree with shimmering translucent glow, lightweight feel, and regal festive presence. Comes with matching tissue blouse piece.',
-    shortDescription: 'Radiant glazed metallic tissue silk-cotton saree with festive shimmer.',
+    brand: "Kavi's Boutique Weaves",
+    description: 'Artisanal champagne-beige tissue silk cotton saree featuring vibrant hand-painted crimson red and sunflower yellow floral creeper motifs, delicate gold sheen, and a graceful lightweight drape with matching blouse piece.',
+    shortDescription: 'Champagne-beige tissue silk cotton saree with vibrant crimson floral creeper motifs.',
     price: 1550,
     discountPrice: 1050,
     discountPercentage: 32,
     rating: 4.9,
     reviewsCount: 40,
     images: [
-      'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=800&q=80'
+      '/images/products/sarees/saree-tissue-silk-cotton.jpg'
     ],
     stock: 18,
     sku: 'KV-SAR-TIS-1050',
     isNewArrival: true,
     attributes: {
       Fabric: 'Tissue Silk Cotton Blend',
-      Finish: 'Glazed Metallic Luster',
+      Finish: 'Glazed Metallic Luster with Floral Art',
       Length: '6.2 Meters with Blouse Piece',
-      Care: 'Dry Clean Only'
+      Care: 'Dry Clean Recommended'
     }
   },
   {
