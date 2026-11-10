@@ -5,7 +5,6 @@ import { TopStoreUpdateBanner } from '../../components/TopStoreUpdateBanner';
 import { DepartmentCards } from '../../components/DepartmentCards';
 import { FeaturedProducts } from '../../components/FeaturedProducts';
 import { TestimonialsSection } from '../../components/TestimonialsSection';
-import { StoreLocatorAndAboutUs } from '../../components/StoreLocatorAndAboutUs';
 import { Footer } from '../../components/Footer';
 
 export default function HomePage() {
@@ -29,9 +28,6 @@ export default function HomePage() {
 
         {/* Real Customer Stories & Reviews */}
         <TestimonialsSection />
-
-        {/* Flagship Store Locator & Brand Heritage (About Us) */}
-        <StoreLocatorAndAboutUs />
       </main>
 
       {/* Complete Footer */}

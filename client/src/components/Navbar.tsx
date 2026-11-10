@@ -403,19 +403,19 @@ export const Navbar: React.FC = () => {
 
     return (
       <div
-        className={`absolute top-full left-0 right-0 mt-1.5 sm:mt-2 bg-white rounded-2xl shadow-2xl border border-[#E5DCD3] z-50 overflow-hidden text-left animate-in fade-in slide-in-from-top-2 flex flex-col ${
+        className={`absolute top-full left-0 right-0 mt-1.5 sm:mt-2 bg-white text-black rounded-2xl shadow-2xl border border-[#E5DCD3] z-50 overflow-hidden text-left animate-in fade-in slide-in-from-top-2 flex flex-col ${
           isMobile ? 'max-h-[70vh]' : 'max-h-[480px]'
         }`}
       >
         {/* 1. When no query is typed: Popular searches & Department shortcuts */}
         {!searchQuery.trim() && (
-          <div className="p-3.5 sm:p-4 bg-[#FAF6F2]/80 overflow-y-auto">
+          <div className="p-3.5 sm:p-4 bg-[#FAF6F2]/90 text-black overflow-y-auto">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-[#786F66] flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#E44A2D]" />
-                <span>Trending Searches</span>
+              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-black flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#FF6B5B]" />
+                <span className="text-black">Trending Searches</span>
               </span>
-              <span className="text-[10px] text-[#786F66]">Tap to search</span>
+              <span className="text-[10px] font-bold text-neutral-700">Tap to search</span>
             </div>
 
             <div className="flex flex-wrap gap-1.5 mb-3.5">
@@ -439,10 +439,10 @@ export const Navbar: React.FC = () => {
                     navigate(`/shop?search=${encodeURIComponent(kw.label)}`);
                     setIsSearchFocused(false);
                   }}
-                  className="text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-full bg-white hover:bg-[#E44A2D] hover:text-white transition border border-[#E5DCD3] shadow-2xs flex items-center gap-1 group active:scale-95 cursor-pointer"
+                  className="text-[11px] sm:text-xs font-bold px-2.5 py-1 rounded-full bg-white text-black hover:bg-[#FF6B5B] hover:text-white transition border border-[#D5C9B8] shadow-2xs flex items-center gap-1.5 group active:scale-95 cursor-pointer"
                 >
-                  <span>{kw.label}</span>
-                  <span className="text-[10px] text-[#786F66] group-hover:text-white/90 font-normal">
+                  <span className="text-black font-extrabold group-hover:text-white">{kw.label}</span>
+                  <span className="text-[10px] text-neutral-800 font-bold group-hover:text-white/90">
                     {kw.price}
                   </span>
                 </button>
@@ -455,14 +455,14 @@ export const Navbar: React.FC = () => {
         {searchQuery.trim() && (
           <div className="overflow-y-auto divide-y divide-[#E5DCD3]/60 flex-1">
             {/* Header pill */}
-            <div className="px-3.5 py-2 bg-[#FAF6F2] text-[11px] font-bold text-[#786F66] flex items-center justify-between sticky top-0 z-10 border-b border-[#E5DCD3]/60">
+            <div className="px-3.5 py-2 bg-[#FAF6F2] text-[11px] font-bold text-black flex items-center justify-between sticky top-0 z-10 border-b border-[#E5DCD3]/60">
               <span className="flex items-center gap-1.5">
-                <span>Recognized Matches</span>
-                <span className="bg-[#E44A2D] text-white text-[10px] font-black px-1.5 py-0.2 rounded-full">
+                <span className="text-black font-extrabold">Recognized Matches</span>
+                <span className="bg-[#FF6B5B] text-white text-[10px] font-black px-1.5 py-0.2 rounded-full">
                   {instantProductMatches.length}
                 </span>
               </span>
-              <span className="text-[10px] text-[#786F66] font-normal hidden sm:inline">
+              <span className="text-[10px] text-neutral-700 font-medium hidden sm:inline">
                 Instant predictive search
               </span>
             </div>
@@ -470,7 +470,7 @@ export const Navbar: React.FC = () => {
             {/* Category match suggestions if any */}
             {instantCategoryMatches.length > 0 && (
               <div className="p-2.5 bg-amber-50/70 flex flex-wrap gap-1.5 items-center">
-                <span className="text-[10px] font-bold text-amber-900 uppercase tracking-wider mr-1">
+                <span className="text-[10px] font-black text-amber-950 uppercase tracking-wider mr-1">
                   Departments:
                 </span>
                 {instantCategoryMatches.map((cat) => (
@@ -483,11 +483,11 @@ export const Navbar: React.FC = () => {
                       saveSearchQuery(cat.title, user?.email);
                       navigate(`/shop?dept=${cat.deptId}`);
                     }}
-                    className="text-xs font-bold px-2.5 py-1 bg-white hover:bg-[#E44A2D] hover:text-white rounded-lg border border-amber-200 shadow-2xs transition flex items-center gap-1.5 cursor-pointer"
+                    className="text-xs font-bold px-2.5 py-1 bg-white text-black hover:bg-[#FF6B5B] hover:text-white rounded-lg border border-amber-200 shadow-2xs transition flex items-center gap-1.5 cursor-pointer"
                   >
-                    <Tag className="w-3 h-3 text-[#E44A2D]" />
-                    <span>{cat.title}</span>
-                    <span className="text-[10px] opacity-75 font-normal">({cat.count})</span>
+                    <Tag className="w-3 h-3 text-[#FF6B5B]" />
+                    <span className="text-black font-bold group-hover:text-white">{cat.title}</span>
+                    <span className="text-[10px] text-neutral-700 font-semibold">({cat.count})</span>
                   </button>
                 ))}
               </div>
