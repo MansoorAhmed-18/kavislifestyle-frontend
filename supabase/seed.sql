@@ -17,7 +17,7 @@ INSERT INTO public.store_settings (
     'Kavi''s Lifestyle',
     'Everything You Love, Under One Roof.',
     'care@kavislifestyle.com',
-    '+91 98400 12345',
+    '+91 90953 16566',
     'Kavi Boutique, T. Nagar, Chennai, Tamil Nadu — 600017',
     'Festive Launch: FREE Shipping across India on orders above ₹999 | Use code KAVI10',
     999.00,

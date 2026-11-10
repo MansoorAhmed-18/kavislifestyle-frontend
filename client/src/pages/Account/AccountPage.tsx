@@ -23,7 +23,9 @@ import {
   Star,
   HelpCircle,
   Search,
-  X
+  X,
+  ShieldCheck,
+  ExternalLink
 } from 'lucide-react';
 import { CustomerSupportAndFAQ } from '../../components/CustomerSupportAndFAQ';
 import { useAuth } from '../../context/AuthContext';
@@ -117,18 +119,13 @@ export default function AccountPage() {
     const q = orderSearchQuery.trim().toLowerCase();
     if (!q) return userOrders;
 
-    return orders.filter((o) => {
+    return userOrders.filter((o) => {
       const matchNum = (o.orderNumber || '').toLowerCase().includes(q);
       const matchTracking = (o.trackingNumber || '').toLowerCase().includes(q);
-      const matchEmail =
-        (o.customer?.email || '').toLowerCase().includes(q) ||
-        (o.userEmail || '').toLowerCase().includes(q);
-      const matchPhone = (o.customer?.phone || '')
-        .replace(/[^0-9]/g, '')
-        .includes(q.replace(/[^0-9]/g, ''));
-      return matchNum || matchTracking || matchEmail || matchPhone;
+      const matchProduct = o.items?.some((it) => (it.name || '').toLowerCase().includes(q));
+      return matchNum || matchTracking || matchProduct;
     });
-  }, [orderSearchQuery, userOrders, orders]);
+  }, [orderSearchQuery, userOrders]);
 
   // Redirect to login if user is not authenticated
   React.useEffect(() => {
@@ -542,6 +539,35 @@ export default function AccountPage() {
             {/* TAB 1: ORDERS */}
             {activeTab === 'orders' && (
               <div className="space-y-6">
+                {/* Store Administrator Notice Banner */}
+                {(user?.role === 'admin' || user?.email?.toLowerCase().includes('admin')) && (
+                  <div className="bg-[#14213D] text-[#F4EDE0] rounded-2xl p-4 sm:p-5 border border-white/10 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-[#FF6B5B] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                        <ShieldCheck className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-black text-white">Administrator Account Mode</h4>
+                          <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
+                            {orders.length} Customer Orders in Store
+                          </span>
+                        </div>
+                        <p className="text-xs text-[#F4EDE0]/80 mt-1 leading-relaxed">
+                          Orders placed by customers are routed to the <strong>Admin Portal</strong> for store management. This customer page shows only personal orders placed directly by this account.
+                        </p>
+                      </div>
+                    </div>
+                    <Link
+                      to="/admin"
+                      className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#FF6B5B] hover:bg-[#E85545] text-white text-xs font-bold rounded-xl transition shadow-sm active:scale-95 cursor-pointer shrink-0"
+                    >
+                      <span>Open Admin Portal</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                )}
+
                 <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h2 className="text-lg font-bold text-[#114B5F] mb-1">Order History & Live Status</h2>
@@ -676,11 +702,6 @@ export default function AccountPage() {
                             </div>
                             <div className="text-xs text-slate-500 mt-0.5">
                               Placed on {order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent'} • Courier: <strong>{order.carrier || deliveryTurnaround.courier}</strong> (Tracking: <strong>{order.trackingNumber || 'BD-' + order.orderNumber.replace(/[^0-9]/g, '').slice(-6) + 'IN'}</strong>)
-                              {order.customer?.email && user?.email && order.customer.email.toLowerCase().trim() !== user.email.toLowerCase().trim() && (
-                                <span className="ml-2 inline-block px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 rounded text-[10px] font-semibold">
-                                  Account: {order.customer.email}
-                                </span>
-                              )}
                             </div>
                           </div>
 

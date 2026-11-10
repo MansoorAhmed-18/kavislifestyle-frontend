@@ -19,7 +19,7 @@ export const StoreLocatorAndAboutUs: React.FC = () => {
       className="bg-[#F4EDE0] stripe-cream py-14 sm:py-20 border-b border-[#E5D8C5] text-left"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14 sm:space-y-16">
-        
+
         {/* ========================================================= */}
         {/* PART 1: ABOUT US BRAND HERITAGE                           */}
         {/* ========================================================= */}
@@ -195,7 +195,7 @@ export const StoreLocatorAndAboutUs: React.FC = () => {
                 <Phone className="w-5 h-5 text-black shrink-0 mt-0.5" />
                 <div className="text-xs">
                   <p className="font-bold text-black">Direct Assistance</p>
-                  <p className="text-[11px] text-[#5C554E] mt-0.5">+91 98400 12345</p>
+                  <p className="text-[11px] text-[#5C554E] mt-0.5">+91 90953 16566</p>
                   <p className="text-[11px] text-[#5C554E]">care@kavislifestyle.com</p>
                 </div>
               </div>

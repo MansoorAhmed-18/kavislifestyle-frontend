@@ -166,12 +166,7 @@ export const CustomerSupportAndFAQ: React.FC<CustomerSupportAndFAQProps> = ({ em
   const { orders, getUserOrders } = useOrders();
   const { formatPrice } = useCurrency();
   const userOrders = getUserOrders(user?.email, user?.id);
-
-  // Fallback to all orders if user is browsing orders placed across devices / accounts
-  const availableOrders = useMemo(() => {
-    if (userOrders.length > 0) return userOrders;
-    return orders;
-  }, [userOrders, orders]);
+  const availableOrders = userOrders;
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');

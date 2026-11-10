@@ -105,7 +105,7 @@ export const PhysicalStorefront: React.FC = () => {
                   <Phone className="w-4 h-4 text-[#FF6B5B]" />
                   <p className="font-bold text-xs text-[#14213D]">Direct Helpline</p>
                 </div>
-                <p className="text-[11px] text-[#14213D]/80">+91 98400 12345</p>
+                <p className="text-[11px] text-[#14213D]/80">+91 90953 16566</p>
                 <p className="text-[11px] text-[#14213D]/80">care@kavislifestyle.com</p>
               </div>
 

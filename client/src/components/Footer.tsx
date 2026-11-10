@@ -8,10 +8,10 @@ export const Footer: React.FC = () => {
   return (
     <footer className="bg-[#14213D] stripe-navy text-[#F4EDE0] pt-16 pb-8 border-t border-[#1D2D50] text-left">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Main Grid: 5 Columns */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 pb-12 border-b border-white/15">
-          
+
           {/* Column 1: Brand Info */}
           <div className="lg:col-span-2 space-y-4">
             <Link to="/" className="flex items-center group">
@@ -29,7 +29,7 @@ export const Footer: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-[#FF6B5B] flex-shrink-0" />
-                <span>Customer Care: +91 98400 12345 (Mon–Sat, 10 AM – 7 PM IST)</span>
+                <span>Customer Care: +91 90953 16566 (Mon–Sat, 10 AM – 7 PM IST)</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-[#FF6B5B] flex-shrink-0" />

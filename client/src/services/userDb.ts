@@ -20,14 +20,14 @@ const SEED_USERS: StoredUserAccount[] = [
     fullName: 'Priyadarshini Sundaram',
     email: 'priya@kavislifestyle.com',
     password: 'demo123456',
-    phone: '+91 98400 12345',
+    phone: '+91 90953 16566',
     role: 'customer',
     createdAt: '2026-01-15T10:00:00.000Z',
     addresses: [
       {
         id: 'addr-1',
         fullName: 'Priyadarshini Sundaram',
-        phone: '+91 98400 12345',
+        phone: '+91 90953 16566',
         street: '14B, Alacrity Greens, 4th Main Road',
         apartment: 'Flat 202',
         city: 'Chennai',
@@ -53,14 +53,14 @@ const SEED_USERS: StoredUserAccount[] = [
     fullName: 'Mansoor',
     email: 'simplysarath01@gmail.com',
     password: 'man@123',
-    phone: '+91 98400 12345',
+    phone: '+91 90953 16566',
     role: 'customer',
     createdAt: '2026-03-01T10:00:00.000Z',
     addresses: [
       {
         id: 'addr-mansoor-1',
         fullName: 'Mansoor',
-        phone: '+91 98400 12345',
+        phone: '+91 90953 16566',
         street: 'Near Railway Station, Tiruvallur Road',
         apartment: '',
         city: 'Chennai',
@@ -149,8 +149,8 @@ export async function syncUsersFromServer(): Promise<StoredUserAccount[]> {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(lu),
-              }).catch(() => {});
-            } catch {}
+              }).catch(() => { });
+            } catch { }
           }
         });
 
@@ -199,8 +199,8 @@ export function registerUserInDb(
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newAccount),
-    }).catch(() => {});
-  } catch {}
+    }).catch(() => { });
+  } catch { }
 
   return newAccount;
 }
@@ -234,8 +234,8 @@ export function updateUserInDb(
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updatedAccount),
-    }).catch(() => {});
-  } catch {}
+    }).catch(() => { });
+  } catch { }
 
   return updatedAccount;
 }

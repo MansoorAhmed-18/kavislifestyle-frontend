@@ -75,7 +75,7 @@ const INITIAL_DEMO_ORDERS: Order[] = [
     customer: {
       name: 'Mansoor',
       email: 'simplysarath01@gmail.com',
-      phone: '+91 98400 12345',
+      phone: '+91 90953 16566',
       address: 'Near Railway Station, Tiruvallur Road',
       city: 'Chennai',
       state: 'Tamil Nadu',
@@ -111,7 +111,7 @@ const INITIAL_DEMO_ORDERS: Order[] = [
     customer: {
       name: 'Mansoor',
       email: 'simplysarath01@gmail.com',
-      phone: '+91 98400 12345',
+      phone: '+91 90953 16566',
       address: '12, Trunk Road, Poonamallee',
       city: 'Chennai',
       state: 'Tamil Nadu',
@@ -147,7 +147,7 @@ const INITIAL_DEMO_ORDERS: Order[] = [
     customer: {
       name: 'Priyadarshini Sundaram',
       email: 'priyakavislifestyle@gmail.com',
-      phone: '+91 98400 12345',
+      phone: '+91 90953 16566',
       address: '14B, Alacrity Greens, 4th Main Road',
       city: 'Chennai',
       state: 'Tamil Nadu',
@@ -183,7 +183,7 @@ const INITIAL_DEMO_ORDERS: Order[] = [
     customer: {
       name: 'Priyadarshini Sundaram',
       email: 'priya@kavislifestyle.com',
-      phone: '+91 98400 12345',
+      phone: '+91 90953 16566',
       address: '14B, Alacrity Greens, 4th Main Road, Flat 202',
       city: 'Chennai',
       state: 'Tamil Nadu',
@@ -758,48 +758,45 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const getUserOrders = (email?: string, userId?: string) => {
     const cleanEmail = (email || '').toLowerCase().trim();
 
-    // Store Administrator: sees ALL customer orders across all devices and accounts
-    if (cleanEmail.includes('admin') || cleanEmail === 'admin@kavislifestyle.com') {
-      return [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    // If no user is logged in (guest visitor), check orders placed during this guest browser session
+    if (!cleanEmail && !userId) {
+      const sessionOrderIds: string[] = (() => {
+        try {
+          return JSON.parse(localStorage.getItem('kavis_session_order_ids') || '[]');
+        } catch {
+          return [];
+        }
+      })();
+      return orders
+        .filter((o) => sessionOrderIds.includes(o.id) || sessionOrderIds.includes(o.orderNumber))
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
-
-    const sessionOrderIds: string[] = (() => {
-      try {
-        return JSON.parse(localStorage.getItem('kavis_session_order_ids') || '[]');
-      } catch {
-        return [];
-      }
-    })();
 
     const emailPrefix = cleanEmail ? cleanEmail.split('@')[0].replace(/[^a-z0-9]/g, '') : '';
 
     return orders
       .filter((o) => {
-        // 1. Direct match with orders placed on this device / browser session
-        if (sessionOrderIds.includes(o.id) || sessionOrderIds.includes(o.orderNumber)) {
-          return true;
-        }
-
-        // 2. Direct match with userId
+        // 1. Direct match with userId
         if (userId && o.userId && o.userId === userId) {
           return true;
         }
 
-        // 3. Direct match with userEmail
+        // 2. Direct match with userEmail
         if (cleanEmail && o.userEmail && o.userEmail.toLowerCase().trim() === cleanEmail) {
           return true;
         }
 
-        // 4. Direct match with customer email
+        // 3. Direct match with customer email
         const custEmail = (o.customer?.email || '').toLowerCase().trim();
         if (cleanEmail && custEmail === cleanEmail) {
           return true;
         }
 
-        // 5. Smart match for username prefixes (e.g. 'priya' in 'priya@kavislifestyle.com' vs 'priyakavislifestyle@gmail.com')
-        if (emailPrefix && custEmail) {
+        // 4. Match for identical username prefix across email domains (e.g. 'priya@kavislifestyle.com' vs 'priya@gmail.com')
+        // Explicitly disabled for admin accounts so customer orders NEVER appear in admin personal account
+        if (emailPrefix && custEmail && !cleanEmail.includes('admin') && !custEmail.includes('admin')) {
           const custPrefix = custEmail.split('@')[0].replace(/[^a-z0-9]/g, '');
-          if (custPrefix && (custPrefix.includes(emailPrefix) || emailPrefix.includes(custPrefix))) {
+          if (custPrefix && custPrefix === emailPrefix) {
             return true;
           }
         }

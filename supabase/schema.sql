@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS public.store_settings (
     brand_favicon_url TEXT,
     brand_colors JSONB NOT NULL DEFAULT '{"primary": "#173F46", "secondary": "#F26B4F", "background": "#FFF8EF", "accent": "#F2D9A6"}'::jsonb,
     support_email TEXT NOT NULL DEFAULT 'care@kavislifestyle.com',
-    support_phone TEXT NOT NULL DEFAULT '+91 98400 12345',
+    support_phone TEXT NOT NULL DEFAULT '+91 90953 16566',
     flagship_address TEXT NOT NULL DEFAULT 'Kavi Boutique, T. Nagar, Chennai, Tamil Nadu — 600017',
     announcement_text TEXT DEFAULT 'Festive Launch: FREE Shipping across India on orders above ₹999',
     free_shipping_threshold NUMERIC(10,2) NOT NULL DEFAULT 999.00,
