@@ -380,24 +380,39 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Map Supabase row format to client Order
   const mapSupabaseToOrder = (row: any): Order => {
-    if (row.raw_data && typeof row.raw_data === 'object') {
+    let rawObj: any = null;
+    if (row.raw_data) {
+      if (typeof row.raw_data === 'object') {
+        rawObj = row.raw_data;
+      } else if (typeof row.raw_data === 'string') {
+        try {
+          rawObj = JSON.parse(row.raw_data);
+        } catch {}
+      }
+    }
+
+    if (rawObj) {
       return {
-        ...row.raw_data,
-        id: row.id || row.raw_data.id,
-        orderNumber: row.order_number || row.raw_data.orderNumber,
-        status: (row.status || row.raw_data.status || 'placed') as OrderStatus,
-        carrier: row.carrier || row.raw_data.carrier || 'BlueDart Express',
-        trackingNumber: row.tracking_number || row.raw_data.trackingNumber || 'BD-88103024IN',
-        updatedAt: row.updated_at || row.raw_data.updatedAt
+        ...rawObj,
+        id: row.id || rawObj.id,
+        orderNumber: row.order_number || rawObj.orderNumber,
+        status: (row.status || rawObj.status || 'placed') as OrderStatus,
+        carrier: row.carrier || rawObj.carrier || 'BlueDart Express',
+        trackingNumber: row.tracking_number || rawObj.trackingNumber || 'BD-88103024IN',
+        updatedAt: row.updated_at || rawObj.updatedAt,
+        customer: rawObj.customer || (typeof row.customer === 'string' ? JSON.parse(row.customer) : row.customer) || {},
+        items: rawObj.items || (typeof row.items === 'string' ? JSON.parse(row.items) : row.items) || [],
+        returnRequest: rawObj.returnRequest || null
       };
     }
+
     return {
       id: row.id,
       orderNumber: row.order_number || `KV-${String(row.id).slice(-6)}`,
       createdAt: row.created_at || new Date().toISOString(),
       userId: row.user_id,
       userEmail: row.user_email || row.guest_email,
-      customer: typeof row.customer === 'string' ? JSON.parse(row.customer) : row.customer || row.shipping_address || {},
+      customer: typeof row.customer === 'string' ? JSON.parse(row.customer) : row.customer || {},
       items: typeof row.items === 'string' ? JSON.parse(row.items) : row.items || [],
       subtotal: Number(row.subtotal) || 0,
       discount: Number(row.discount || row.discount_amount) || 0,
@@ -411,26 +426,41 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   };
 
-  const mapOrderToSupabase = (order: Order) => ({
-    id: order.id,
-    order_number: order.orderNumber,
-    created_at: order.createdAt,
-    user_id: order.userId || null,
-    user_email: order.userEmail || order.customer?.email || null,
-    guest_email: order.customer?.email || null,
-    guest_phone: order.customer?.phone || null,
-    status: order.status,
-    subtotal: order.subtotal,
-    discount_amount: order.discount,
-    shipping_charge: order.shipping,
-    total_amount: order.total,
-    shipping_address: order.customer,
-    payment_method: order.paymentMethod,
-    payment_status: order.paymentStatus,
-    carrier: order.carrier,
-    tracking_number: order.trackingNumber,
-    raw_data: order
-  });
+  const mapOrderToSupabase = (order: Order) => {
+    // Keep full video in returnRequest for cross-device inspection (up to 7MB payload)
+    let rawOrder = order;
+    if (order.returnRequest?.videoUrl && order.returnRequest.videoUrl.length > 7000000) {
+      rawOrder = {
+        ...order,
+        returnRequest: {
+          ...order.returnRequest,
+          videoUrl: order.returnRequest.videoUrl.slice(0, 100000)
+        }
+      };
+    }
+
+    return {
+      id: order.id,
+      order_number: order.orderNumber,
+      created_at: order.createdAt,
+      user_id: order.userId || null,
+      user_email: order.userEmail || order.customer?.email || null,
+      guest_email: order.customer?.email || null,
+      guest_phone: order.customer?.phone || null,
+      status: order.status,
+      subtotal: order.subtotal,
+      discount_amount: order.discount,
+      shipping_charge: order.shipping,
+      total_amount: order.total,
+      customer: order.customer || {},
+      items: order.items || [],
+      payment_method: order.paymentMethod,
+      payment_status: order.paymentStatus,
+      carrier: order.carrier,
+      tracking_number: order.trackingNumber,
+      raw_data: rawOrder
+    };
+  };
 
   // Synchronize orders in real-time across devices (Supabase Cloud + Shared Server API)
   const syncOrdersFromServer = async () => {
@@ -513,7 +543,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
-      // Check if local orders need to be pushed to server/cloud
+      // Check if local orders need to be pushed to server
       const missingOnServer = localList.filter((lo) => {
         const key = lo.id || lo.orderNumber;
         return !serverOrders.some((so) => (so.id || so.orderNumber) === key);
@@ -525,6 +555,24 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ orders: localList })
         }).catch(() => {});
+      }
+
+      // Automatically push any local orders or newer return requests to Supabase Cloud
+      if (isSupabaseConfigured && localList.length > 0) {
+        localList.forEach(async (lo) => {
+          const key = lo.id || lo.orderNumber;
+          const co = cloudOrders.find((c) => (c.id || c.orderNumber) === key);
+          const needsUpload =
+            !co ||
+            (lo.returnRequest && (!co.returnRequest || co.returnRequest.status !== lo.returnRequest.status || (lo.returnRequest.videoUrl && !co.returnRequest.videoUrl)));
+          if (needsUpload) {
+            try {
+              await supabase.from('orders').upsert(mapOrderToSupabase(lo));
+            } catch (err) {
+              console.warn('Auto cloud sync note:', err);
+            }
+          }
+        });
       }
 
       setOrders((prev) => {
@@ -668,9 +716,22 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 let hasNew = false;
                 payload.orders.forEach((o: Order) => {
                   const k = o.id || o.orderNumber;
-                  if (k && !map.has(k)) {
-                    map.set(k, o);
-                    hasNew = true;
+                  if (k) {
+                    if (!map.has(k)) {
+                      map.set(k, o);
+                      hasNew = true;
+                    } else {
+                      const existing = map.get(k)!;
+                      if (
+                        o.returnRequest &&
+                        (!existing.returnRequest ||
+                          o.returnRequest.status !== existing.returnRequest.status ||
+                          (o.returnRequest.videoUrl && !existing.returnRequest.videoUrl))
+                      ) {
+                        map.set(k, { ...existing, returnRequest: o.returnRequest });
+                        hasNew = true;
+                      }
+                    }
                   }
                 });
                 if (!hasNew) return prev;
@@ -1094,16 +1155,16 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const getUserOrders = (email?: string, userId?: string) => {
     const cleanEmail = (email || '').toLowerCase().trim();
+    const sessionOrderIds: string[] = (() => {
+      try {
+        return JSON.parse(localStorage.getItem('kavis_session_order_ids') || '[]');
+      } catch {
+        return [];
+      }
+    })();
 
     // If no user is logged in (guest visitor), check orders placed during this guest browser session
     if (!cleanEmail && !userId) {
-      const sessionOrderIds: string[] = (() => {
-        try {
-          return JSON.parse(localStorage.getItem('kavis_session_order_ids') || '[]');
-        } catch {
-          return [];
-        }
-      })();
       return orders
         .filter((o) => sessionOrderIds.includes(o.id) || sessionOrderIds.includes(o.orderNumber))
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -1136,6 +1197,11 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           if (custPrefix && custPrefix === emailPrefix) {
             return true;
           }
+        }
+
+        // 5. Orders placed during the current device session (safeguard for freshly placed orders)
+        if (!cleanEmail.includes('admin') && (sessionOrderIds.includes(o.id) || sessionOrderIds.includes(o.orderNumber))) {
+          return true;
         }
 
         return false;

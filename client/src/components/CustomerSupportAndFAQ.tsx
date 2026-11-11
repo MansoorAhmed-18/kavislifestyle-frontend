@@ -203,8 +203,8 @@ export const CustomerSupportAndFAQ: React.FC<CustomerSupportAndFAQProps> = ({ em
       return;
     }
 
-    if (file.size > 40 * 1024 * 1024) {
-      setReturnErrorMsg('Video file is too large. Please select a clip under 40MB (15-30 second defect recording).');
+    if (file.size > 10 * 1024 * 1024) {
+      setReturnErrorMsg('Video file is too large. Please select a clip under 10MB (10-30 second defect recording) for instant cloud sync.');
       return;
     }
 
