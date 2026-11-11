@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product } from '../types';
 import { INITIAL_PRODUCTS } from '../data/products';
+import { supabase, isSupabaseConfigured } from '../services/supabase';
 
 interface ProductContextType {
   products: Product[];
@@ -57,6 +58,47 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [products]);
 
+  // Synchronize products from Supabase Cloud if products table exists
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    (async () => {
+      try {
+        const { data, error } = await supabase.from('products').select('*');
+        if (!error && Array.isArray(data) && data.length > 0) {
+          const mapped: Product[] = data.map((row: any) => ({
+            id: row.id,
+            name: row.name,
+            slug: row.slug || row.id,
+            category: row.category,
+            departmentId: row.department_id,
+            price: Number(row.price),
+            discountPrice: row.discount_price ? Number(row.discount_price) : undefined,
+            rating: Number(row.rating || 4.8),
+            reviewsCount: Number(row.reviews_count || 1),
+            stock: Number(row.stock || 15),
+            images: Array.isArray(row.images) ? row.images : (typeof row.images === 'string' ? JSON.parse(row.images) : []),
+            description: row.description || '',
+            shortDescription: row.short_description || row.name,
+            variants: Array.isArray(row.variants) ? row.variants : [],
+            isNewArrival: Boolean(row.is_new_arrival),
+            isBestSeller: Boolean(row.is_best_seller),
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+          }));
+
+          setProducts((prev) => {
+            const map = new Map<string, Product>();
+            prev.forEach((p) => map.set(p.id, p));
+            mapped.forEach((p) => map.set(p.id, p));
+            return Array.from(map.values());
+          });
+        }
+      } catch {
+        // Fallback silently
+      }
+    })();
+  }, []);
+
   const addProduct = (productData: Omit<Product, 'id'>): Product => {
     const slug =
       productData.slug ||
@@ -105,6 +147,34 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     setProducts((prev) => [newProduct, ...prev]);
+
+    // Push new product to Supabase Cloud if configured
+    if (isSupabaseConfigured) {
+      (async () => {
+        try {
+          await supabase.from('products').upsert({
+            id: newProduct.id,
+            name: newProduct.name,
+            department_id: newProduct.departmentId,
+            category: newProduct.category,
+            price: newProduct.price,
+            discount_price: newProduct.discountPrice || null,
+            rating: newProduct.rating,
+            reviews_count: newProduct.reviewsCount,
+            stock: newProduct.stock,
+            images: newProduct.images,
+            description: newProduct.description,
+            short_description: newProduct.shortDescription,
+            variants: newProduct.variants || [],
+            is_new_arrival: newProduct.isNewArrival,
+            is_best_seller: newProduct.isBestSeller,
+            created_at: newProduct.createdAt,
+            updated_at: newProduct.updatedAt,
+          });
+        } catch {}
+      })();
+    }
+
     return newProduct;
   };
 
@@ -200,6 +270,14 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
       return updated;
     });
+
+    if (isSupabaseConfigured) {
+      (async () => {
+        try {
+          await supabase.from('products').delete().eq('id', id);
+        } catch {}
+      })();
+    }
   };
 
   const getProductBySlug = (slug: string) => {

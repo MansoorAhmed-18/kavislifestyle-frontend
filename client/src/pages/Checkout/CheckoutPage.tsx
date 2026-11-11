@@ -1,6 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ShieldCheck, CheckCircle2, ArrowRight, ArrowLeft, MapPin, Plus, Check, Truck, Clock, Box, Calendar, Package } from 'lucide-react';
+import {
+  ShieldCheck,
+  CheckCircle2,
+  ArrowRight,
+  ArrowLeft,
+  MapPin,
+  Plus,
+  Check,
+  Truck,
+  Clock,
+  Box,
+  Calendar,
+  Package,
+  CreditCard,
+  Smartphone,
+  Building2,
+  Lock,
+  X,
+  Loader2,
+} from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AnnouncementBar } from '../../components/AnnouncementBar';
 import { Navbar } from '../../components/Navbar';
@@ -11,6 +30,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useOrders, Order } from '../../context/OrderContext';
 import { ShippingAddress } from '../../types';
 import { validateEmail, validatePhone, sanitizeEmailInput, sanitizePhoneInput } from '../../utils/validation';
+import { initiateRazorpayCheckout, RazorpayOrderResponse } from '../../services/razorpay';
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -83,6 +103,9 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
   const [placedOrderId, setPlacedOrderId] = useState<string>('');
+  const [simulatorData, setSimulatorData] = useState<RazorpayOrderResponse | null>(null);
+  const [simulatingMethod, setSimulatingMethod] = useState<'upi' | 'card' | 'netbanking'>('upi');
+  const [isSimulatingPayment, setIsSimulatingPayment] = useState<boolean>(false);
   const [placedOrder, setPlacedOrder] = useState<Order | null>(() => {
     try {
       const saved = localStorage.getItem('kavis_last_placed_order');
@@ -162,6 +185,40 @@ export default function CheckoutPage() {
       updateProfile({ phone: formData.phone });
     }
 
+    if (formData.paymentMethod === 'cod') {
+      finalizeOrderPlacement('Cash on Delivery (COD)', 'pending');
+      return;
+    }
+
+    // Razorpay Online Payment Flow
+    const generatedOrderNumber = `KV-${Math.floor(100000 + Math.random() * 900000)}`;
+    initiateRazorpayCheckout({
+      amount: total,
+      orderNumber: generatedOrderNumber,
+      customerName: formData.fullName,
+      customerEmail: formData.email,
+      customerPhone: formData.phone,
+      onSuccess: (result) => {
+        finalizeOrderPlacement('Prepaid Online (Razorpay 256-Bit SSL)', 'paid', result.paymentId);
+      },
+      onFailure: (errMsg) => {
+        setIsProcessing(false);
+        if (!errMsg.includes('cancelled')) {
+          alert(`Payment Notice: ${errMsg}`);
+        }
+      },
+      onOpenSimulator: (orderData) => {
+        setIsProcessing(false);
+        setSimulatorData(orderData);
+      }
+    });
+  };
+
+  const finalizeOrderPlacement = (
+    methodLabel: string,
+    _paymentStatus: 'paid' | 'pending',
+    _paymentId?: string
+  ) => {
     const orderItems = cart.map(item => ({
       id: item.id,
       name: item.product.name,
@@ -190,7 +247,7 @@ export default function CheckoutPage() {
       discount,
       shipping: shippingCharge,
       total,
-      paymentMethod: formData.paymentMethod === 'cod' ? 'Cash on Delivery (COD)' : 'Razorpay Secure (UPI / Cards)'
+      paymentMethod: methodLabel
     });
 
     setPlacedOrderId(createdOrder.orderNumber);
@@ -201,16 +258,27 @@ export default function CheckoutPage() {
       console.error(e);
     }
 
+    setIsProcessing(false);
+    setIsOrderPlaced(true);
+    setSimulatorData(null);
+    clearCart();
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+  };
+
+  const handleSimulatedPaymentSuccess = () => {
+    setIsSimulatingPayment(true);
     setTimeout(() => {
-      setIsProcessing(false);
-      setIsOrderPlaced(true);
-      clearCart();
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
-    }, 1000);
+      setIsSimulatingPayment(false);
+      finalizeOrderPlacement(
+        'Prepaid Online (Razorpay 256-Bit SSL)',
+        'paid',
+        `pay_sim_${Date.now()}`
+      );
+    }, 1100);
   };
 
   const calculateDeliveryTurnaround = (city?: string, pincode?: string) => {
@@ -817,6 +885,162 @@ export default function CheckoutPage() {
               </button>
             </div>
           </form>
+        )}
+
+        {/* Razorpay Gateway Interactive Payment Simulator Modal */}
+        {simulatorData && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+            <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-[#E5DCD3] overflow-hidden">
+              {/* Header */}
+              <div className="bg-[#14213D] text-white p-4.5 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
+                    <Lock className="w-4.5 h-4.5 text-[#FF6B5B]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black tracking-tight">Razorpay Secure Checkout</h3>
+                    <p className="text-[11px] text-white/70">256-Bit SSL Encrypted Payment</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSimulatorData(null)}
+                  className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-white/80 transition cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Amount Banner */}
+              <div className="p-4 bg-[#FAF6F2] border-b border-[#E5DCD3] flex items-center justify-between">
+                <div>
+                  <span className="text-[11px] font-bold text-[#5C554E] uppercase tracking-wider block">Total Amount</span>
+                  <span className="text-xl font-black text-black">{formatPrice(total)}</span>
+                </div>
+                <div className="text-right">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300">
+                    <ShieldCheck className="w-3 h-3" />
+                    <span>Sandbox Test Mode</span>
+                  </span>
+                  <span className="text-[10px] text-[#5C554E] block mt-0.5">Order #{simulatorData.orderId.slice(-8)}</span>
+                </div>
+              </div>
+
+              {/* Payment Method Selector Tabs */}
+              <div className="p-5 space-y-4">
+                <div className="grid grid-cols-3 gap-2 p-1 bg-[#FAF6F2] rounded-xl border border-[#E5DCD3]">
+                  <button
+                    type="button"
+                    onClick={() => setSimulatingMethod('upi')}
+                    className={`py-2 px-2 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                      simulatingMethod === 'upi' ? 'bg-[#14213D] text-white shadow-xs' : 'text-[#5C554E] hover:text-black'
+                    }`}
+                  >
+                    <Smartphone className="w-3.5 h-3.5" />
+                    <span>UPI</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSimulatingMethod('card')}
+                    className={`py-2 px-2 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                      simulatingMethod === 'card' ? 'bg-[#14213D] text-white shadow-xs' : 'text-[#5C554E] hover:text-black'
+                    }`}
+                  >
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>Card</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSimulatingMethod('netbanking')}
+                    className={`py-2 px-2 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                      simulatingMethod === 'netbanking' ? 'bg-[#14213D] text-white shadow-xs' : 'text-[#5C554E] hover:text-black'
+                    }`}
+                  >
+                    <Building2 className="w-3.5 h-3.5" />
+                    <span>NetBanking</span>
+                  </button>
+                </div>
+
+                {/* Tab 1: UPI */}
+                {simulatingMethod === 'upi' && (
+                  <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-3 text-center">
+                    <p className="text-xs font-bold text-emerald-950">Scan UPI QR or approve in Google Pay / PhonePe / Paytm</p>
+                    <div className="w-28 h-28 mx-auto bg-white p-2 rounded-xl border border-emerald-300 shadow-xs flex items-center justify-center">
+                      <div className="w-full h-full border-2 border-dashed border-emerald-400 rounded-lg flex flex-col items-center justify-center text-[10px] font-black text-emerald-800">
+                        <span>UPI QR</span>
+                        <span className="text-[9px] font-normal text-emerald-600">Scan & Pay</span>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-[#5C554E]">VPA: <strong>kavislifestyle@razorpay</strong></p>
+                  </div>
+                )}
+
+                {/* Tab 2: Card */}
+                {simulatingMethod === 'card' && (
+                  <div className="p-4 bg-blue-50/60 border border-blue-200 rounded-xl space-y-2 text-xs">
+                    <div className="flex justify-between items-center text-[11px] font-bold text-blue-900 pb-1 border-b border-blue-200/60">
+                      <span>Test Card Simulated</span>
+                      <span className="text-[10px] px-2 py-0.5 bg-blue-200 text-blue-900 rounded-md">Visa / RuPay</span>
+                    </div>
+                    <div className="font-mono text-sm tracking-wider font-bold text-slate-800 pt-1">
+                      4111 •••• •••• 1111
+                    </div>
+                    <div className="flex justify-between text-[11px] text-slate-600">
+                      <span>Exp: 12/28</span>
+                      <span>CVV: 123</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab 3: NetBanking */}
+                {simulatingMethod === 'netbanking' && (
+                  <div className="p-3 bg-purple-50/60 border border-purple-200 rounded-xl text-xs space-y-2">
+                    <p className="text-[11px] font-bold text-purple-950">Select Bank for Direct Debit</p>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {['State Bank of India', 'HDFC Bank', 'ICICI Bank', 'Axis Bank'].map((b, idx) => (
+                        <div key={b} className={`p-2 rounded-lg border text-center font-bold text-[11px] cursor-pointer ${idx === 0 ? 'border-purple-600 bg-white text-purple-900 shadow-2xs' : 'border-purple-200 bg-purple-100/50 text-purple-800'}`}>
+                          {b}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="text-[11px] text-[#5C554E] flex items-center justify-center gap-1.5 pt-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>RBI Licensed Payment Gateway Partner</span>
+                </div>
+
+                {/* Authorize Payment Button */}
+                <button
+                  type="button"
+                  disabled={isSimulatingPayment}
+                  onClick={handleSimulatedPaymentSuccess}
+                  className="w-full py-3.5 px-4 bg-[#14213D] hover:bg-black text-white font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 shadow-xs transition active:scale-98 cursor-pointer disabled:bg-neutral-500"
+                >
+                  {isSimulatingPayment ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Authorizing Bank Transaction...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-4 h-4 text-[#FF6B5B]" />
+                      <span>Authorize & Pay {formatPrice(total)}</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSimulatorData(null)}
+                  className="w-full text-center text-xs text-[#5C554E] hover:text-black font-semibold pt-1 cursor-pointer"
+                >
+                  Cancel and Return
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </main>
 
