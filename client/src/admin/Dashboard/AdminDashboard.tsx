@@ -146,12 +146,16 @@ CREATE POLICY "Public update orders" ON public.orders FOR UPDATE TO anon, authen
   const [actionSuccessMsg, setActionSuccessMsg] = useState<{ [orderId: string]: string }>({});
 
   const returnOrdersList = orders.filter((o) => !!o.returnRequest);
-  const pendingReturnsCount = returnOrdersList.filter((o) => o.returnRequest?.status === 'pending').length;
+  const pendingReturnsCount = returnOrdersList.filter(
+    (o) => !o.returnRequest?.status || o.returnRequest?.status === 'pending'
+  ).length;
   const approvedReturnsCount = returnOrdersList.filter((o) => o.returnRequest?.status === 'approved').length;
   const rejectedReturnsCount = returnOrdersList.filter((o) => o.returnRequest?.status === 'rejected').length;
   const filteredReturnOrders =
     returnFilter === 'all'
       ? returnOrdersList
+      : returnFilter === 'pending'
+      ? returnOrdersList.filter((o) => !o.returnRequest?.status || o.returnRequest?.status === 'pending')
       : returnOrdersList.filter((o) => o.returnRequest?.status === returnFilter);
 
   // Add Product Modal state
@@ -304,7 +308,7 @@ CREATE POLICY "Public update orders" ON public.orders FOR UPDATE TO anon, authen
   }
 
   // Realistic statistics calculated dynamically
-  const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+  const totalRevenue = orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
   const lowStockProducts = products.filter((p) => p.stock < 15);
   const filteredOrders =
     orderFilter === 'all' ? orders : orders.filter((o) => o.status === orderFilter);

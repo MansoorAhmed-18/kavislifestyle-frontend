@@ -391,38 +391,42 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     }
 
-    if (rawObj) {
-      return {
-        ...rawObj,
-        id: row.id || rawObj.id,
-        orderNumber: row.order_number || rawObj.orderNumber,
-        status: (row.status || rawObj.status || 'placed') as OrderStatus,
-        carrier: row.carrier || rawObj.carrier || 'BlueDart Express',
-        trackingNumber: row.tracking_number || rawObj.trackingNumber || 'BD-88103024IN',
-        updatedAt: row.updated_at || rawObj.updatedAt,
-        customer: rawObj.customer || (typeof row.customer === 'string' ? JSON.parse(row.customer) : row.customer) || {},
-        items: rawObj.items || (typeof row.items === 'string' ? JSON.parse(row.items) : row.items) || [],
-        returnRequest: rawObj.returnRequest || null
-      };
-    }
+    const rowTotal = Number(row.total_amount ?? row.total ?? 0);
+    const rawTotal = rawObj?.total !== undefined ? Number(rawObj.total) : undefined;
+    const finalTotal = !isNaN(Number(rawTotal)) && Number(rawTotal) > 0 ? Number(rawTotal) : (!isNaN(rowTotal) ? rowTotal : 0);
+
+    const rowSubtotal = Number(row.subtotal ?? row.total_amount ?? 0);
+    const rawSubtotal = rawObj?.subtotal !== undefined ? Number(rawObj.subtotal) : undefined;
+    const finalSubtotal = !isNaN(Number(rawSubtotal)) && Number(rawSubtotal) > 0 ? Number(rawSubtotal) : (!isNaN(rowSubtotal) && rowSubtotal > 0 ? rowSubtotal : finalTotal);
+
+    const rowDiscount = Number(row.discount_amount ?? row.discount ?? 0);
+    const rawDiscount = rawObj?.discount !== undefined ? Number(rawObj.discount) : undefined;
+    const finalDiscount = !isNaN(Number(rawDiscount)) ? Number(rawDiscount) : (!isNaN(rowDiscount) ? rowDiscount : 0);
+
+    const rowShipping = Number(row.shipping_charge ?? row.shipping ?? 0);
+    const rawShipping = rawObj?.shipping !== undefined ? Number(rawObj.shipping) : undefined;
+    const finalShipping = !isNaN(Number(rawShipping)) ? Number(rawShipping) : (!isNaN(rowShipping) ? rowShipping : 0);
 
     return {
-      id: row.id,
-      orderNumber: row.order_number || `KV-${String(row.id).slice(-6)}`,
-      createdAt: row.created_at || new Date().toISOString(),
-      userId: row.user_id,
-      userEmail: row.user_email || row.guest_email,
-      customer: typeof row.customer === 'string' ? JSON.parse(row.customer) : row.customer || {},
-      items: typeof row.items === 'string' ? JSON.parse(row.items) : row.items || [],
-      subtotal: Number(row.subtotal) || 0,
-      discount: Number(row.discount || row.discount_amount) || 0,
-      shipping: Number(row.shipping || row.shipping_charge) || 0,
-      total: Number(row.total || row.total_amount) || 0,
-      paymentMethod: row.payment_method || 'Prepaid Online',
-      paymentStatus: row.payment_status || 'paid',
-      status: (row.status || 'placed') as OrderStatus,
-      carrier: row.carrier || 'BlueDart Express',
-      trackingNumber: row.tracking_number || 'BD-88103024IN'
+      ...(rawObj || {}),
+      id: row.id || rawObj?.id || `ord-${row.order_number}`,
+      orderNumber: row.order_number || rawObj?.orderNumber || `KV-${String(row.id).slice(-6)}`,
+      createdAt: row.created_at || rawObj?.createdAt || new Date().toISOString(),
+      userId: row.user_id || rawObj?.userId,
+      userEmail: row.user_email || row.guest_email || rawObj?.userEmail,
+      customer: rawObj?.customer || (typeof row.customer === 'string' ? JSON.parse(row.customer) : row.customer) || {},
+      items: rawObj?.items || (typeof row.items === 'string' ? JSON.parse(row.items) : row.items) || [],
+      subtotal: finalSubtotal,
+      discount: finalDiscount,
+      shipping: finalShipping,
+      total: finalTotal,
+      paymentMethod: row.payment_method || rawObj?.paymentMethod || 'Prepaid Online',
+      paymentStatus: row.payment_status || rawObj?.paymentStatus || 'paid',
+      status: (row.status || rawObj?.status || 'placed') as OrderStatus,
+      carrier: row.carrier || rawObj?.carrier || 'BlueDart Express',
+      trackingNumber: row.tracking_number || rawObj?.trackingNumber || 'BD-88103024IN',
+      updatedAt: row.updated_at || rawObj?.updatedAt,
+      returnRequest: rawObj?.returnRequest || null
     };
   };
 
@@ -480,7 +484,15 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           } else if (Array.isArray(data)) {
             setSupabaseTableStatus('connected');
             if (data.length > 0) {
-              cloudOrders = data.map(mapSupabaseToOrder);
+              cloudOrders = data
+                .filter(
+                  (r) =>
+                    !r.raw_data?.is_test &&
+                    !r.order_number?.startsWith('KV-TEST') &&
+                    !r.order_number?.startsWith('KV-SIZE') &&
+                    !r.order_number?.startsWith('KV-CORRECT')
+                )
+                .map(mapSupabaseToOrder);
             }
           }
         } catch (sbErr) {
@@ -567,7 +579,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             (lo.returnRequest && (!co.returnRequest || co.returnRequest.status !== lo.returnRequest.status || (lo.returnRequest.videoUrl && !co.returnRequest.videoUrl)));
           if (needsUpload) {
             try {
-              await supabase.from('orders').upsert(mapOrderToSupabase(lo));
+              await supabase.from('orders').upsert(mapOrderToSupabase(lo), { onConflict: 'order_number' });
             } catch (err) {
               console.warn('Auto cloud sync note:', err);
             }
@@ -583,10 +595,14 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             return (
               !p ||
               p.id !== m.id ||
+              p.orderNumber !== m.orderNumber ||
               p.status !== m.status ||
+              p.total !== m.total ||
               p.carrier !== m.carrier ||
+              p.trackingNumber !== m.trackingNumber ||
               p.returnRequest?.status !== m.returnRequest?.status ||
-              p.returnRequest?.refundAmount !== m.returnRequest?.refundAmount
+              p.returnRequest?.refundAmount !== m.returnRequest?.refundAmount ||
+              p.returnRequest?.videoUrl !== m.returnRequest?.videoUrl
             );
           })
         ) {
@@ -840,7 +856,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (isSupabaseConfigured) {
       (async () => {
         try {
-          const { error } = await supabase.from('orders').upsert(mapOrderToSupabase(newOrder));
+          const { error } = await supabase.from('orders').upsert(mapOrderToSupabase(newOrder), { onConflict: 'order_number' });
           if (error) console.warn('Supabase order insert note:', error.message);
         } catch {}
       })();
@@ -1008,7 +1024,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (isSupabaseConfigured) {
         (async () => {
           try {
-            await supabase.from('orders').upsert(mapOrderToSupabase(ord));
+            await supabase.from('orders').upsert(mapOrderToSupabase(ord), { onConflict: 'order_number' });
           } catch {}
         })();
       }
@@ -1072,7 +1088,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (isSupabaseConfigured) {
         (async () => {
           try {
-            await supabase.from('orders').upsert(mapOrderToSupabase(ord));
+            await supabase.from('orders').upsert(mapOrderToSupabase(ord), { onConflict: 'order_number' });
           } catch {}
         })();
       }
@@ -1128,7 +1144,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (isSupabaseConfigured) {
         (async () => {
           try {
-            await supabase.from('orders').upsert(mapOrderToSupabase(ord));
+            await supabase.from('orders').upsert(mapOrderToSupabase(ord), { onConflict: 'order_number' });
           } catch {}
         })();
       }
