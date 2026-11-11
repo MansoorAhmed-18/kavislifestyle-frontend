@@ -326,6 +326,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [supabaseTableStatus, setSupabaseTableStatus] = useState<SupabaseTableStatus>('checking');
   const realtimeChannelRef = React.useRef<any>(null);
+  const syncedSignaturesRef = React.useRef<Set<string>>(new Set());
 
   const ordersRef = React.useRef<Order[]>(orders);
   useEffect(() => {
@@ -500,17 +501,23 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
       }
 
-      // 2. Fetch from shared /api/orders
+      // 2. Fetch from shared /api/orders (only on local development server)
       let serverOrders: Order[] = [];
-      try {
-        const res = await fetch('/api/orders');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && Array.isArray(data.orders)) {
-            serverOrders = data.orders;
+      const isLocalDev =
+        typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+      if (isLocalDev) {
+        try {
+          const res = await fetch('/api/orders');
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && Array.isArray(data.orders)) {
+              serverOrders = data.orders;
+            }
           }
-        }
-      } catch {}
+        } catch {}
+      }
 
       const localList = ordersRef.current || [];
 
@@ -555,18 +562,20 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
-      // Check if local orders need to be pushed to server
-      const missingOnServer = localList.filter((lo) => {
-        const key = lo.id || lo.orderNumber;
-        return !serverOrders.some((so) => (so.id || so.orderNumber) === key);
-      });
+      // Check if local orders need to be pushed to local dev server
+      if (isLocalDev) {
+        const missingOnServer = localList.filter((lo) => {
+          const key = lo.id || lo.orderNumber;
+          return !serverOrders.some((so) => (so.id || so.orderNumber) === key);
+        });
 
-      if (missingOnServer.length > 0) {
-        fetch('/api/orders/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orders: localList })
-        }).catch(() => {});
+        if (missingOnServer.length > 0) {
+          fetch('/api/orders/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orders: localList })
+          }).catch(() => {});
+        }
       }
 
       // Automatically push any local orders or newer return requests to Supabase Cloud
@@ -577,11 +586,16 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           const needsUpload =
             !co ||
             (lo.returnRequest && (!co.returnRequest || co.returnRequest.status !== lo.returnRequest.status || (lo.returnRequest.videoUrl && !co.returnRequest.videoUrl)));
+          
           if (needsUpload) {
-            try {
-              await supabase.from('orders').upsert(mapOrderToSupabase(lo), { onConflict: 'order_number' });
-            } catch (err) {
-              console.warn('Auto cloud sync note:', err);
+            const signature = `${key}_${lo.status}_${lo.returnRequest?.status || 'none'}`;
+            if (!syncedSignaturesRef.current.has(signature)) {
+              syncedSignaturesRef.current.add(signature);
+              try {
+                await supabase.from('orders').upsert(mapOrderToSupabase(lo), { onConflict: 'order_number' });
+              } catch (err) {
+                console.warn('Auto cloud sync note:', err);
+              }
             }
           }
         });
@@ -621,11 +635,11 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   useEffect(() => {
-    // 1. Initial sync
+    // 1. Initial sync on boot
     syncOrdersFromServer();
 
-    // 2. Poll every 2 seconds as fallback
-    const pollTimer = setInterval(syncOrdersFromServer, 2000);
+    // 2. Poll every 45 seconds as gentle fallback (Supabase Realtime handles instant live updates)
+    const pollTimer = setInterval(syncOrdersFromServer, 45000);
 
     // 3. Fast sync whenever user returns to browser tab or comes online
     const handleVisibility = () => {

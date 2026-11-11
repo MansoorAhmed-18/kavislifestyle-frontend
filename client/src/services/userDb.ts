@@ -129,6 +129,9 @@ export function findUserByEmail(email: string): StoredUserAccount | undefined {
  * Synchronize user accounts with shared cross-device server
  */
 export async function syncUsersFromServer(): Promise<StoredUserAccount[]> {
+  const isLocalServer = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+  if (!isLocalServer) return getAllStoredUsers();
+
   try {
     const res = await fetch('/api/users');
     if (res.ok) {

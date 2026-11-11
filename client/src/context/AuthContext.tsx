@@ -65,9 +65,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Synchronize users from server across devices (Laptop <-> Mobile)
   useEffect(() => {
     syncUsersFromServer();
-    const timer = setInterval(() => {
-      syncUsersFromServer();
-    }, 4000);
 
     const handleFocus = () => {
       syncUsersFromServer();
@@ -75,7 +72,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     window.addEventListener('focus', handleFocus);
 
     return () => {
-      clearInterval(timer);
       window.removeEventListener('focus', handleFocus);
     };
   }, []);
