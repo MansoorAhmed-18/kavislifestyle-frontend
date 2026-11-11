@@ -6,6 +6,8 @@ import {
   registerUserInDb,
   updateUserInDb,
   syncUsersFromServer,
+  syncUsersFromCloud,
+  pushUserToCloud,
   StoredUserAccount,
 } from '../services/userDb';
 import { validateEmail, validatePhone, sanitizeEmailInput, sanitizePhoneInput } from '../utils/validation';
@@ -64,15 +66,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Synchronize users from server across devices (Laptop <-> Mobile)
   useEffect(() => {
+    syncUsersFromCloud();
     syncUsersFromServer();
 
     const handleFocus = () => {
+      syncUsersFromCloud();
       syncUsersFromServer();
     };
     window.addEventListener('focus', handleFocus);
+    window.addEventListener('online', handleFocus);
 
     return () => {
       window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('online', handleFocus);
     };
   }, []);
 
@@ -117,12 +123,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, message: 'Please enter your account password.' };
       }
 
-      // 1. Try Supabase Auth if connected with valid credentials
+      // 1. Sync users from cloud first to ensure latest accounts across mobile and laptop
+      await syncUsersFromCloud();
+      await syncUsersFromServer();
+
+      // 2. Validate against persistent database storage
+      let existingAccount = findUserByEmail(cleanEmail);
+
+      if (existingAccount) {
+        // Verify exact password match (trimmed)
+        if (existingAccount.password.trim() !== password.trim()) {
+          setIsLoading(false);
+          return {
+            success: false,
+            message: 'Incorrect password. Please enter the correct password for your account.',
+          };
+        }
+
+        // Credentials verified successfully
+        const profile: UserProfile = {
+          id: existingAccount.id,
+          email: existingAccount.email,
+          fullName: existingAccount.fullName,
+          phone: existingAccount.phone || '',
+          role: existingAccount.role,
+          createdAt: existingAccount.createdAt,
+        };
+
+        setUser(profile);
+
+        // Restore user's saved addresses from database
+        if (existingAccount.addresses && existingAccount.addresses.length > 0) {
+          setAddresses(existingAccount.addresses);
+        }
+
+        setIsLoading(false);
+        return { success: true };
+      }
+
+      // 3. Fallback: Try Supabase Auth if account was created directly via Supabase Auth
       if (isSupabaseConfigured) {
         try {
           const { data, error } = await supabase.auth.signInWithPassword({
             email: cleanEmail,
-            password,
+            password: password.trim(),
           });
 
           if (!error && data?.user) {
@@ -139,55 +183,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return { success: true };
           }
         } catch (sbErr) {
-          // Fall through to persistent database
+          // Fall through
         }
       }
 
-      // 2. Validate against persistent database storage
-      let existingAccount = findUserByEmail(cleanEmail);
-
-      // If not in local cache, pull from server in case user signed up on mobile
-      if (!existingAccount) {
-        await syncUsersFromServer();
-        existingAccount = findUserByEmail(cleanEmail);
-      }
-
-      if (!existingAccount) {
-        setIsLoading(false);
-        return {
-          success: false,
-          message: 'No account found with this email. Please check your email or sign up.',
-        };
-      }
-
-      // Verify exact password match
-      if (existingAccount.password !== password) {
-        setIsLoading(false);
-        return {
-          success: false,
-          message: 'Incorrect password. Please enter the correct password for your account.',
-        };
-      }
-
-      // Credentials verified successfully
-      const profile: UserProfile = {
-        id: existingAccount.id,
-        email: existingAccount.email,
-        fullName: existingAccount.fullName,
-        phone: existingAccount.phone || '',
-        role: existingAccount.role,
-        createdAt: existingAccount.createdAt,
-      };
-
-      setUser(profile);
-
-      // Restore user's saved addresses from database
-      if (existingAccount.addresses && existingAccount.addresses.length > 0) {
-        setAddresses(existingAccount.addresses);
-      }
-
       setIsLoading(false);
-      return { success: true };
+      return {
+        success: false,
+        message: 'No account found with this email. Please check your email or sign up.',
+      };
     } catch (err: any) {
       setIsLoading(false);
       return { success: false, message: err.message || 'Login failed. Please try again.' };
@@ -231,6 +235,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, message: 'Password must be at least 6 characters long.' };
       }
 
+      // 1. Sync latest users from cloud first
+      await syncUsersFromCloud();
+
       // Check if email already registered in database
       const existing = findUserByEmail(cleanEmail);
       if (existing) {
@@ -241,31 +248,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       }
 
-      // 1. Try Supabase Auth if configured (non-blocking fallback to guarantee instant sign-up)
-      if (isSupabaseConfigured) {
-        try {
-          await supabase.auth.signUp({
-            email: cleanEmail,
-            password,
-            options: {
-              data: { full_name: cleanName, phone: cleanPhone },
-            },
-          });
-        } catch (sbErr) {
-          console.warn('Supabase sign-up note:', sbErr);
-        }
-      }
-
       // 2. Save new account to persistent user database
       const savedAccount = registerUserInDb({
         fullName: cleanName,
         email: cleanEmail,
-        password,
+        password: password.trim(),
         phone: cleanPhone,
         role: cleanEmail.includes('admin') ? 'admin' : 'customer',
       });
 
-      // 3. Set active user session
+      // 3. Ensure pushed to Supabase Cloud
+      await pushUserToCloud(savedAccount);
+
+      // 4. Non-blocking attempt with Supabase Auth
+      if (isSupabaseConfigured) {
+        try {
+          supabase.auth.signUp({
+            email: cleanEmail,
+            password: password.trim(),
+            options: {
+              data: { full_name: cleanName, phone: cleanPhone },
+            },
+          }).catch(() => {});
+        } catch {}
+      }
+
+      // 5. Set active user session
       const profile: UserProfile = {
         id: savedAccount.id,
         email: savedAccount.email,

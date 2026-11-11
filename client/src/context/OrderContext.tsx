@@ -489,6 +489,8 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 .filter(
                   (r) =>
                     !r.raw_data?.is_test &&
+                    !r.raw_data?.is_system_registry &&
+                    !r.order_number?.startsWith('KV-SYS') &&
                     !r.order_number?.startsWith('KV-TEST') &&
                     !r.order_number?.startsWith('KV-SIZE') &&
                     !r.order_number?.startsWith('KV-CORRECT')
@@ -536,7 +538,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (key) map.set(key, co);
       });
 
-      // C. Populate missing local orders and preserve returnRequest
+      // C. Populate missing local orders and intelligently merge with cloud state
       localList.forEach((lo) => {
         const key = lo.id || lo.orderNumber;
         if (key) {
@@ -544,15 +546,58 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             map.set(key, lo);
           } else {
             const existing = map.get(key)!;
-            // Preserve returnRequest if present locally (prevent older server snapshot from wiping return request)
-            const mergedReturn = lo.returnRequest || existing.returnRequest;
+
+            // Intelligent Return Request merging:
+            let mergedReturn = existing.returnRequest || lo.returnRequest;
+            if (existing.returnRequest && lo.returnRequest) {
+              const cloudIsDecided =
+                existing.returnRequest.status === 'approved' ||
+                existing.returnRequest.status === 'rejected';
+              const localIsDecided =
+                lo.returnRequest.status === 'approved' ||
+                lo.returnRequest.status === 'rejected';
+
+              if (cloudIsDecided) {
+                // Cloud admin decision ALWAYS takes precedence over local pending
+                mergedReturn = {
+                  ...lo.returnRequest,
+                  ...existing.returnRequest,
+                  // Preserve video URL if local has full video
+                  videoUrl:
+                    existing.returnRequest.videoUrl && existing.returnRequest.videoUrl.length > 50
+                      ? existing.returnRequest.videoUrl
+                      : lo.returnRequest.videoUrl || existing.returnRequest.videoUrl,
+                  videoName: existing.returnRequest.videoName || lo.returnRequest.videoName,
+                };
+              } else if (localIsDecided) {
+                // Local decision takes precedence
+                mergedReturn = {
+                  ...existing.returnRequest,
+                  ...lo.returnRequest,
+                  videoUrl:
+                    lo.returnRequest.videoUrl && lo.returnRequest.videoUrl.length > 50
+                      ? lo.returnRequest.videoUrl
+                      : existing.returnRequest.videoUrl || lo.returnRequest.videoUrl,
+                  videoName: lo.returnRequest.videoName || existing.returnRequest.videoName,
+                };
+              } else {
+                // Both pending: combine information
+                mergedReturn = {
+                  ...existing.returnRequest,
+                  ...lo.returnRequest,
+                  videoUrl: lo.returnRequest.videoUrl || existing.returnRequest.videoUrl,
+                  videoName: lo.returnRequest.videoName || existing.returnRequest.videoName,
+                };
+              }
+            }
+
             map.set(key, {
-              ...existing,
               ...lo,
-              status: lo.status !== 'placed' && existing.status === 'placed' ? lo.status : existing.status,
+              ...existing,
+              status: existing.status || lo.status,
               carrier: existing.carrier || lo.carrier,
               trackingNumber: existing.trackingNumber || lo.trackingNumber,
-              returnRequest: mergedReturn
+              returnRequest: mergedReturn,
             });
           }
         }
@@ -578,15 +623,21 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
       }
 
-      // Automatically push any local orders or newer return requests to Supabase Cloud
+      // Automatically push any newly placed local orders or newly submitted return requests to Supabase Cloud
       if (isSupabaseConfigured && localList.length > 0) {
         localList.forEach(async (lo) => {
           const key = lo.id || lo.orderNumber;
           const co = cloudOrders.find((c) => (c.id || c.orderNumber) === key);
+          const isCloudDecided = co?.returnRequest?.status === 'approved' || co?.returnRequest?.status === 'rejected';
+
+          // Never push local pending return if cloud already approved or rejected it!
           const needsUpload =
             !co ||
-            (lo.returnRequest && (!co.returnRequest || co.returnRequest.status !== lo.returnRequest.status || (lo.returnRequest.videoUrl && !co.returnRequest.videoUrl)));
-          
+            (!isCloudDecided &&
+              lo.returnRequest &&
+              (!co.returnRequest ||
+                (lo.returnRequest.videoUrl && !co.returnRequest.videoUrl)));
+
           if (needsUpload) {
             const signature = `${key}_${lo.status}_${lo.returnRequest?.status || 'none'}`;
             if (!syncedSignaturesRef.current.has(signature)) {
@@ -752,14 +803,26 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                       hasNew = true;
                     } else {
                       const existing = map.get(k)!;
-                      if (
-                        o.returnRequest &&
-                        (!existing.returnRequest ||
-                          o.returnRequest.status !== existing.returnRequest.status ||
-                          (o.returnRequest.videoUrl && !existing.returnRequest.videoUrl))
-                      ) {
-                        map.set(k, { ...existing, returnRequest: o.returnRequest });
-                        hasNew = true;
+                      if (o.returnRequest) {
+                        const existingIsDecided = existing.returnRequest?.status === 'approved' || existing.returnRequest?.status === 'rejected';
+                        const incomingIsDecided = o.returnRequest.status === 'approved' || o.returnRequest.status === 'rejected';
+
+                        // Do not overwrite an already approved or rejected return with a pending return!
+                        if (
+                          !existing.returnRequest ||
+                          (incomingIsDecided && !existingIsDecided) ||
+                          (o.returnRequest.videoUrl && !existing.returnRequest.videoUrl)
+                        ) {
+                          map.set(k, {
+                            ...existing,
+                            returnRequest: {
+                              ...existing.returnRequest,
+                              ...o.returnRequest,
+                              videoUrl: o.returnRequest.videoUrl || existing.returnRequest?.videoUrl || '',
+                            },
+                          });
+                          hasNew = true;
+                        }
                       }
                     }
                   }
@@ -1227,11 +1290,6 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           if (custPrefix && custPrefix === emailPrefix) {
             return true;
           }
-        }
-
-        // 5. Orders placed during the current device session (safeguard for freshly placed orders)
-        if (!cleanEmail.includes('admin') && (sessionOrderIds.includes(o.id) || sessionOrderIds.includes(o.orderNumber))) {
-          return true;
         }
 
         return false;

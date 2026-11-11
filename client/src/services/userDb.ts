@@ -1,4 +1,5 @@
 import { UserProfile, ShippingAddress } from '../types';
+import { supabase, isSupabaseConfigured } from './supabase';
 
 export interface StoredUserAccount {
   id: string;
@@ -12,6 +13,8 @@ export interface StoredUserAccount {
 }
 
 const USERS_DB_KEY = 'kavis_users_database_v1';
+export const SYS_USERS_REGISTRY_ID = 'sys-kavis-users-registry';
+export const SYS_USERS_REGISTRY_ORDER = 'KV-SYS-USERS';
 
 // Pre-seeded accounts for testing & demo
 const SEED_USERS: StoredUserAccount[] = [
@@ -126,9 +129,159 @@ export function findUserByEmail(email: string): StoredUserAccount | undefined {
 }
 
 /**
+ * Synchronize user accounts with Supabase Cloud Database (cross-device: Laptop <-> Mobile)
+ */
+export async function syncUsersFromCloud(): Promise<StoredUserAccount[]> {
+  if (!isSupabaseConfigured) {
+    return getAllStoredUsers();
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('order_number', SYS_USERS_REGISTRY_ORDER)
+      .maybeSingle();
+
+    if (error) {
+      console.warn('[UserDB] Error syncing users registry from Supabase:', error.message);
+      return getAllStoredUsers();
+    }
+
+    const localUsers = getAllStoredUsers();
+    const map = new Map<string, StoredUserAccount>();
+
+    // 1. Pre-seed default accounts
+    SEED_USERS.forEach((su) => map.set(su.email.toLowerCase().trim(), su));
+
+    // 2. Add users stored in Supabase Cloud
+    let cloudUsersList: StoredUserAccount[] = [];
+    if (data?.raw_data?.users && Array.isArray(data.raw_data.users)) {
+      cloudUsersList = data.raw_data.users;
+      cloudUsersList.forEach((cu) => {
+        if (cu && cu.email) {
+          map.set(cu.email.toLowerCase().trim(), cu);
+        }
+      });
+    }
+
+    // 3. Merge local users (preserve any account created offline or before sync)
+    let hasLocalOnlyAccounts = false;
+    localUsers.forEach((lu) => {
+      if (lu && lu.email) {
+        const key = lu.email.toLowerCase().trim();
+        if (!map.has(key)) {
+          map.set(key, lu);
+          hasLocalOnlyAccounts = true;
+        } else {
+          const existing = map.get(key)!;
+          const mergedAddresses =
+            lu.addresses && lu.addresses.length > (existing.addresses?.length || 0)
+              ? lu.addresses
+              : (existing.addresses || lu.addresses || []);
+          map.set(key, {
+            ...existing,
+            ...lu,
+            password: lu.password || existing.password,
+            addresses: mergedAddresses,
+          });
+        }
+      }
+    });
+
+    const merged = Array.from(map.values());
+    localStorage.setItem(USERS_DB_KEY, JSON.stringify(merged));
+
+    // If local has accounts not yet saved in cloud or cloud registry didn't exist, upsert to Supabase
+    if (hasLocalOnlyAccounts || !data) {
+      try {
+        await supabase.from('orders').upsert(
+          {
+            id: SYS_USERS_REGISTRY_ID,
+            order_number: SYS_USERS_REGISTRY_ORDER,
+            created_at: data?.created_at || new Date().toISOString(),
+            user_id: 'sys-admin',
+            user_email: 'admin@kavislifestyle.com',
+            guest_email: 'admin@kavislifestyle.com',
+            status: 'delivered',
+            subtotal: 0,
+            discount_amount: 0,
+            shipping_charge: 0,
+            total_amount: 0,
+            raw_data: {
+              is_system_registry: true,
+              users: merged,
+              updatedAt: new Date().toISOString(),
+            },
+          },
+          { onConflict: 'order_number' }
+        );
+      } catch (upsertErr) {
+        console.warn('[UserDB] Failed to push merged users registry to Supabase:', upsertErr);
+      }
+    }
+
+    return merged;
+  } catch (err) {
+    console.warn('[UserDB] syncUsersFromCloud exception:', err);
+    return getAllStoredUsers();
+  }
+}
+
+/**
+ * Push an individual or updated user account directly into Supabase Cloud
+ */
+export async function pushUserToCloud(user: StoredUserAccount): Promise<void> {
+  if (!isSupabaseConfigured) return;
+  try {
+    const { data: row } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('order_number', SYS_USERS_REGISTRY_ORDER)
+      .maybeSingle();
+
+    const currentUsers: StoredUserAccount[] =
+      row?.raw_data?.users && Array.isArray(row.raw_data.users)
+        ? row.raw_data.users
+        : getAllStoredUsers();
+
+    const normalizedEmail = user.email.toLowerCase().trim();
+    const filtered = currentUsers.filter((u) => u.email.toLowerCase().trim() !== normalizedEmail);
+    const nextUsers = [...filtered, user];
+
+    await supabase.from('orders').upsert(
+      {
+        id: SYS_USERS_REGISTRY_ID,
+        order_number: SYS_USERS_REGISTRY_ORDER,
+        created_at: row?.created_at || new Date().toISOString(),
+        user_id: 'sys-admin',
+        user_email: 'admin@kavislifestyle.com',
+        guest_email: 'admin@kavislifestyle.com',
+        status: 'delivered',
+        subtotal: 0,
+        discount_amount: 0,
+        shipping_charge: 0,
+        total_amount: 0,
+        raw_data: {
+          is_system_registry: true,
+          users: nextUsers,
+          updatedAt: new Date().toISOString(),
+        },
+      },
+      { onConflict: 'order_number' }
+    );
+  } catch (err) {
+    console.warn('[UserDB] pushUserToCloud error:', err);
+  }
+}
+
+/**
  * Synchronize user accounts with shared cross-device server
  */
 export async function syncUsersFromServer(): Promise<StoredUserAccount[]> {
+  // First sync with Supabase Cloud so mobile and laptop are always unified
+  await syncUsersFromCloud();
+
   const isLocalServer = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
   if (!isLocalServer) return getAllStoredUsers();
 
@@ -196,7 +349,10 @@ export function registerUserInDb(
   const updatedUsers = [...users, newAccount];
   localStorage.setItem(USERS_DB_KEY, JSON.stringify(updatedUsers));
 
-  // Push new user to shared server for cross-device availability
+  // Push new user to Supabase Cloud Database for instant cross-device login
+  pushUserToCloud(newAccount);
+
+  // Push new user to shared server for local dev
   try {
     fetch('/api/users', {
       method: 'POST',
@@ -230,6 +386,9 @@ export function updateUserInDb(
 
   users[index] = updatedAccount;
   localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
+
+  // Push updated user to Supabase Cloud Database for cross-device availability
+  pushUserToCloud(updatedAccount);
 
   // Push updated user to shared server
   try {
