@@ -7,6 +7,11 @@ import {
   ExternalLink,
   Navigation,
   Car,
+  Store,
+  Sparkles,
+  CheckCircle2,
+  Scissors,
+  Compass,
 } from 'lucide-react';
 
 export const PhysicalStorefront: React.FC = () => {
@@ -120,25 +125,85 @@ export const PhysicalStorefront: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Visual Image */}
-          <div className="lg:col-span-5 relative">
-            <div className="relative rounded-3xl overflow-hidden shadow-xl border border-[#E5D8C5] aspect-4/3 sm:aspect-16/10 lg:aspect-4/3 group">
+          {/* Right Column: Storefront Atmosphere & In-Store Amenities */}
+          <div className="lg:col-span-5 flex flex-col justify-between space-y-4">
+            {/* Storefront Atmosphere Banner */}
+            <div className="relative rounded-3xl overflow-hidden shadow-md border border-[#E5D8C5] h-48 sm:h-52 group">
               <img
-                src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80"
-                alt="Kavi Boutique Flagship Storefront Lounge"
+                src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80"
+                alt="Kavi Boutique Flagship Store Interior"
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex flex-col justify-end p-6 text-white">
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#FF6B5B] bg-[#14213D]/90 px-2 py-0.5 rounded w-fit mb-1 border border-[#FF6B5B]/30">
-                  FLAGSHIP STUDIO • CHENNAI
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent flex flex-col justify-end p-5 text-white">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#FF6B5B] bg-[#14213D]/95 px-2.5 py-0.5 rounded w-fit mb-1 border border-[#FF6B5B]/30 flex items-center gap-1.5">
+                  <Store className="w-3 h-3 text-[#FF6B5B]" />
+                  <span>EXPERIENTIAL STOREFRONT • CHENNAI</span>
                 </span>
-                <h4 className="text-base sm:text-lg font-black text-white">
-                  Kavi Boutique Heritage Lounge
+                <h4 className="text-base font-black text-white">
+                  Kavi Boutique Flagship Showroom
                 </h4>
                 <p className="text-xs text-[#E5DCD3] mt-0.5">
-                  Usman Road, T. Nagar, Chennai — Experience the drape in person.
+                  Opp. Panagal Park, Usman Road, T. Nagar
                 </p>
+              </div>
+            </div>
+
+            {/* In-Store Amenities & Services */}
+            <div className="bg-[#FAF6EE] rounded-3xl p-5 border border-[#E5D8C5] shadow-2xs space-y-3.5">
+              <div className="flex items-center justify-between pb-2 border-b border-[#E5D8C5]">
+                <span className="text-xs font-black uppercase tracking-wider text-[#14213D] flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#FF6B5B]" />
+                  <span>In-Store Services & Amenities</span>
+                </span>
+                <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  Walk-ins Welcome
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                <div className="flex items-start gap-2 p-2.5 bg-white rounded-xl border border-[#E5D8C5]/70">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-[#14213D] text-[11px]">Saree Drape Studio</p>
+                    <p className="text-[10px] text-[#14213D]/70">Personal styling & trial mirrors</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2 p-2.5 bg-white rounded-xl border border-[#E5D8C5]/70">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-[#14213D] text-[11px]">Gourmet Tasting Counter</p>
+                    <p className="text-[10px] text-[#14213D]/70">Sample fresh Kashmiri harvests</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2 p-2.5 bg-white rounded-xl border border-[#E5D8C5]/70">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-[#14213D] text-[11px]">Kannauj Attar Bar</p>
+                    <p className="text-[10px] text-[#14213D]/70">Test pure botanical scents</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2 p-2.5 bg-white rounded-xl border border-[#E5D8C5]/70">
+                  <Scissors className="w-4 h-4 text-[#FF6B5B] shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-[#14213D] text-[11px]">Custom Blouse Stitching</p>
+                    <p className="text-[10px] text-[#14213D]/70">Measurement & tailoring on site</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-1 flex items-center justify-between text-[11px] text-[#14213D]/80">
+                <span className="flex items-center gap-1 font-medium">
+                  <Car className="w-3.5 h-3.5 text-[#FF6B5B]" />
+                  <span>Complimentary Valet at Gate 1</span>
+                </span>
+                <span className="flex items-center gap-1 font-medium">
+                  <Compass className="w-3.5 h-3.5 text-[#FF6B5B]" />
+                  <span>3 mins from T. Nagar Metro</span>
+                </span>
               </div>
             </div>
           </div>
