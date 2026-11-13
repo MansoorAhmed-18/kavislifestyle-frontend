@@ -96,17 +96,6 @@ export const StoreLocatorAndAboutUs: React.FC = () => {
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 text-white">
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#FFE169]">
-                  FLAGSHIP STUDIO • CHENNAI
-                </span>
-                <h3 className="text-base sm:text-lg font-black text-white mt-1">
-                  Kavi Boutique Heritage Lounge
-                </h3>
-                <p className="text-xs text-[#E5DCD3] mt-0.5">
-                  Usman Road, T. Nagar, Chennai — Experience the drape in person.
-                </p>
-              </div>
             </div>
           </div>
         </div>

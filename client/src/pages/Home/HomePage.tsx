@@ -5,7 +5,6 @@ import { TopStoreUpdateBanner } from '../../components/TopStoreUpdateBanner';
 import { DepartmentCards } from '../../components/DepartmentCards';
 import { FeaturedProducts } from '../../components/FeaturedProducts';
 import { TestimonialsSection } from '../../components/TestimonialsSection';
-import { PhysicalStorefront } from '../../components/PhysicalStorefront';
 import { Footer } from '../../components/Footer';
 
 export default function HomePage() {
@@ -29,9 +28,6 @@ export default function HomePage() {
 
         {/* Real Customer Stories & Reviews */}
         <TestimonialsSection />
-
-        {/* Physical Storefront & Chennai Flagship Studio */}
-        <PhysicalStorefront />
       </main>
 
       {/* Complete Footer */}
